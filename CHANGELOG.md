@@ -10,6 +10,15 @@
   - 本リポジトリはAI仕様駆動開発のフレームワーク・テンプレートに専念
 
 ### Added
+- **maxfiles 設定ガイドを運用ドキュメントとして追加**（2026-03-18）
+  - `docs/MAXFILES_SETUP_GUIDE.md` を新規追加
+    - macOS / Windows 向けのファイルディスクリプタ上限設定手順を整理
+    - VS Code、`git worktree`、大規模 `node_modules` を扱う際の前提設定を明記
+    - `EMFILE` やファイルウォッチャー停止に対するトラブルシューティングを追加
+  - `README.md` にセットアップ時の参照導線を追加
+  - `docs/OPERATIONAL_GUIDE.md` に関連ガイドとして参照を追加
+  - ルート直下の `MAXFILES_SETUP_GUIDE.md` を削除して docs 配下へ整理
+
 - **Issue起点のドキュメント管理戦略を書籍・テンプレートに追加**（2026-01-06）
   - **核心的な考え方**: `Issue = AIへのコンテキスト選択`
     - すべてのタスクで全7文書を読む必要はない

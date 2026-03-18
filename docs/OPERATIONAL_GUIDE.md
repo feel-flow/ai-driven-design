@@ -713,6 +713,7 @@ MUST: コミット前に最終チェックリストをすべてPASSさせる。
 
 **関連ガイド**:
 - **[AI_SPEC_DRIVEN_DEVELOPMENT.md](AI_SPEC_DRIVEN_DEVELOPMENT.md)**: AI駆動開発の概念と実践方法
+- **[MAXFILES_SETUP_GUIDE.md](MAXFILES_SETUP_GUIDE.md)**: macOS / Windows のファイルディスクリプタ上限設定と VS Code 安定化手順
 
 ---
 
