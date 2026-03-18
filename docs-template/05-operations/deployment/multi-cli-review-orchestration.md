@@ -30,17 +30,17 @@ Multi-CLI の全体オーケストレーションとは別に、**Claude系 + GP
 
 | パターン | 実行タイミング | 自動/提案 | 説明 |
 |---------|-------------|----------|------|
-| **Cross-Model Review** | セルフレビュー時 | 自動実行（必須） | Claude Toolkit + Codex CLI でデュアルレビュー |
+| **Cross-Model Review** | セルフレビュー時 | 必須（順次実行） | Claude Toolkit + Codex CLI でデュアルレビュー |
 | **Parallel Task Suggestion** | 独立サブタスク発見時 | ユーザーに提案 | 並列実行による効率化 |
 | **Second Opinion** | 設計判断の分岐点 | ユーザーに提案 | アーキテクチャ決定の第二意見 |
 
-#### Pattern 1: Cross-Model Review（必須・自動実行）
+#### Pattern 1: Cross-Model Review（必須・順次実行）
 
-PR Review Toolkit（Claude系）でのセルフレビュー後に自動実行します。
+PR Review Toolkit（Claude系）でのセルフレビュー後に続けて実行します。CLAUDE.md のワークフロー指示に基づき、AIツールが Toolkit → Codex CLI の順で実行します。
 
 ```bash
-# Toolkit レビュー後に実行（codex exec ベースで非インタラクティブ、バックグラウンド実行対応）
-npm run code-review:codex -- --base develop
+# Toolkit レビュー後に実行（codex exec ベース）
+bash scripts/codex-review.sh --branch
 ```
 
 レビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します。

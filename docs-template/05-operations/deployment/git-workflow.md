@@ -207,8 +207,8 @@ Claude系（Toolkit）とGPT系（Codex CLI）で異なるモデルの観点か�
 詳細は [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md#クロスモデルレビュー推奨パターン) を参照してください。
 
 ```bash
-# Toolkit セルフレビュー後に実行（非インタラクティブ、バックグラウンド実行対応）
-npm run code-review:codex -- --base develop
+# Toolkit セルフレビュー後に実行
+bash scripts/codex-review.sh --branch
 ```
 
 > **レビュー結果の対応**: 全てのレビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します。Critical/Warning は確認不要で即対応。
@@ -315,7 +315,7 @@ Closes #${ISSUE_NUM}
 
 **原則**: PR作成後、マージ前に `@review-router` エージェントで包括的なレビューを実施する
 
-> **動作**: `@review-router` は変更内容を分析し、[`.github/agents/`](../../.github/agents/) 配下に定義された個別レビューエージェント（`code-reviewer`、`error-handler-hunter` 等）に処理を振り分けます。各エージェントの定義は同ディレクトリ内の `*.agent.md` ファイルを参照してください。
+> **動作**: `@review-router` は変更内容を分析し、[`.github/agents/`](../../../.github/agents/) 配下に定義された個別レビューエージェント（`code-reviewer`、`error-handler-hunter` 等）に処理を振り分けます。各エージェントの定義は同ディレクトリ内の `*.agent.md` ファイルを参照してください。
 
 #### 実行方法
 

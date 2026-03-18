@@ -251,7 +251,7 @@ npm audit --audit-level=moderate
 Toolkit レビュー後、Codex CLI でクロスモデルレビューを実行し、異なるAIモデルの観点でレビュー品質を向上させます：
 
 ```bash
-npm run code-review:codex -- --base develop
+bash scripts/codex-review.sh --branch
 ```
 
 レビュー結果は [Review Response Policy](../docs-template/05-operations/deployment/review-response-policy.md) に従って対応（Critical/Warning は確認不要で即対応）。TodoWrite で対応項目を管理します。

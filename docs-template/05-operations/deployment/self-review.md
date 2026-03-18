@@ -124,8 +124,8 @@ PR Review Toolkit（Claude系）でのセルフレビューに加え、Codex CLI
 ### 実行方法
 
 ```bash
-# Toolkit レビュー後に実行（非インタラクティブ、バックグラウンド実行対応）
-npm run code-review:codex -- --base develop
+# Toolkit レビュー後に実行
+bash scripts/codex-review.sh --branch
 ```
 
 ### レビュー結果の対応
