@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.1.0"
+version: "1.2.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-03-10"
+updated: "2026-03-18"
 owner: "@fffokazaki"
-ace_entry_count: 3
+ace_entry_count: 4
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -175,7 +175,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category | process |
 | Origin | PR #316 / PR #319 |
 | Date | 2026-03-10 |
-| Helpful | 0 |
+| Helpful | 1 |
 | Harmful | 0 |
 | Status | active |
 
@@ -194,7 +194,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category | tooling |
 | Origin | PR #316 / Issue #315 |
 | Date | 2026-03-10 |
-| Helpful | 0 |
+| Helpful | 1 |
 | Harmful | 0 |
 | Status | active |
 
@@ -225,7 +225,35 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-004: ドキュメントの動作説明は実装メカニズムと一致させる
+
+| フィールド | 値 |
+|-----------|---|
+| Category | process |
+| Origin | PR #350 |
+| Date | 2026-03-18 |
+| Helpful | 0 |
+| Harmful | 0 |
+| Status | active |
+
+**Insight**: ドキュメントに「自動実行」と記載したが、実際にはCLAUDE.mdの指示に基づいてAIツールが順次実行する仕組みだった。「自動」「手動」「並列」「順次」等の動作表現が実装メカニズムと乖離すると、読者（人間・AI両方）が誤った前提で行動し、トラブルシューティング時に混乱する。
+
+**Context**: PR #350 のレビューでCodeRabbitが「自動実行」表現と`execute_tasks()`の実装（事前計画の一括/順次実行）の不一致を指摘。また`npm run code-review:codex`が`package.json`に未定義であることも発覚。ドキュメント作成時に「こうなるべき」を「こうなっている」として記述してしまうパターン。
+
+**Action**: ドキュメントに動作説明を書く際は、(1) 実装コード/設定ファイルで実際の動作を確認、(2) 記載するコマンドは実在を検証（`package.json`のscripts、`--help`出力等）、(3) 「自動」「手動」等の表現は実装メカニズムに基づいて正確に選択する。
+
+---
+
 ## Changelog
+
+### [1.2.0] - 2026-03-18
+
+#### 追加
+- ACE-004: ドキュメントの動作説明は実装メカニズムと一致させる
+
+#### 更新
+- ACE-001: Helpful +1（PR #350 でクロスモデルレビューの有効性が再確認）
+- ACE-002: Helpful +1（コマンド実在確認の重要性が再確認）
 
 ### [1.1.0] - 2026-03-10
 
