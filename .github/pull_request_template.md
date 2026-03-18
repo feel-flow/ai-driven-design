@@ -19,6 +19,12 @@
 - [ ] MCP check (`cd mcp && npm run check`): エラーなし（該当する場合）
 - [ ] テスト (`cd mcp && npm test`): パス（該当する場合）
 
+### Cross-Model Review Results
+
+- [ ] PR Review Toolkit: 実施済み
+- [ ] Codex CLI (`bash scripts/codex-review.sh --branch`): 実施済み
+- [ ] [Review Response Policy](docs-template/05-operations/deployment/review-response-policy.md) に従い対応済み
+
 ## Test plan
 
 <!-- テスト手順を記載してください -->

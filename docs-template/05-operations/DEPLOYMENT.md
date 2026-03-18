@@ -25,6 +25,9 @@ updated: "YYYY-MM-DD"
 | [ai-tools-integration.md](./deployment/ai-tools-integration.md) | AIツール統合設定 | ⭐⭐⭐ - |
 | [ci-cd.md](./deployment/ci-cd.md) | CI/CDパイプライン | ⭐⭐⭐ 4th |
 | [infrastructure.md](./deployment/infrastructure.md) | インフラ構成 | ⭐⭐⭐ - |
+| [multi-cli-review-orchestration.md](./deployment/multi-cli-review-orchestration.md) | Multi-CLI分散レビュー | ⭐⭐⭐ - |
+| [review-response-policy.md](./deployment/review-response-policy.md) | PRレビュー対応ポリシー | ⭐⭐⭐⭐ - |
+| [workflow-principles.md](./deployment/workflow-principles.md) | ワークフロー運用原則（3原則＋TodoWrite） | ⭐⭐⭐⭐ - |
 | [monitoring.md](./deployment/monitoring.md) | モニタリング | ⭐⭐ - |
 
 ## 🚀 クイックスタート（30秒で理解）
@@ -215,6 +218,9 @@ PRマージ後のブランチ切り替え忘れを防ぐため、セッション
 | ナレッジ記録方法 | [knowledge-management.md](./deployment/knowledge-management.md) | 全体 |
 | ACE Playbook更新 | [ace-cycle.md](./deployment/ace-cycle.md) | 全体 |
 | PRレビュー対応 | [git-workflow.md](./deployment/git-workflow.md) | ステップ7 |
+| レビュー結果の対応ルール | [review-response-policy.md](./deployment/review-response-policy.md) | 全体 |
+| ワークフロー運用原則 | [workflow-principles.md](./deployment/workflow-principles.md) | 全体 |
+| クロスモデルレビュー | [multi-cli-review-orchestration.md](./deployment/multi-cli-review-orchestration.md) | クロスモデルレビュー |
 | CI/CD設定 | [ci-cd.md](./deployment/ci-cd.md) | GitHub Actions |
 | インフラ構成 | [infrastructure.md](./deployment/infrastructure.md) | Terraform |
 | モニタリング | [monitoring.md](./deployment/monitoring.md) | CloudWatch |

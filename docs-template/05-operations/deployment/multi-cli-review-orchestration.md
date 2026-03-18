@@ -22,6 +22,45 @@
 
 ---
 
+## クロスモデルレビュー（推奨パターン）
+
+Multi-CLI の全体オーケストレーションとは別に、**Claude系 + GPT系のデュアルモデルレビュー**を軽量に実行するパターンです。異なるAIモデルの観点でレビュー品質を向上させます。
+
+### Codex CLI 3パターン
+
+| パターン | 実行タイミング | 自動/提案 | 説明 |
+|---------|-------------|----------|------|
+| **Cross-Model Review** | セルフレビュー時 | 必須（順次実行） | Claude Toolkit + Codex CLI でデュアルレビュー |
+| **Parallel Task Suggestion** | 独立サブタスク発見時 | ユーザーに提案 | 並列実行による効率化 |
+| **Second Opinion** | 設計判断の分岐点 | ユーザーに提案 | アーキテクチャ決定の第二意見 |
+
+#### Pattern 1: Cross-Model Review（必須・順次実行）
+
+PR Review Toolkit（Claude系）でのセルフレビュー後に続けて実行します。CLAUDE.md のワークフロー指示に基づき、AIツールが Toolkit → Codex CLI の順で実行します。
+
+```bash
+# Toolkit レビュー後に実行（codex exec ベース）
+bash scripts/codex-review.sh --branch
+```
+
+レビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します。
+
+#### Pattern 2: Parallel Task Suggestion（ユーザーに提案）
+
+独立したサブタスクが複数ある場合、ユーザーに並列実行を提案します。
+
+- 提案例：「テスト追加はCodex CLIに任せて、私はメインロジックを進めますか？」
+- AIツールは提案のみ、実行はユーザー判断
+
+#### Pattern 3: Second Opinion（ユーザーに提案）
+
+アーキテクチャ判断や設計の分岐点で、Codex CLIの意見を参考にすることを提案します。
+
+- 提案例：「この設計判断、Codex CLIでもセカンドオピニオン取ってみますか？」
+- AIツールは提案のみ、実行はユーザー判断
+
+---
+
 ## アーキテクチャ
 
 ### 全体構成

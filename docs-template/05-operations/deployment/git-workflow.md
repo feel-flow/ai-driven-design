@@ -8,6 +8,8 @@ AI開発ツールに最適化されたGit Flowベースのワークフローで�
 
 **コアサイクル（10ステップ）**: Issue → Branch → Implement → Test → Self-Review → PR → Review → ACE → Merge → Cleanup
 
+> **運用原則**: 本ワークフローは [ワークフロー運用原則](./workflow-principles.md)（ノンストップフロー・スコープ外Issue化・曖昧仕様確認タイミング）に従って運用します。
+
 ## ブランチ戦略
 
 ### ブランチ構造（Git Flow準拠）
@@ -199,40 +201,31 @@ Claude Codeのpr-review-toolkitサブエージェントを活用した包括的�
 | `comment-analyzer` | コメント・ドキュメント品質 | 不正確なコメント、JSDoc欠落 |
 | `code-simplifier` | 複雑度の削減提案 | 長関数、深いネスト |
 
-**Claude Code + Husky 自動レビュー（推奨）**:
+**Codex CLI クロスモデルレビュー（推奨）**:
+
+Claude系（Toolkit）とGPT系（Codex CLI）で異なるモデルの観点からレビューし、品質を向上させます。
+詳細は [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md#クロスモデルレビュー推奨パターン) を参照してください。
+
+```bash
+# Toolkit セルフレビュー後に実行
+bash scripts/codex-review.sh --branch
+```
+
+> **レビュー結果の対応**: 全てのレビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します。Critical/Warning は確認不要で即対応。
+
+**Claude Code + Husky 自動レビュー**:
 
 コミット時に自動でAIレビューを実行するシステムを導入できます。
 詳細は [自動コードレビュー](./automated-code-review.md) を参照してください。
 
-```bash
-# セットアップ（初回のみ）
-bash scripts/setup-multi-review.sh
-
-# 以降、git commit 時に自動でレビューが実行されます
-git commit -m "feat: 新機能を追加"
-# → Claude Code が自動でレビュー
-# → Critical な問題があればコミットをブロック
-```
-
 **Multi-CLI 分散レビュー（5 CLI統合）**:
 
-5つのAI CLI（Claude Code、Codex、Copilot、Gemini、Cursor）を統一的にオーケストレーションし、各CLIの得意分野とコスト特性を活かした包括的レビューを実行できます。
+5つのAI CLIを統一的にオーケストレーションする包括的レビューも利用可能です。
 詳細は [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md) を参照してください。
-
-```bash
-# デフォルト実行（全CLI、分散モード）
-bash scripts/multi-review.sh
-
-# コスト最小化（固定料金/無料CLIを優先）
-bash scripts/multi-review.sh --strategy minimize_cost
-
-# リリース前の品質最大化
-bash scripts/multi-review.sh --strategy maximize_quality
-```
 
 **ベストプラクティス**:
 - セルフレビューは15-30分程度で完了させる
-- 指摘事項は即座に修正
+- 指摘事項は [Review Response Policy](./review-response-policy.md) に従い即座に修正
 - 問題点は全て記録（ナレッジ蓄積のため）
 
 #### セルフレビュー結果の記録
@@ -321,6 +314,8 @@ Closes #${ISSUE_NUM}
 #### 7a. AIレビュールーターによるレビュー（PR作成後）
 
 **原則**: PR作成後、マージ前に `@review-router` エージェントで包括的なレビューを実施する
+
+> **動作**: `@review-router` は変更内容を分析し、[`.github/agents/`](../../../.github/agents/) 配下に定義された個別レビューエージェント（`code-reviewer`、`error-handler-hunter` 等）に処理を振り分けます。各エージェントの定義は同ディレクトリ内の `*.agent.md` ファイルを参照してください。
 
 #### 実行方法
 
@@ -490,26 +485,12 @@ mutation($body: String!) {
 /gemini review
 ```
 
-**悪いコメントの例**:
-
-```markdown
-修正しました。 ❌
-```
-
-→ 何を修正したか不明、レビュワーが再度コードを読む必要がある
-
-```markdown
-指摘された箇所を直しました。 ❌
-```
-
-→ 具体性がない、ファイルや行番号がない
+**悪いコメントの例**: 「修正しました。」「指摘された箇所を直しました。」→ 具体性がなく、レビュワーが再度コードを読む必要がある
 
 **コメント作成のチェックリスト**:
-- [ ] レビュワーへの感謝を表明
 - [ ] 修正内容を具体的に説明
 - [ ] 変更ファイルと行番号を明記
-- [ ] 修正理由を説明（なぜその方法を選んだか）
-- [ ] テストを追加した場合は言及
+- [ ] 修正理由を説明
 - [ ] 再レビュー依頼のコマンドを含める
 
 ### ステップ8: ACE ナレッジ体系化（マージ前）【重要】
@@ -709,6 +690,23 @@ git fetch --prune
 - ブランチは必ず削除（リモート・ローカル両方）
 - developを最新に更新してから次の作業へ
 
+## タスク管理（Task Tracking）
+
+ワークフローの進捗は TodoWrite で管理します。詳細は [ワークフロー運用原則](./workflow-principles.md#タスク管理-todowrite) を参照してください。
+
+**標準チェックリスト**:
+
+```
+1. [ ] GitHub Issue 作成
+2. [ ] feature ブランチ作成
+3. [ ] 実装
+4. [ ] テスト実行・合格確認
+5. [ ] セルフレビュー: PR Review Toolkit
+6. [ ] セルフレビュー: Codex CLI クロスモデルレビュー
+7. [ ] レビュー指摘修正・コミット
+8. [ ] Push + PR 作成
+```
+
 ## ワークフロー全体のベストプラクティス
 
 ### 1. Issue駆動開発の徹底
@@ -762,27 +760,11 @@ git push
 
 ### PRレビューが長期化した場合
 
-```bash
-# developの変更を定期的に取り込む
-git checkout feature/${ISSUE_NUM}-xxx
-git merge develop
-git push
-
-# PRコメントで状況を報告
-gh pr comment ${PR_NUMBER} --body "developの最新変更を取り込みました。レビューをお願いします。"
-```
+developの変更を定期的に取り込み（`git merge develop`）、PRコメントで状況を報告します。
 
 ### セルフレビューで重大な問題を発見した場合
 
-```bash
-# 問題が軽微: 修正してコミット追加
-git add .
-git commit -m "fix: セルフレビュー指摘事項を修正"
-
-# 問題が重大: PRを一旦クローズし、再設計
-gh pr close ${PR_NUMBER} --comment "重大な設計問題を発見したため、再設計します。"
-# 新しいIssueで対応
-```
+軽微な問題は修正してコミット追加。重大な問題はPRをクローズし、新しいIssueで再設計します。
 
 ## まとめ
 
@@ -798,82 +780,15 @@ gh pr close ${PR_NUMBER} --comment "重大な設計問題を発見したため�
 
 ## Obsidian統合による自動ナレッジベース管理
 
-### 概要
-
-developブランチへのマージ時、Husky post-mergeフックが自動的にドキュメントのバックリンクを更新します。これにより、ナレッジベースの整合性が常に保たれます。
-
-### 自動実行される処理
-
-マージ時に以下が自動実行されます：
-
-1. **バックリンク更新**: 各ドキュメント末尾の「## Linked from」セクションを更新
-2. **自動コミット**: 変更があれば `docs: Update backlinks [skip ci]` でコミット
-
-### セットアップ
-
-初回のみ、以下を実行してHuskyフックを設定：
+developブランチへのマージ時、Husky post-mergeフックがドキュメントのバックリンクを自動更新します。
 
 ```bash
+# セットアップ（初回のみ）
 npm run obsidian:setup
+
+# 手動実行
+npm run obsidian:sync -- backlinks   # バックリンク更新
+npm run obsidian:sync -- validate    # リンク検証
 ```
-
-### 動作確認
-
-```bash
-# 1. featureブランチで作業
-git checkout -b feature/#123-new-doc
-# ドキュメントを編集...
-
-# 2. developにマージ
-git checkout develop
-git merge feature/#123-new-doc
-
-# ⚡ post-mergeフックが自動実行され、バックリンクが更新される
-# 自動コミットが追加される
-```
-
-### 手動でのバックリンク更新
-
-必要に応じて手動で実行することも可能：
-
-```bash
-# バックリンク更新
-npm run obsidian:sync -- backlinks
-
-# リンク検証（PRマージ前の確認推奨）
-npm run obsidian:sync -- validate
-
-# ナレッジベースレポート
-npm run obsidian:sync -- report
-```
-
-### Obsidianでの閲覧
-
-1. Obsidianで `docs-template/` を Vault として開く
-2. グラフビューでドキュメント間の関連性を可視化
-3. バックリンクパネルで参照元を確認
 
 詳細は [OBSIDIAN_GUIDE.md](../../08-knowledge/OBSIDIAN_GUIDE.md) を参照してください。
-
-### トラブルシューティング
-
-**バックリンクが更新されない場合**:
-
-```bash
-# MCPサーバーをビルド
-cd mcp
-npm install
-npm run build
-
-# フックの実行権限を確認
-chmod +x .husky/post-merge
-```
-
-**リンクエラーが発生した場合**:
-
-```bash
-# リンク検証を実行
-npm run obsidian:sync -- validate
-
-# エラー内容を確認し、リンクを修正
-```

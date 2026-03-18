@@ -88,6 +88,19 @@ release/*     ← リリース準備（developから分岐）
 
 ---
 
+## 運用原則
+
+本ワークフローは以下の原則に従って運用します。詳細は [workflow-principles.md](../docs-template/05-operations/deployment/workflow-principles.md) を参照してください。
+
+| 原則 | 概要 |
+|------|------|
+| **ノンストップフロー** | Issue作成〜PR作成まで不要確認なしで一気通貫 |
+| **スコープ外発見のIssue化** | その場で修正せず新規Issue作成 |
+| **曖昧仕様の確認タイミング** | Issue着手前に確認、作業開始後は別Issue化 |
+| **TodoWrite タスク管理** | 標準チェックリストで進捗を可視化 |
+
+---
+
 ## 詳細ステップ
 
 ### ステップ1: Issue作成
@@ -233,6 +246,16 @@ npm audit --audit-level=moderate
 | `comment-analyzer` | コメント・ドキュメント品質 | 不正確なコメント、JSDoc欠落 |
 | `code-simplifier` | 複雑度の削減提案 | 長関数、深いネスト |
 
+#### デュアルモデルレビュー（Claude + Codex）
+
+Toolkit レビュー後、Codex CLI でクロスモデルレビューを実行し、異なるAIモデルの観点でレビュー品質を向上させます：
+
+```bash
+bash scripts/codex-review.sh --branch
+```
+
+レビュー結果は [Review Response Policy](../docs-template/05-operations/deployment/review-response-policy.md) に従って対応（Critical/Warning は確認不要で即対応）。TodoWrite で対応項目を管理します。
+
 ### ステップ6: PR作成
 
 ```bash
@@ -375,6 +398,9 @@ git fetch --prune
 
 - [git-workflow.md](../docs-template/05-operations/deployment/git-workflow.md) - 詳細ワークフロー
 - [self-review.md](../docs-template/05-operations/deployment/self-review.md) - セルフレビュー詳細
+- [review-response-policy.md](../docs-template/05-operations/deployment/review-response-policy.md) - PRレビュー対応ポリシー
+- [workflow-principles.md](../docs-template/05-operations/deployment/workflow-principles.md) - ワークフロー運用原則
+- [multi-cli-review-orchestration.md](../docs-template/05-operations/deployment/multi-cli-review-orchestration.md) - Multi-CLI分散レビュー・クロスモデルレビュー
 - [knowledge-management.md](../docs-template/05-operations/deployment/knowledge-management.md) - ナレッジ体系化詳細
 - [automated-code-review.md](../docs-template/05-operations/deployment/automated-code-review.md) - 自動コードレビュー
 

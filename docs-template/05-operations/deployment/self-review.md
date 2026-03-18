@@ -118,6 +118,29 @@ AIがレビュー結果を返したら、指摘事項があればその場で修
 
 ---
 
+## クロスモデルレビュー（Codex CLI）
+
+PR Review Toolkit（Claude系）でのセルフレビューに加え、Codex CLI（GPT系）でクロスモデルレビューを実行し、異なるAIモデルの観点からレビュー品質を向上させます。
+
+### 実行方法
+
+```bash
+# Toolkit レビュー後に実行
+bash scripts/codex-review.sh --branch
+```
+
+### レビュー結果の対応
+
+レビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します：
+
+- **Critical / Warning**: 確認不要で即座に修正
+- **Suggestion**: 妥当なものは修正
+- **Info / Good Practice**: 確認のみ
+
+詳細なパターン（Parallel Task Suggestion、Second Opinion）については [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md#クロスモデルレビュー推奨パターン) を参照してください。
+
+---
+
 ## その他の実行方法
 
 ### 自動化スクリプトの活用
