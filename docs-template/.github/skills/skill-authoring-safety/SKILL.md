@@ -99,12 +99,18 @@ function Remove-TempPathSafely($path, $tempRoot) {
     $resolvedPath = [System.IO.Path]::GetFullPath($path)
     $resolvedRoot = [System.IO.Path]::GetFullPath($tempRoot)
     $pathRoot = [System.IO.Path]::GetPathRoot($resolvedPath)
+  $normalizedRoot = $resolvedRoot.TrimEnd('\\', '/')
+  $rootWithSeparator = $normalizedRoot + [System.IO.Path]::DirectorySeparatorChar
 
     if ($resolvedPath -eq $pathRoot) {
         throw "Refusing to delete a drive root: $resolvedPath"
     }
 
-    if (-not $resolvedPath.StartsWith($resolvedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+    if ($resolvedPath -eq $normalizedRoot) {
+        throw "Refusing to delete the temp root itself: $resolvedPath"
+    }
+
+    if (-not $resolvedPath.StartsWith($rootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing to delete a path outside temp root: $resolvedPath"
     }
 

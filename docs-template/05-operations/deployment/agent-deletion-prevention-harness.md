@@ -122,21 +122,45 @@ function New-ScopedTempDirectory($sourceFilePath, $toolName) {
     }
 }
 
+function Remove-TempPathSafely($path, $sandboxRoot) {
+    $resolvedPath = [System.IO.Path]::GetFullPath($path)
+    $resolvedRoot = [System.IO.Path]::GetFullPath($sandboxRoot)
+    $pathRoot = [System.IO.Path]::GetPathRoot($resolvedPath)
+    $normalizedRoot = $resolvedRoot.TrimEnd('\\', '/')
+    $rootWithSeparator = $normalizedRoot + [System.IO.Path]::DirectorySeparatorChar
+
+    if ($resolvedPath -eq $pathRoot) {
+        throw "Refusing to delete a drive root: $resolvedPath"
+    }
+
+    if ($resolvedPath -eq $normalizedRoot) {
+        throw "Refusing to delete the sandbox root itself: $resolvedPath"
+    }
+
+    if (-not $resolvedPath.StartsWith($rootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to delete a path outside sandbox root: $resolvedPath"
+    }
+
+    if (Test-Path -LiteralPath $resolvedPath) {
+        Remove-Item -LiteralPath $resolvedPath -Recurse -Force
+    }
+}
+
 $tempContext = New-ScopedTempDirectory "<対象ファイルパス>" "openxml-reader"
 $sandboxRoot = $tempContext.SandboxRoot
 $extractRoot = $tempContext.ExtractRoot
 Expand-Archive -Path "<対象ファイルパス>" -DestinationPath $extractRoot -Force
 
 # 作業完了後は sandboxRoot 配下のみ cleanup する
-if ($extractRoot.StartsWith($sandboxRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    Remove-Item -LiteralPath $extractRoot -Recurse -Force
-}
+Remove-TempPathSafely $extractRoot $sandboxRoot
 ```
 
 **このパターンの要点**:
 - `Get-Location` ではなく対象ファイル基準で temp を作る
 - 対象ファイルの近傍に専用 sandbox を閉じ込める
 - 削除対象を 1 つの検証済みディレクトリに限定する
+- sandbox root 自体の削除を禁止する
+- 文字列 prefix ではなくディレクトリ境界つきで配下判定する
 - ワイルドカード削除を使わない
 - プロジェクト外の絶対パスを使わない
 - cleanup 前に許可済みルート配下か検証する
