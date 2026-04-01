@@ -330,6 +330,24 @@ AIがGit hookの存在を知らないと、hook失敗時に混乱したり、`--
 **AI向けルール**: hookは絶対にユーザーの許可なくスキップしないこと（`--no-verify`, `SKIP_*=1`）
 ```
 
+### 削除防止ハーネスの追加
+
+hooks を導入する場合、lint や format だけではなく **削除事故防止** を最優先で含めることを推奨します。
+
+特に GitHub Copilot Agent のように terminal を使うAIでは、workspace 内編集と terminal cleanup を分けて扱う必要があります。file edit は workspace 境界の中で扱えても、terminal cleanup は cwd やシェル構文の影響を受けるためです。
+
+最低限、設定ファイルまたは hook で以下を明文化してください。
+
+- 削除系コマンドは auto-approve に入れない
+- 相対パス削除を禁止する
+- ワイルドカード削除を禁止する
+- cleanup 対象は workspace 配下の専用ディレクトリに限定する
+- `Bypass Approvals` や `Autopilot` を使う場合も `PreToolUse` hook を最終防衛線にする
+
+Windows を主対象とする場合は、sandbox を前提にせず approval と hook で防御する設計が必要です。macOS では sandbox による補強が可能ですが、sandbox は削除禁止ではなく境界制御です。
+
+詳細な設計標準は [agent-deletion-prevention-harness.md](../docs-template/05-operations/deployment/agent-deletion-prevention-harness.md) を参照してください。
+
 ---
 
 ## 8. Common Issuesテーブル
@@ -373,6 +391,7 @@ CLAUDE.mdはClaude Codeが自動的に読み込む設定ファイルです。マ
 - [x] **スコープ外問題の取り扱い**
 - [x] **Review Feedback Responseパターン**
 - [x] **Automated Hooks 情報**
+- [x] **削除防止ハーネス情報**
 - [x] **Common Issues テーブル**
 - [x] 参照ドキュメント一覧
 

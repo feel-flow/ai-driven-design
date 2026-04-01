@@ -14,12 +14,13 @@ updated: "YYYY-MM-DD"
 ## 📖 構成
 
 | ドキュメント | 内容 | 推奨読み順 |
-|------------|------|----------|
+| ------------ | ---- | ---------- |
 | [github-setup.md](./deployment/github-setup.md) | GitHub初期設定（ラベル・Release Drafter） | ⭐⭐⭐⭐⭐ 0th |
 | [git-workflow.md](./deployment/git-workflow.md) | AI駆動Git Workflow全体 | ⭐⭐⭐⭐⭐ 1st |
 | [self-review.md](./deployment/self-review.md) | セルフレビュー詳細（PR作成前） | ⭐⭐⭐⭐ 2nd |
 | [devin-pre-pr-review.md](./deployment/devin-pre-pr-review.md) | Devin Pre-PRレビューシステム（5エージェント並列） | ⭐⭐⭐⭐ 2.5th |
 | [automated-code-review.md](./deployment/automated-code-review.md) | 自動コードレビュー（Claude Code + Husky） | ⭐⭐⭐⭐ - |
+| [agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md) | 削除事故防止ハーネス設計 | ⭐⭐⭐⭐ - |
 | [knowledge-management.md](./deployment/knowledge-management.md) | ナレッジ体系化（マージ前） | ⭐⭐⭐⭐ 3rd |
 | [ace-cycle.md](./deployment/ace-cycle.md) | ACEサイクル（Playbook増分更新） | ⭐⭐⭐⭐ 3.5th |
 | [ai-tools-integration.md](./deployment/ai-tools-integration.md) | AIツール統合設定 | ⭐⭐⭐ - |
@@ -80,6 +81,7 @@ Git Flowベースで、**テスト・セルフレビュー（PR前）** と **AC
 - **セルフレビュー**: [deployment/self-review.md](./deployment/self-review.md)
 - **ナレッジ管理**: [deployment/knowledge-management.md](./deployment/knowledge-management.md)
 - **AIツール統合**: [deployment/ai-tools-integration.md](./deployment/ai-tools-integration.md)
+- **削除事故防止**: [deployment/agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md)
 
 ### ブランチ戦略（Git Flow準拠）
 
@@ -117,7 +119,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 ### 環境構成
 
 | 環境 | 用途 | URL例 | インフラ |
-|------|------|-------|---------|
+| ---- | ---- | ----- | -------- |
 | Development | 開発環境 | dev.example.com | 軽量構成 |
 | Staging | ステージング | staging.example.com | 本番同等 |
 | Production | 本番環境 | app.example.com | 高可用性 |
@@ -184,7 +186,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 ### 定期メンテナンス
 
 | タスク | 頻度 | 手順 | 担当 |
-|-------|------|------|------|
+| ----- | ---- | ---- | ---- |
 | セキュリティパッチ | 月次 | patch-update.sh | DevOps |
 | 証明書更新 | 3ヶ月 | cert-renewal.sh | DevOps |
 | ログローテーション | 週次 | 自動 | - |
@@ -212,7 +214,7 @@ PRマージ後のブランチ切り替え忘れを防ぐため、セッション
 ### 検索クエリマッピング
 
 | 知りたいこと | 参照ドキュメント | セクション |
-|------------|----------------|----------|
+| ------------ | ---------------- | ---------- |
 | Gitワークフロー全体 | [git-workflow.md](./deployment/git-workflow.md) | 全体 |
 | セルフレビュー方法 | [self-review.md](./deployment/self-review.md) | 全体 |
 | ナレッジ記録方法 | [knowledge-management.md](./deployment/knowledge-management.md) | 全体 |
@@ -220,6 +222,7 @@ PRマージ後のブランチ切り替え忘れを防ぐため、セッション
 | PRレビュー対応 | [git-workflow.md](./deployment/git-workflow.md) | ステップ7 |
 | レビュー結果の対応ルール | [review-response-policy.md](./deployment/review-response-policy.md) | 全体 |
 | ワークフロー運用原則 | [workflow-principles.md](./deployment/workflow-principles.md) | 全体 |
+| 削除事故防止ハーネス | [agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md) | 全体 |
 | クロスモデルレビュー | [multi-cli-review-orchestration.md](./deployment/multi-cli-review-orchestration.md) | クロスモデルレビュー |
 | CI/CD設定 | [ci-cd.md](./deployment/ci-cd.md) | GitHub Actions |
 | インフラ構成 | [infrastructure.md](./deployment/infrastructure.md) | Terraform |
