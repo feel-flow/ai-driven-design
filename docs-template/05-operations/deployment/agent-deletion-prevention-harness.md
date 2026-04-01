@@ -6,9 +6,54 @@
 
 AIエージェントによる削除事故を防ぐための多層防御ハーネスを定義します。
 
-この文書の主対象は **Windows 環境** です。macOS は terminal sandbox による補強が可能ですが、sandbox は削除禁止ではなく境界制御であるため、本書では補足扱いに留めます。
+この文書の主対象は **Windows 環境** です。macOS は一部ツールで terminal sandbox による補強が可能ですが、sandbox は削除禁止ではなく境界制御であるため、本書では補足扱いに留めます。
 
 本ハーネスは、テンポラリファイルの作成位置を直接指定できない場合でも、cleanup を含む破壊的操作を安全側に倒すことを目的とします。
+
+## ツール別の適用範囲
+
+この文書は **OS 前提** と **ツール前提** を分けて読む必要があります。
+
+- Windows / macOS の記述は、まず OS レベルで使える防御手段の差を説明している
+- `chat.tools.terminal.autoApprove` や `PreToolUse` hook などの設定名は、主に **GitHub Copilot in VS Code / Agent Mode** の具体例である
+- Claude Code と Cursor にも同じ設計原則は適用できるが、機能名や設定面は同一とは限らない
+
+### GitHub Copilot
+
+本書で最も具体的に想定しているのは GitHub Copilot の Agent Mode / VS Code 統合です。
+
+特に以下は Copilot / VS Code 側の具体的な制御例です。
+
+- `chat.tools.terminal.autoApprove`
+- `chat.tools.terminal.blockDetectedFileWrites`
+- `PreToolUse` hook
+- terminal sandbox
+
+したがって、本書の後半に出てくる設定キーや hook 名は、まず Copilot の具体実装例として読んでください。
+
+### Claude Code
+
+Claude Code でも「workspace 外削除を許さない」「cleanup 対象を専用領域に限定する」「approval を最終防衛線にしない」という原則自体は同じです。
+
+ただし、Copilot / VS Code の設定キーをそのまま Claude Code に適用できるとは限りません。
+Claude Code では、その時点で利用できる sandbox、approval、hook、worktree、実行環境分離の仕組みに読み替えて適用する必要があります。
+
+### Cursor
+
+Cursor でも原則は同じです。
+ただし、Copilot のような VS Code 固有の設定名や Claude Code 固有の実行モデルをそのまま前提にはできません。
+
+そのため Cursor では、利用可能な approval、rules、workspace 制限、OS 側の隔離、外部スクリプトや hook などを組み合わせて、同等の防御を構成する前提で読むべきです。
+
+### 重要な読み替えルール
+
+本書では、ツールごとの差異があっても以下は共通原則とします。
+
+1. 削除系コマンドを自動承認しない
+2. cleanup 対象を workspace 内の専用ディレクトリに閉じ込める
+3. 相対削除、ワイルドカード削除、root 削除を禁止する
+4. sandbox があっても、それだけで安全とはみなさない
+5. ツール固有機能が弱い場合は、OS・コンテナ・worktree・wrapper script 側で補う
 
 ---
 
@@ -171,17 +216,17 @@ Remove-TempPathSafely $extractRoot $sandboxRoot
 
 | 項目 | Windows | macOS |
 | ---- | ------- | ----- |
-| terminal sandbox | 基本的に利用不可 | 利用可能 |
+| terminal sandbox | 基本的に前提にしにくい | 一部ツールで利用可能 |
 | 削除防止の主手段 | approval + hook + deny ルール | approval + hook + deny ルール + sandbox |
 | 推奨方針 | terminal cleanup を強く制限 | sandbox で境界制御しつつ削除自体は hook で制限 |
 
 ### Windows
 
-Windows では sandbox を前提にできないため、削除防止は以下の多層防御で成立させる。
+Windows では sandbox を前提にしにくいため、削除防止は以下の多層防御で成立させる。
 
 ### macOS
 
-macOS では sandbox で許可範囲外へのアクセスを抑制できる。
+macOS では、対応ツールに限れば sandbox で許可範囲外へのアクセスを抑制できる。
 ただし、sandbox 内では削除も可能であるため、sandbox は削除禁止機能ではない。
 
 ---
@@ -196,6 +241,8 @@ macOS では sandbox で許可範囲外へのアクセスを抑制できる。
 | `chat.tools.terminal.blockDetectedFileWrites` | workspace 外書き込みの検知 | 外側への明白な write | 検知漏れする複雑構文 |
 | `PreToolUse` hook | 実行前に強制ブロック | 危険コマンド、危険パス、相対削除 | hook 自体の不備 |
 | Agent Debug Logs / Chat Debug View | 監査と原因分析 | 事故原因の特定 | 実行済みの削除 |
+
+※ 上記の設定キーは Copilot / VS Code の具体例であり、Claude Code や Cursor では同等機能へ読み替える。
 
 **結論**: hook が最終防衛線であり、instructions だけでは不十分。
 
@@ -260,7 +307,7 @@ cleanup 前に以下を満たすこと:
 
 ## macOS 向け補強構成
 
-macOS では、Windows 向け最小構成に加えて terminal sandbox を有効化する。
+macOS では、対応ツールを使う場合に限り、Windows 向け最小構成に加えて terminal sandbox を有効化する。
 
 ### sandbox の使い方
 
