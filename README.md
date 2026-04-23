@@ -125,7 +125,7 @@ docs/
 
 ## 関連書籍
 
-本フレームワークの背景と実践を解説する書籍を含む、AI 開発シリーズの全 11 冊です。
+本フレームワークの背景と実践を解説する書籍を含む、AI開発シリーズの全 11 冊です。
 
 ### Agent Skills 実践ガイド シリーズ
 
@@ -196,7 +196,10 @@ docs/
       <h4>AI仕様駆動開発</h4>
       <p><em>AIエージェント開発の新常識</em></p>
       <p>AIが仕様に基づいて安全に開発を実行できるよう、コア7文書構成で開発プロセスを定義。手戻りゼロの開発フローを実現する体系的なメソッド。Claude Code / GitHub Copilot / Cursor を使うエンジニア・テックリード向け。本リポジトリの背景となる書籍。</p>
-      <p><strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0GHHVX1NY">Kindleストアで見る</a></p>
+      <p>
+        <strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0GHHVX1NY">Kindleストアで見る</a> ｜
+        <strong>ペーパーバック</strong>: <a href="https://amzn.asia/d/03bcN32G">Amazon.co.jpで見る</a>
+      </p>
     </td>
   </tr>
 </table>
@@ -210,7 +213,10 @@ docs/
       <h4>コンテキストエンジニアリング入門</h4>
       <p><em>9割のエンジニアが知らないLLMの3つの死角</em></p>
       <p>AI仕様駆動開発の原点となる理論書。Lost in the Middle、Lost at the Beginning of Reasoning、70%問題——LLMが抱える3つの死角を科学的に解説し、コンテキスト縮小戦略とスコープ収束パターンでAIの精度を意図的に設計する方法を学ぶ。</p>
-      <p><strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0F1S6KF5Q">Kindleストアで見る</a></p>
+      <p>
+        <strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0F1S6KF5Q">Kindleストアで見る</a> ｜
+        <strong>ペーパーバック</strong>: <a href="https://amzn.asia/d/07ycceB8">Amazon.co.jpで見る</a>
+      </p>
     </td>
   </tr>
 </table>
