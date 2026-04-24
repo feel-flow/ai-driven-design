@@ -577,6 +577,34 @@ async function fetchWithRetry(url: string) {
 }
 ```
 
+## 11. 配置判断（Decision Tree）
+
+新機能・新モジュール追加時の「どこに書くか」の判断は [DECISION_TREE.md](./DECISION_TREE.md) に委ねる。
+
+本セクションは索引であり、実体は DECISION_TREE.md 側で維持する。
+
+### 使い所
+
+- 新規ファイル作成前の配置判断
+- レビュー時の配置妥当性確認
+- AI（Claude Code / Cursor / Copilot）が新規コード生成する際の参照元
+
+### 概要
+
+Decision Tree は 7 分岐（Q0〜Q6）で構成される：
+
+| 分岐 | 判定観点 |
+|------|---------|
+| Q0 | コード変更 or ドキュメント |
+| Q1 | 外部システム通信（境界モジュール） |
+| Q2 | リクエスト入口（HTTP エンドポイント） |
+| Q3 | オーケストレーション（ユースケース） |
+| Q4 | 永続化・状態保持 |
+| Q5 | ドメインモデル |
+| Q6 | 横断的関心事 |
+
+詳細な分岐内容とチェックリストは [DECISION_TREE.md](./DECISION_TREE.md) を参照。
+
 ## Changelog
 
 ### [1.0.0] - YYYY-MM-DD
