@@ -594,7 +594,7 @@ async function fetchWithRetry(url: string) {
 Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 | 分岐 | 判定観点 |
-|------|---------|
+| --- | --- |
 | Q0 | コード変更 or ドキュメント |
 | Q1 | 外部システム通信（境界モジュール） |
 | Q2 | リクエスト入口（HTTP エンドポイント） |

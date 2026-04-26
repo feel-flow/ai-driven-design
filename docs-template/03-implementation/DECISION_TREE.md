@@ -83,7 +83,7 @@ Q6. 横断的関心事？（Cross-cutting）
 > Q1〜Q6 を書き換えた場合は本表も同じ分類で更新する。
 
 | 追加種別 (Q番号) | 実装先 | テスト追加先 | 必須ドキュメント更新 |
-|------------------|--------|--------------|---------------------|
+| --- | --- | --- | --- |
 | 外部 API クライアント (Q1) | `infrastructure/clients/` | `tests/infrastructure/` | ARCHITECTURE.md |
 | DB アクセス (Q1) | `infrastructure/repositories/` | `tests/infrastructure/` | ARCHITECTURE.md |
 | REST ルート (Q2) | `interfaces/controllers/` | `tests/interfaces/` | ARCHITECTURE.md |

@@ -21,7 +21,7 @@ AI エージェント（Claude Code / Cursor / Copilot）が AI-SDD 採用プロ
 ## 対象スコープ
 
 | Issue 受け入れ基準 | スコープ | 本仕様での扱い |
-|-------------------|---------|---------------|
+| --- | --- | --- |
 | PATTERNS.md に Decision Tree セクション追加 | ✅ | 新セクション「11. 配置判断」として索引＋委譲 |
 | PATTERNS.md に追加先チェックリスト追加 | ✅ | DECISION_TREE.md 側に 3 列表として実装 |
 | templates/ ディレクトリ導入ガイド（Layer 2） | ❌ | 別 Issue |
@@ -31,7 +31,7 @@ AI エージェント（Claude Code / Cursor / Copilot）が AI-SDD 採用プロ
 ## 作成・変更ファイル一覧
 
 | ファイル | 種別 | 説明 |
-|---------|------|------|
+| --- | --- | --- |
 | `docs-template/03-implementation/DECISION_TREE.md` | 新規 | Decision Tree 本体・チェックリスト・プロジェクト固有化手順 |
 | `docs-template/03-implementation/PATTERNS.md` | 変更 | 新セクション「11. 配置判断（Decision Tree）」を追加、DECISION_TREE.md へ委譲 |
 | `docs-template/MASTER.md` | 変更 | コーディングルール節に Decision Tree への一文リンクを追加 |
@@ -147,7 +147,7 @@ Q6. 横断的関心事？（Cross-cutting）
 > Q1〜Q6 を書き換えた場合は本表も同じ分類で更新する。
 
 | 追加種別 (Q番号) | 実装先 | テスト追加先 | 必須ドキュメント更新 |
-|------------------|--------|--------------|---------------------|
+| --- | --- | --- | --- |
 | 外部 API クライアント (Q1) | infrastructure/clients/ | tests/infrastructure/ | ARCHITECTURE.md |
 | DB アクセス (Q1) | infrastructure/repositories/ | tests/infrastructure/ | ARCHITECTURE.md |
 | REST ルート (Q2) | interfaces/controllers/ | tests/interfaces/ | ARCHITECTURE.md |
@@ -223,7 +223,7 @@ Q6. 横断的関心事？（Cross-cutting）
 Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 | 分岐 | 判定観点 |
-|------|---------|
+| --- | --- |
 | Q0 | コード変更 or ドキュメント |
 | Q1 | 外部システム通信（境界モジュール） |
 | Q2 | リクエスト入口（HTTP エンドポイント） |
@@ -283,7 +283,7 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 Decision Tree はドキュメントのため実行時例外はない。代わりに **テンプレ採用時・運用時の失敗モード** と防御策を定義する。
 
 | # | 失敗モード | 発生タイミング | 防御策 |
-|---|-----------|---------------|--------|
+| --- | --- | --- | --- |
 | F1 | Web API サンプルのパスが消えないまま使われる | 採用直後、「4. プロジェクト固有化」手順をスキップ | ファイル冒頭に `⚠️ SAMPLE` バナー |
 | F2 | 自プロジェクトと合わない分岐が残る | CLI/バッチ/Lambda 等異なるドメイン | Q2 等の末尾に「該当しない → 該当 Q セクションごと削除可」明記 |
 | F3 | Decision Tree とコード実態の乖離 | リファクタ後に更新忘れ | Changelog に「構造変更時は本ファイルも同時更新」注記 |
@@ -293,7 +293,7 @@ Decision Tree はドキュメントのため実行時例外はない。代わり
 ### 7. テスト
 
 | レイヤー | 検証項目 | 実行コマンド | 合格基準 |
-|---------|----------|--------------|---------|
+| --- | --- | --- | --- |
 | L1: Lint | Markdown 形式・リンク妥当性 | `npm run lint:md` | エラー 0 |
 | L2: 文書整合性 | docs-template 全体の構造整合性 | `npm run validate` | 新規追加ファイルが警告を出さない |
 | L3: MCP サーバー | 新 DECISION_TREE.md がスキャン対象に含まれる | `npm run check` | exit code 0、警告なし |

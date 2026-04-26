@@ -17,7 +17,7 @@
 ## File Structure
 
 | ファイル | 種別 | 責務 |
-|---------|------|------|
+| --- | --- | --- |
 | `docs-template/03-implementation/DECISION_TREE.md` | 新規 | Decision Tree 本体、チェックリスト、プロジェクト固有化手順、参考実装リンク |
 | `docs-template/03-implementation/PATTERNS.md` | 変更 | 新セクション「11. 配置判断（Decision Tree）」を Changelog 前に挿入 |
 | `docs-template/MASTER.md` | 変更 | 「コード生成ルール > 必須事項」に 7 番目「配置判断」を追加 |
@@ -122,7 +122,7 @@ Q6. 横断的関心事？（Cross-cutting）
 > Q1〜Q6 を書き換えた場合は本表も同じ分類で更新する。
 
 | 追加種別 (Q番号) | 実装先 | テスト追加先 | 必須ドキュメント更新 |
-|------------------|--------|--------------|---------------------|
+| --- | --- | --- | --- |
 | 外部 API クライアント (Q1) | `infrastructure/clients/` | `tests/infrastructure/` | ARCHITECTURE.md |
 | DB アクセス (Q1) | `infrastructure/repositories/` | `tests/infrastructure/` | ARCHITECTURE.md |
 | REST ルート (Q2) | `interfaces/controllers/` | `tests/interfaces/` | ARCHITECTURE.md |
@@ -255,7 +255,7 @@ Edit `docs-template/03-implementation/PATTERNS.md`:
 Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 | 分岐 | 判定観点 |
-|------|---------|
+| --- | --- |
 | Q0 | コード変更 or ドキュメント |
 | Q1 | 外部システム通信（境界モジュール） |
 | Q2 | リクエスト入口（HTTP エンドポイント） |
