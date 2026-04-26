@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.2.0"
+version: "1.3.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-03-18"
+updated: "2026-04-26"
 owner: "@fffokazaki"
-ace_entry_count: 4
+ace_entry_count: 6
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -244,7 +244,51 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-005: 索引と実体を分離する委譲パターンでAIコンテキスト消費を抑える
+
+| フィールド | 値 |
+| --- | --- |
+| Category | architecture |
+| Origin | PR #369 / Issue #368 |
+| Date | 2026-04-26 |
+| Helpful | 0 |
+| Harmful | 0 |
+| Status | active |
+
+**Insight**: AI が常時参照する中心文書（MASTER.md / PATTERNS.md 等）には **索引（概要 + リンク）のみ** を置き、実体は専用ファイルに分離する委譲パターンを採用すると、AI は必要なときだけ実体ファイルをロードできるためコンテキスト消費が抑えられる。文書側の認知負荷も下がり、レビューしやすい diff になる。
+
+**Context**: PR #369 で Decision Tree（配置判断ガイド）を docs-template に追加する際、既存の `FALLBACK.md`（PATTERNS.md 3.3 節から委譲）と同じ構造を採用。MASTER.md には 1 行リンクのみ、PATTERNS.md には「概要表 + 詳細リンク」の索引セクション（11節）、実体は新規 `DECISION_TREE.md` に集約。pr-review-toolkit / Codex の 5/5 レビューでも整合的な階層として APPROVED。
+
+**Action**: docs-template に大型ガイド（100行超）を追加する際は、(1) MASTER.md など最上位文書には**1〜2行のリンクのみ** 追加、(2) PATTERNS.md など中間文書には「概要表 + 詳細リンク」の索引セクションを置く、(3) 実体は専用ファイルに集約。既存の参照実装: `FALLBACK.md`, `DECISION_TREE.md`。
+
+---
+
+### ACE-006: サンプル付きテンプレファイルには⚠️SAMPLEバナーと固有化手順を必ず併設する
+
+| フィールド | 値 |
+| --- | --- |
+| Category | tooling |
+| Origin | PR #369 / Issue #368 |
+| Date | 2026-04-26 |
+| Helpful | 0 |
+| Harmful | 0 |
+| Status | active |
+
+**Insight**: docs-template/ 配下のテンプレで具体例（特定ドメインのパス・名前）を含める場合、採用プロジェクトが固有化を忘れて「サンプルのまま運用される」失敗モードが発生する。冒頭の **⚠️ SAMPLE バナー** と末尾の **「プロジェクト固有化の手順」** セクションをセットで配置することで、採用時の見落としを構造的に防げる。
+
+**Context**: PR #369 の `DECISION_TREE.md` は Web API バックエンドをサンプルドメインとして `infrastructure/clients/` 等の具体的パスを含む構成にした。設計時の失敗モード分析で「Web API サンプルのパスが消えないまま使われる（F1）」「自プロジェクトと合わない分岐が残る（F2）」を識別し、防御策として SAMPLE バナーとプロジェクト固有化手順（コピー → 書き換え → バナー削除 → frontmatter 更新）を明文化。
+
+**Action**: docs-template に具体例（コードパス、ドメイン名、実装名）を含む新規テンプレファイルを追加する際は: (1) ファイル冒頭に `> ⚠️ **SAMPLE — テンプレートです**` 引用ブロックと書き換え案内を配置、(2) 末尾に「プロジェクト固有化の手順」セクション（番号付き手順 + frontmatter の `created/updated/owner` 置換まで含める）を配置、(3) 該当しない分岐・セクションは「**該当セクションごと削除してよい**」と明記、(4) 該当する失敗モード（採用後にサンプルのまま残る等）を仕様書側にリストアップしておく。
+
+---
+
 ## Changelog
+
+### [1.3.0] - 2026-04-26
+
+#### 追加
+- ACE-005: 索引と実体を分離する委譲パターンでAIコンテキスト消費を抑える
+- ACE-006: サンプル付きテンプレファイルには⚠️SAMPLEバナーと固有化手順を必ず併設する
 
 ### [1.2.0] - 2026-03-18
 
