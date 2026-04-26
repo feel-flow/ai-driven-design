@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.3.0"
+version: "1.4.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-04-26"
+updated: "2026-04-27"
 owner: "@fffokazaki"
-ace_entry_count: 6
+ace_entry_count: 9
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -175,7 +175,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category | process |
 | Origin | PR #316 / PR #319 |
 | Date | 2026-03-10 |
-| Helpful | 1 |
+| Helpful | 2 |
 | Harmful | 0 |
 | Status | active |
 
@@ -194,7 +194,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category | tooling |
 | Origin | PR #316 / Issue #315 |
 | Date | 2026-03-10 |
-| Helpful | 1 |
+| Helpful | 2 |
 | Harmful | 0 |
 | Status | active |
 
@@ -232,7 +232,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category | process |
 | Origin | PR #350 |
 | Date | 2026-03-18 |
-| Helpful | 0 |
+| Helpful | 1 |
 | Harmful | 0 |
 | Status | active |
 
@@ -247,7 +247,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 ### ACE-005: 索引と実体を分離する委譲パターンでAIコンテキスト消費を抑える
 
 | フィールド | 値 |
-| --- | --- |
+|-----------|---|
 | Category | architecture |
 | Origin | PR #369 / Issue #368 |
 | Date | 2026-04-26 |
@@ -266,7 +266,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 ### ACE-006: サンプル付きテンプレファイルには⚠️SAMPLEバナーと固有化手順を必ず併設する
 
 | フィールド | 値 |
-| --- | --- |
+|-----------|---|
 | Category | tooling |
 | Origin | PR #369 / Issue #368 |
 | Date | 2026-04-26 |
@@ -282,7 +282,76 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-007: Claude Code skill 内のツール参照は名称・subagent_type を実機 / system prompt で照合する
+
+| フィールド | 値 |
+|-----------|---|
+| Category | tooling |
+| Origin | PR #374 / Issue #373 |
+| Date | 2026-04-26 |
+| Helpful | 0 |
+| Harmful | 0 |
+| Status | active |
+
+**Insight**: Claude Code の skill 定義（`.claude/commands/*.md`）に SubAgent 起動を書く際、ツール名は **`Task`** であり `Agent` ではない。subagent_type も Claude Code 公式の組み込み（`Explore` / `general-purpose` 等）と照合する必要がある。誤った名称を skill に書くと、実行時にモデルが対応するツールを引けず失敗する。
+
+**Context**: PR #374 の `/refine-issue` skill で `Agent ツール（subagent_type: Explore）` と記述したところ、4 つのレビュアー（Toolkit code-reviewer / comment-analyzer、Copilot、Gemini）のうち 3 つが「`Agent` ツールは Claude Code に存在しない、`Task` が正解」と独立して指摘。設計プラン側でも `Task tool` と `Agent(...)` の表記揺れがあった。Claude Code の system prompt で公式 tool 一覧と Available agent types を確認すれば防げる。
+
+**Action**: skill 内で SubAgent / Tool 呼び出しを書く際は、(1) Claude Code の公式 system prompt 内 "Tools available" / "Available agent types" を確認、(2) ツール名 `Task` / `Edit` / `Read` 等を正確に書く、(3) `subagent_type` は組み込み（`general-purpose`, `Explore`, `output-style-setup`, `statusline-setup` 等）+ プロジェクトの `.claude/agents/` 定義を確認、(4) 環境依存の subagent_type（`Explore` 等）は `general-purpose` を fallback として併記する。
+
+---
+
+### ACE-008: クロスリポジトリ操作する skill は全 gh コマンドに `--repo` 必須・mention は `@<assignee>` を使う
+
+| フィールド | 値 |
+|-----------|---|
+| Category | tooling |
+| Origin | PR #374 / Issue #373 |
+| Date | 2026-04-26 |
+| Helpful | 0 |
+| Harmful | 0 |
+| Status | active |
+
+**Insight**: skill が「クロスリポジトリ対応」を謳う場合、`gh issue view` だけでなく **`gh issue edit` / `gh issue comment` / `gh label create` / `gh issue edit --add-label` の全てに `--repo <owner/repo>` を渡す**必要がある。1 つでも欠けると、別 repo の Issue を更新できないか、現在の repo の同番号 Issue を誤更新する。さらに mention placeholder は `@<owner>` だと GitHub が repo 所有者（organization）と解釈して**組織全体に通知が飛ぶ事故**が起きるため、`@<assignee>` を使う。
+
+**Context**: PR #374 の `/refine-issue` skill 初版で、`gh issue view` には `--repo` を付けていたが後続の edit / comment / label create には付け忘れていた。Copilot と Gemini の両方が「全 gh コマンドに `--repo` を渡せ」を独立して指摘。さらに Gemini が `@<owner>` プレースホルダの誤メンション問題を指摘し、`@<assignee>` への変更を提案。
+
+**Action**: クロスリポジトリ対応 skill を書く際は、(1) skill 冒頭の入力パースで `repo` を確定したら以降の **全** gh サブコマンドに `--repo <owner/repo>` を必須で渡す規約を明示、(2) skill 末尾に「使用する gh CLI コマンド一覧」テーブルを置いて保守者が一覧確認できるようにする、(3) mention placeholder は `@<assignee>` を使い、bot suffix（`[bot]`）は skip する fallback 規則を書く、(4) `gh label create` は `--force` で「不在時 create / 存在時 update」の冪等にする。
+
+---
+
+### ACE-009: 長時間 Orchestrator の失敗の真因は upstream Issue spec 曖昧さ — 探索型 refine が必要
+
+| フィールド | 値 |
+|-----------|---|
+| Category | process |
+| Origin | PR #374 / Issue #373 |
+| Date | 2026-04-26 |
+| Helpful | 0 |
+| Harmful | 0 |
+| Status | active |
+
+**Insight**: AI Orchestrator (完遂型 / A 型) で Issue を自動完遂する仕組みが「結構できないものが多い」と感じたとき、真因は **Orchestrator の賢さ不足ではなく、入力 Issue の spec 曖昧さ**であることが多い。曖昧な spec を渡された Orchestrator は推測で穴埋めするしかなく、ハズす。必要なのは「曖昧な Issue → 実行可能な Issue」に研ぎ澄ます探索型 (B 型) skill を upstream に置くこと。
+
+**Context**: 当初は「長時間駆動 Orchestrator + compact 耐性」のアーキテクチャをブレストしていたが、「A 型 Orchestrator の失敗パターン」を深掘りした結果、根本原因が Issue spec 自体の曖昧さに移動。`/create-issue`（新規 Issue ゲート）は既存だったが、既に立った曖昧 Issue を refine する手段がなかった。`/refine-issue` MVP を先に作ってから Orchestrator ループ・司令ファイルを後付けする路線にスコープ変更し、6 観点ブレストで設計を確定。
+
+**Action**: 「AI agent が信頼できない / 完遂率が低い」と感じたら、(1) agent 自体の改善より先に、与えている入力データ (Issue / spec / プロンプト) の品質を疑う、(2) upstream に「入力を磨く skill」を置けないか検討する、(3) ブレストで「真因が一段下のレイヤーにある」可能性を必ず一度は検証する、(4) MVP は upstream の単一 skill に絞り、Orchestrator ループ等は動作確認後に後付けする路線が安全（空回りを高速化するリスクを避ける）。
+
+---
+
 ## Changelog
+
+### [1.4.0] - 2026-04-26
+
+#### 追加
+- ACE-007: Claude Code skill 内のツール参照は名称・subagent_type を実機 / system prompt で照合する
+- ACE-008: クロスリポジトリ操作する skill は全 gh コマンドに `--repo` 必須・mention は `@<assignee>` を使う
+- ACE-009: 長時間 Orchestrator の失敗の真因は upstream Issue spec 曖昧さ — 探索型 refine が必要
+
+#### 更新
+- ACE-001: Helpful +1（PR #374 で 4 reviewer が独立に Critical 検出、クロスモデルレビューの価値再確認）
+- ACE-002: Helpful +1（PR #374 で `Task` ツール名 / `gh state` UPPERCASE / `gh` フラグなど実機照合の重要性が再確認）
+- ACE-004: Helpful +1（PR #374 で「同じ 4 観点」主張と実装の乖離・Architectural 継続動作と Out-of-Scope の矛盾を検出）
 
 ### [1.3.0] - 2026-04-26
 
