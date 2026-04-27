@@ -32,12 +32,12 @@ Issue起点の作業に入る前、書籍第10章「日々の開発フロー」�
 | タスク種別 | 必須参照 | 推奨参照 | 通常不要 |
 |------------|----------|----------|----------|
 | 新機能 | [MASTER.md](../../MASTER.md), [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [DOMAIN.md](../../02-design/DOMAIN.md) | [PATTERNS.md](../../03-implementation/PATTERNS.md), [TESTING.md](../../04-quality/TESTING.md) | [DEPLOYMENT.md](../DEPLOYMENT.md) |
-| バグ修正 | 該当する [GitHub Issue](https://docs.github.com/ja/issues) またはバグチケット（再現手順・期待値）, [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md) 全体（修正箇所に紐づく節のみを読む方が効率的） |
+| バグ修正 | 該当 **バグチケット**（[GitHub Issue](https://docs.github.com/ja/issues) や Jira 等。Issue 相当でよい。再現手順・期待値必須）, [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md) 全体（修正箇所に紐づく節のみを読む方が効率的） |
 | リファクタリング | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md)（挙動を変えない作業の場合） |
 | インフラ | [MASTER.md](../../MASTER.md), [DEPLOYMENT.md](../DEPLOYMENT.md) | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md) | [DOMAIN.md](../../02-design/DOMAIN.md)（業務ルール非関連の範囲） |
-| ドキュメント | [MASTER.md](../../MASTER.md)（構造・表記のSSOT） | 今回更新する対象文書のみ | 上記に該当するもの（タスク外の全文書を読まなくてよい） |
+| ドキュメント | [MASTER.md](../../MASTER.md)（構造・表記のSSOT） | 今回更新する対象文書のみ | 他のコア7文書の全文精読（今回の編集範囲外なら不要） |
 
-> **表の読み方**: 「必須」は実装前に目を通すこと。「通常不要」は、タスクがその領域に手を入れない限り、最初から全文を読まなくてよいという意味合いです。
+> **表の読み方**: 「必須」は実装前に目を通すこと。「通常不要」は、タスクがその領域に手を入れない限り、最初から全文を読まなくてよいという意味合いです。ドキュメント作業では「必須」に [MASTER.md](../../MASTER.md) を入れているため、**更新しないコア7文書を上から下まで読む**ことは原則不要（必要な章だけ差分でよい）です。
 
 ### レビュー指摘から PATTERNS.md へのルール化
 
