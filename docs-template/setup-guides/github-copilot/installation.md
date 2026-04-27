@@ -11,14 +11,17 @@
 ### サブスクリプションの購入
 
 1. **GitHub Copilotのページにアクセス**
+
    - <https://github.com/features/copilot>
 
 2. **「Start a free trial」または「Subscribe」をクリック**
+
    - 個人プラン: $10/月
    - ビジネスプラン: $19/ユーザー/月
    - 初月無料トライアルあり
 
 3. **GitHubアカウントでログイン**
+
    - まだアカウントがない場合は、新規作成が必要
 
 4. **支払い情報を入力**
@@ -28,6 +31,7 @@
 ### サブスクリプションの確認
 
 購入後、以下のURLで確認：
+
 - <https://github.com/settings/copilot>
 
 アクティブな状態になっていることを確認してください。
@@ -41,13 +45,16 @@
 1. **VS Codeを開く**
 
 2. **拡張機能マーケットプレイスを開く**
+
    - macOS: `Cmd + Shift + X`
    - Windows/Linux: `Ctrl + Shift + X`
 
 3. **「GitHub Copilot」を検索**
 
 4. **以下の拡張機能をインストール**:
+
    - **GitHub Copilot** （必須）
+
      - ID: `GitHub.copilot`
      - コード補完機能を提供
 
@@ -61,6 +68,7 @@
 ### インストールの確認
 
 インストール後、VS Codeで以下を確認：
+
 - 拡張機能パネルに「GitHub Copilot」が表示される
 - ステータスバーにCopilotアイコンが表示される
 
@@ -71,12 +79,15 @@
 ### アカウント連携の手順
 
 1. **VS Code左下の「Sign in to GitHub」をクリック**
+
    - または、Copilotアイコンから「Sign in」を選択
 
 2. **ブラウザが開くので、GitHubアカウントでログイン**
+
    - GitHub Copilotのサブスクリプションがあるアカウントでログイン
 
 3. **VS Codeへのアクセスを許可**
+
    - 「Authorize Visual Studio Code」をクリック
 
 4. **確認**:
@@ -86,6 +97,7 @@
 ### 連携が成功したか確認
 
 以下の状態であれば連携成功：
+
 - ステータスバーのCopilotアイコンが緑色
 - アイコンのツールチップに「Ready」と表示
 
@@ -98,6 +110,7 @@ JetBrains製品（IntelliJ IDEA、PyCharm、WebStormなど）を使用する場�
 ### 手順
 
 1. **プラグインマーケットプレイスを開く**
+
    - macOS: `Cmd + ,` → Plugins
    - Windows/Linux: `Ctrl + Alt + S` → Plugins
 
@@ -111,6 +124,7 @@ JetBrains製品（IntelliJ IDEA、PyCharm、WebStormなど）を使用する場�
    - Tools → GitHub Copilot → Sign in
 
 詳細は公式ドキュメントを参照：
+
 - <https://docs.github.com/ja/copilot/getting-started-with-github-copilot>
 
 ---
@@ -134,6 +148,7 @@ JetBrains製品（IntelliJ IDEA、PyCharm、WebStormなど）を使用する場�
 **症状**: 連携しても「No subscription」と表示される
 
 **対処法**:
+
 1. GitHubアカウントを確認（サブスクリプションのあるアカウントか）
 2. <https://github.com/settings/copilot> でアクティブか確認
 3. VS Codeを再起動
@@ -144,6 +159,7 @@ JetBrains製品（IntelliJ IDEA、PyCharm、WebStormなど）を使用する場�
 **症状**: インストールボタンが押せない、エラーが出る
 
 **対処法**:
+
 1. VS Codeのバージョンを確認（最新版に更新）
 2. 必要システム要件を確認
 3. VS Codeを管理者権限で実行
@@ -154,6 +170,7 @@ JetBrains製品（IntelliJ IDEA、PyCharm、WebStormなど）を使用する場�
 **症状**: ブラウザ認証後、VS Codeに戻らない
 
 **対処法**:
+
 1. ブラウザで手動で認証コードをコピー
 2. VS Codeのコマンドパレット（`Cmd/Ctrl + Shift + P`）
 3. 「GitHub: Sign in with Device Code」を実行

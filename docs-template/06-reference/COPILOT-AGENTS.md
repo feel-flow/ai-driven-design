@@ -66,14 +66,14 @@ Copilot CLI が利用不可の場合、Router が `read_file` ツールで `.git
 
 ## Claude Code との対応表
 
-| 目的 | Claude Code (pr-review-toolkit) | Copilot agents/skills/ | Copilot CLI skills/ |
-| ------ | -------------------------------- | ------------------------- | ---------------------- |
-| コードレビュー | code-reviewer | code-review.md | code-review/SKILL.md |
-| サイレント失敗検出 | silent-failure-hunter | error-handler-hunt.md | error-handler-hunt/SKILL.md |
-| コード簡素化 | code-simplifier | code-simplification.md | code-simplification/SKILL.md |
-| コメント分析 | comment-analyzer | comment-analysis.md | comment-analysis/SKILL.md |
-| テスト分析 | pr-test-analyzer | test-analysis.md | test-analysis/SKILL.md |
-| 型設計評価 | type-design-analyzer | type-design-analysis.md | type-design-analysis/SKILL.md |
+| 目的               | Claude Code (pr-review-toolkit) | Copilot agents/skills/  | Copilot CLI skills/           |
+| ------------------ | ------------------------------- | ----------------------- | ----------------------------- |
+| コードレビュー     | code-reviewer                   | code-review.md          | code-review/SKILL.md          |
+| サイレント失敗検出 | silent-failure-hunter           | error-handler-hunt.md   | error-handler-hunt/SKILL.md   |
+| コード簡素化       | code-simplifier                 | code-simplification.md  | code-simplification/SKILL.md  |
+| コメント分析       | comment-analyzer                | comment-analysis.md     | comment-analysis/SKILL.md     |
+| テスト分析         | pr-test-analyzer                | test-analysis.md        | test-analysis/SKILL.md        |
+| 型設計評価         | type-design-analyzer            | type-design-analysis.md | type-design-analysis/SKILL.md |
 
 ---
 
@@ -112,13 +112,13 @@ tools:
 
 各問題には0-100の信頼度スコアを付与してください：
 
-| スコア | 意味 | 報告 |
-|--------|------|------|
-| 0-25 | 誤検出または既存の問題 | 報告しない |
-| 26-50 | マイナーな指摘（ガイドラインに明記なし） | 報告しない |
-| 51-79 | 有効だが低影響 | 報告しない |
-| 80-90 | 重要な問題 | 報告する |
-| 91-100 | クリティカルなバグまたは明示的な違反 | 必ず報告 |
+| スコア | 意味                                     | 報告       |
+| ------ | ---------------------------------------- | ---------- |
+| 0-25   | 誤検出または既存の問題                   | 報告しない |
+| 26-50  | マイナーな指摘（ガイドラインに明記なし） | 報告しない |
+| 51-79  | 有効だが低影響                           | 報告しない |
+| 80-90  | 重要な問題                               | 報告する   |
+| 91-100 | クリティカルなバグまたは明示的な違反     | 必ず報告   |
 
 **報告閾値: 信頼度80以上のみ報告**
 
@@ -127,18 +127,21 @@ tools:
 ## Code Review Results
 
 ### Critical Issues (信頼度 91-100)
+
 - [ファイル名:行番号] 問題の説明
   - 信頼度: XX
   - 理由: なぜこれが問題か
   - 修正提案: どう修正すべきか
 
 ### Important Issues (信頼度 76-90)
+
 - [ファイル名:行番号] 問題の説明
   - 信頼度: XX
   - 理由: なぜこれが問題か
   - 修正提案: どう修正すべきか
 
 ### Summary
+
 - 検出された問題数: X
 - Critical: X
 - Important: X
@@ -195,17 +198,18 @@ tools:
 
 ## 重大度レベル
 
-| レベル | 説明 | 例 |
-|--------|------|-----|
+| レベル   | 説明                          | 例                             |
+| -------- | ----------------------------- | ------------------------------ |
 | CRITICAL | サイレント失敗、ブロードcatch | 空のcatchブロック、catch(e) {} |
-| HIGH | 不十分なエラーメッセージ | console.log("error") のみ |
-| MEDIUM | コンテキスト不足 | エラーの原因が不明確 |
+| HIGH     | 不十分なエラーメッセージ      | console.log("error") のみ      |
+| MEDIUM   | コンテキスト不足              | エラーの原因が不明確           |
 
 ## 出力形式
 
 ## Error Handling Analysis Results
 
 ### CRITICAL Issues
+
 - [ファイル名:行番号] 問題の説明
   - コード: 問題のあるコード
   - 問題: 何が問題か
@@ -213,12 +217,14 @@ tools:
   - 修正提案: 推奨される修正
 
 ### HIGH Issues
+
 - [ファイル名:行番号] 問題の説明
   - コード: ...
   - 問題: ...
   - 修正提案: ...
 
 ### Summary
+
 - CRITICAL: X
 - HIGH: X
 - MEDIUM: X
@@ -268,21 +274,25 @@ tools:
 以下のテスト不足を重点的にチェックします：
 
 1. **テストされていないエラーハンドリングパス**
+
    - try-catchブロック内のエラー処理
    - API呼び出し失敗時の動作
    - バリデーションエラー
 
 2. **境界条件のエッジケース**
+
    - 空の入力、null/undefined
    - 最大値/最小値
    - 空配列/空オブジェクト
 
 3. **クリティカルなビジネスロジック分岐**
+
    - 条件分岐の各パス
    - 状態遷移
    - 権限チェック
 
 4. **ネガティブテストケース**
+
    - 不正な入力
    - 予期しない型
    - セキュリティ境界
@@ -296,13 +306,13 @@ tools:
 
 各ギャップに1-10の優先度を付与：
 
-| 優先度 | 意味 | 例 |
-|--------|------|-----|
-| 9-10 | クリティカル | データ損失、セキュリティ、システム障害の可能性 |
-| 7-8 | 重要 | ユーザー向けエラーの可能性 |
-| 5-6 | エッジケース | 混乱や軽微な問題 |
-| 3-4 | Nice-to-have | 完全性のため |
-| 1-2 | オプショナル | 改善の余地 |
+| 優先度 | 意味         | 例                                             |
+| ------ | ------------ | ---------------------------------------------- |
+| 9-10   | クリティカル | データ損失、セキュリティ、システム障害の可能性 |
+| 7-8    | 重要         | ユーザー向けエラーの可能性                     |
+| 5-6    | エッジケース | 混乱や軽微な問題                               |
+| 3-4    | Nice-to-have | 完全性のため                                   |
+| 1-2    | オプショナル | 改善の余地                                     |
 
 ## 出力形式
 
@@ -311,18 +321,22 @@ tools:
 ### Critical Gaps (優先度 9-10)
 
 #### [機能/関数名]
+
 **ファイル:** path/to/file.ts
 **テストされていない動作:** エラー時のリトライロジック
 **リスク:** データ損失の可能性
 **優先度:** 10
 **推奨テストケース:**
+
 - エラー発生時にリトライが実行されることを確認
 - 最大リトライ回数後にエラーがスローされることを確認
 
 ### Important Gaps (優先度 7-8)
+
 ...
 
 ### Summary
+
 - Critical Gaps: X
 - Important Gaps: X
 - Edge Case Gaps: X
@@ -369,10 +383,12 @@ tools:
 ### 推奨する変更
 
 1. **ネストの削減**
+
    - ネストした三項演算子 → if/else文へ
    - 深いネスト → 早期リターンパターンへ
 
 2. **明確性の向上**
+
    - 巧妙なコード → 分かりやすいコードへ
    - 暗黙的な動作 → 明示的な動作へ
 
@@ -405,6 +421,7 @@ tools:
 ### Simplification Opportunities
 
 #### [ファイル名:行番号]
+
 **現在のコード:**
 ```
 
@@ -499,6 +516,7 @@ tools:
 ### Critical Issues（事実として不正確）
 
 #### [ファイル名:行番号]
+
 **コメント:** "..."
 **問題:** コメントが実際のコードと矛盾している
 **実際のコード:** ...
@@ -507,6 +525,7 @@ tools:
 ### Improvement Opportunities（改善可能）
 
 #### [ファイル名:行番号]
+
 **コメント:** "..."
 **問題:** 情報が不完全
 **推奨追加内容:** ...
@@ -514,16 +533,19 @@ tools:
 ### Recommended Removals（価値を追加しないコメント）
 
 #### [ファイル名:行番号]
+
 **コメント:** "..."
 **理由:** コードを単に繰り返しているだけ / 自明な内容
 
 ### Positive Findings（良い例）
 
 #### [ファイル名:行番号]
+
 **コメント:** "..."
 **評価:** 「なぜ」を適切に説明している / 複雑なロジックを明確化している
 
 ### Summary
+
 - Critical Issues: X
 - Improvement Opportunities: X
 - Recommended Removals: X
@@ -573,6 +595,7 @@ tools:
 - 1-3: 不十分、内部が広く公開
 
 **チェックポイント:**
+
 - privateフィールドの使用
 - readonly修飾子の適用
 - getter/setterの適切な使用
@@ -587,6 +610,7 @@ tools:
 - 1-3: ドキュメントのみに依存
 
 **チェックポイント:**
+
 - Union型による状態表現
 - Branded型の使用
 - 型ガードの実装
@@ -638,13 +662,16 @@ tools:
 **総合スコア:** 7/10
 
 **検出されたアンチパターン:**
+
 - 変更可能な配列を直接公開（line 15）
 
 **改善提案:**
+
 1. `items`フィールドをreadonlyにし、コピーを返すgetterを追加
 2. setterに検証ロジックを追加
 
 ### Summary
+
 - 分析した型の数: X
 - 平均スコア: X/10
 - 検出されたアンチパターン: X
@@ -671,6 +698,7 @@ PR作成後に `@review-router` を呼び出すだけで、変更内容を自動
 ```
 
 `@review-router` は以下を自動判定します：
+
 - **常に実行**: Code Review、Error Handler Hunt
 - **条件付き**: Test Analysis、Type Design Analysis、Comment Analysis、Code Simplification
 

@@ -13,11 +13,11 @@ updated: "YYYY-MM-DD"
 
 ## 3層の概要
 
-| 層 | 役割 | 主な実装・参照先 |
-|---|------|------------------|
-| 第1層 | **仕様による制約** — 設計・実装ルールを文書化し、生成・変更の前提を固定する | [ARCHITECTURE.md](../02-design/ARCHITECTURE.md)、[PATTERNS.md](../03-implementation/PATTERNS.md)、[DOMAIN.md](../02-design/DOMAIN.md) |
-| 第2層 | **自動チェック** — 仕様違反やリグレッションをマージ前に機械的に検知する | CI/CD（lint、型検査、単体・統合・E2E、セキュリティスキャン等）。詳細は [DEPLOYMENT.md](../05-operations/DEPLOYMENT.md) および [deployment/ci-cd.md](../05-operations/deployment/ci-cd.md) |
-| 第3層 | **人間によるレビュー** — 文書化しきれない文脈・悪意・運用判断をカバーする | PR レビュー、[セキュリティレビューチェックリスト](./SECURITY_REVIEW_CHECKLIST.md)、チーム合意事項 |
+| 層    | 役割                                                                        | 主な実装・参照先                                                                                                                                                                          |
+| ----- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 第1層 | **仕様による制約** — 設計・実装ルールを文書化し、生成・変更の前提を固定する | [ARCHITECTURE.md](../02-design/ARCHITECTURE.md)、[PATTERNS.md](../03-implementation/PATTERNS.md)、[DOMAIN.md](../02-design/DOMAIN.md)                                                     |
+| 第2層 | **自動チェック** — 仕様違反やリグレッションをマージ前に機械的に検知する     | CI/CD（lint、型検査、単体・統合・E2E、セキュリティスキャン等）。詳細は [DEPLOYMENT.md](../05-operations/DEPLOYMENT.md) および [deployment/ci-cd.md](../05-operations/deployment/ci-cd.md) |
+| 第3層 | **人間によるレビュー** — 文書化しきれない文脈・悪意・運用判断をカバーする   | PR レビュー、[セキュリティレビューチェックリスト](./SECURITY_REVIEW_CHECKLIST.md)、チーム合意事項                                                                                         |
 
 ## 層ごとの期待動作
 

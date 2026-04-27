@@ -33,14 +33,14 @@ metadata:
 
 ### 1. 命名規則
 
-| 要素 | パターン | 例 |
-|---|---|---|
-| クラス | PascalCase | `UserService` |
+| 要素             | パターン              | 例                |
+| ---------------- | --------------------- | ----------------- |
+| クラス           | PascalCase            | `UserService`     |
 | インターフェース | PascalCase + I prefix | `IUserRepository` |
-| メソッド | camelCase | `getUserById()` |
-| 変数 | camelCase | `userName` |
-| 定数 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| ファイル | kebab-case | `user-service.ts` |
+| メソッド         | camelCase             | `getUserById()`   |
+| 変数             | camelCase             | `userName`        |
+| 定数             | UPPER_SNAKE_CASE      | `MAX_RETRY_COUNT` |
+| ファイル         | kebab-case            | `user-service.ts` |
 
 ### 2. マジックナンバー禁止
 
@@ -83,11 +83,12 @@ const TIMEOUT_MS = 30000;
 
 ### 検出事項
 
-| # | ファイル | 行 | カテゴリ | 重要度 | 内容 |
-|---|---------|-----|---------|--------|------|
-| 1 | ... | ... | 命名規則 | High | ... |
+| #   | ファイル | 行  | カテゴリ | 重要度 | 内容 |
+| --- | -------- | --- | -------- | ------ | ---- |
+| 1   | ...      | ... | 命名規則 | High   | ...  |
 
 ### サマリー
+
 - 検出件数: N件（High: X, Medium: Y, Low: Z）
 - 全体評価: PASS / NEEDS_FIX
 ```

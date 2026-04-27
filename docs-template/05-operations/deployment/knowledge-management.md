@@ -15,21 +15,25 @@
 以下のいずれかに該当する場合、ナレッジとして記録する価値があります：
 
 1. **レビュー指摘があり、対応した場合**
+
    - 指摘内容と対応方法を記録
    - なぜその問題が発生したかの分析
    - 再発防止策
 
 2. **技術的な困難に直面し、解決した場合**
+
    - 問題の詳細と原因
    - 試行錯誤のプロセス
    - 最終的な解決方法
 
 3. **新しい技術・ライブラリを導入した場合**
+
    - 選定理由と比較検討内容
    - 導入手順とハマりポイント
    - ベストプラクティス
 
 4. **パフォーマンス改善を実施した場合**
+
    - 改善前後の指標
    - 改善手法の詳細
    - 効果測定結果
@@ -59,11 +63,11 @@ GitHub Discussions は **人間が読むためのナラティブ（物語的記�
 
 ### 使い分け
 
-| 観点 | ACE Playbook | GitHub Discussions |
-|------|-------------|-------------------|
-| 対象読者 | AIツール（+ 人間） | チームメンバー（人間） |
-| 形式 | 構造化テーブル + 短文 | 自由記述 |
-| 更新頻度 | 毎回のマージ前 | 重要な知見のみ |
+| 観点     | ACE Playbook          | GitHub Discussions     |
+| -------- | --------------------- | ---------------------- |
+| 対象読者 | AIツール（+ 人間）    | チームメンバー（人間） |
+| 形式     | 構造化テーブル + 短文 | 自由記述               |
+| 更新頻度 | 毎回のマージ前        | 重要な知見のみ         |
 
 詳細: [ace-cycle.md](./ace-cycle.md)
 
@@ -75,16 +79,16 @@ GitHub Discussions は **人間が読むためのナラティブ（物語的記�
 
 GitHub Discussionsでは、以下のカテゴリで分類します：
 
-| カテゴリ | 説明 | タグ例 |
-|---------|------|--------|
-| **トラブルシューティング** | エラー解決方法、デバッグ手法 | `troubleshooting`, `debugging`, `error-resolution` |
-| **ベストプラクティス** | コーディング規約、設計パターン | `best-practice`, `coding-standards`, `design-pattern` |
-| **技術選定** | ライブラリ・フレームワーク選定理由 | `tech-selection`, `library-comparison`, `framework` |
-| **パフォーマンス** | 最適化手法、チューニング方法 | `performance`, `optimization`, `tuning` |
-| **セキュリティ** | 脆弱性対策、セキュアコーディング | `security`, `vulnerability`, `secure-coding` |
-| **開発環境** | 環境構築、ツール設定 | `development-env`, `tooling`, `setup` |
-| **テスト戦略** | テスト手法、自動化 | `testing`, `test-automation`, `qa` |
-| **CI/CD** | パイプライン、デプロイ | `ci-cd`, `deployment`, `automation` |
+| カテゴリ                   | 説明                               | タグ例                                                |
+| -------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| **トラブルシューティング** | エラー解決方法、デバッグ手法       | `troubleshooting`, `debugging`, `error-resolution`    |
+| **ベストプラクティス**     | コーディング規約、設計パターン     | `best-practice`, `coding-standards`, `design-pattern` |
+| **技術選定**               | ライブラリ・フレームワーク選定理由 | `tech-selection`, `library-comparison`, `framework`   |
+| **パフォーマンス**         | 最適化手法、チューニング方法       | `performance`, `optimization`, `tuning`               |
+| **セキュリティ**           | 脆弱性対策、セキュアコーディング   | `security`, `vulnerability`, `secure-coding`          |
+| **開発環境**               | 環境構築、ツール設定               | `development-env`, `tooling`, `setup`                 |
+| **テスト戦略**             | テスト手法、自動化                 | `testing`, `test-automation`, `qa`                    |
+| **CI/CD**                  | パイプライン、デプロイ             | `ci-cd`, `deployment`, `automation`                   |
 
 ---
 
@@ -271,6 +275,7 @@ GitHubのDiscussionsはタグ機能が制限的です。代わりに、本文内
 
 ```markdown
 ## タグ
+
 `jwt` `authentication` `backend` `security`
 ```
 

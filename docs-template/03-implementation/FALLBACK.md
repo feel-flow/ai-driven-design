@@ -15,10 +15,10 @@ updated: "YYYY-MM-DD"
 
 ### 環境別の基本方針（全レイヤー共通）
 
-| 環境 | 方針 | 理由 |
-|------|------|------|
+| 環境         | 方針                                                   | 理由                               |
+| ------------ | ------------------------------------------------------ | ---------------------------------- |
 | 開発・テスト | **Fail-Fast** — エラーを即座にスローし、バグを早期検出 | AI生成コードのサイレントエラー防止 |
-| 本番 | **Graceful Degradation** — フォールバックで UX を保護 | ユーザー体験の維持 |
+| 本番         | **Graceful Degradation** — フォールバックで UX を保護  | ユーザー体験の維持                 |
 
 **背景**: AI（Claude Code, Copilot, Cursor等）は「安全側」に倒す傾向があり、try-catch + フォールバック値を自動挿入しがち。これにより開発中にバグが隠蔽され、本番で初めて問題が発覚するリスクが高い。
 
@@ -71,40 +71,40 @@ updated: "YYYY-MM-DD"
 
 ### 3.1 UI/UX レイヤー
 
-| パターン | 開発時 | 本番時 | 用途 |
-|---------|--------|--------|------|
-| Error Boundary | エラーを re-throw（スタックトレース表示） | フォールバック UI を表示 | コンポーネント単位の障害隔離 |
-| Skeleton UI | 無限ローディングでタイムアウト検出 | Skeleton + タイムアウト後にエラー表示 | データ取得中の UX |
-| キャッシュデータ表示 | 使用しない（常に最新データを要求） | stale indicator 付きで表示 | オフライン・低速回線対応 |
-| 段階的劣化 | 非重要機能もエラー表示 | 非重要機能を非表示化 | 部分障害時の UX 維持 |
+| パターン             | 開発時                                    | 本番時                                | 用途                         |
+| -------------------- | ----------------------------------------- | ------------------------------------- | ---------------------------- |
+| Error Boundary       | エラーを re-throw（スタックトレース表示） | フォールバック UI を表示              | コンポーネント単位の障害隔離 |
+| Skeleton UI          | 無限ローディングでタイムアウト検出        | Skeleton + タイムアウト後にエラー表示 | データ取得中の UX            |
+| キャッシュデータ表示 | 使用しない（常に最新データを要求）        | stale indicator 付きで表示            | オフライン・低速回線対応     |
+| 段階的劣化           | 非重要機能もエラー表示                    | 非重要機能を非表示化                  | 部分障害時の UX 維持         |
 
 ### 3.2 サービスレイヤー
 
-| パターン | 説明 | 設定定数の例 |
-|---------|------|------------|
-| Circuit Breaker | 連続障害時にリクエストを遮断（Closed → Open → Half-Open） | `CIRCUIT_BREAKER_FAILURE_THRESHOLD`, `CIRCUIT_BREAKER_OPEN_DURATION_MS` |
-| リトライ | Exponential Backoff + Jitter で再試行 | `MAX_RETRY_COUNT`, `RETRY_INITIAL_DELAY_MS`, `RETRY_MAX_DELAY_MS` |
-| セカンダリサービス | プライマリ障害時にバックアップサービスへ切替 | `HEALTH_CHECK_INTERVAL_MS` |
-| タイムアウト | レスポンス待ち上限を設定 | `API_TIMEOUT_MS`, `BATCH_TIMEOUT_MS` |
+| パターン           | 説明                                                      | 設定定数の例                                                            |
+| ------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Circuit Breaker    | 連続障害時にリクエストを遮断（Closed → Open → Half-Open） | `CIRCUIT_BREAKER_FAILURE_THRESHOLD`, `CIRCUIT_BREAKER_OPEN_DURATION_MS` |
+| リトライ           | Exponential Backoff + Jitter で再試行                     | `MAX_RETRY_COUNT`, `RETRY_INITIAL_DELAY_MS`, `RETRY_MAX_DELAY_MS`       |
+| セカンダリサービス | プライマリ障害時にバックアップサービスへ切替              | `HEALTH_CHECK_INTERVAL_MS`                                              |
+| タイムアウト       | レスポンス待ち上限を設定                                  | `API_TIMEOUT_MS`, `BATCH_TIMEOUT_MS`                                    |
 
 > これらの値は名前付き定数として定義すること（マジックナンバー禁止。詳細は [PATTERNS.md](./PATTERNS.md) Section 10 参照）。
 
 ### 3.3 フィーチャーレイヤー
 
-| パターン | 説明 | 用途 |
-|---------|------|------|
-| Feature Flag | 障害発生時に機能を動的に無効化 | 新機能のロールバック不要な無効化 |
-| 縮退モード | 一部機能を制限して中核機能を維持 | 高負荷時・部分障害時 |
-| フォールバック機能マッピング | 機能A障害時に代替機能Bを提供 | 重要度の高い機能の可用性維持 |
+| パターン                     | 説明                             | 用途                             |
+| ---------------------------- | -------------------------------- | -------------------------------- |
+| Feature Flag                 | 障害発生時に機能を動的に無効化   | 新機能のロールバック不要な無効化 |
+| 縮退モード                   | 一部機能を制限して中核機能を維持 | 高負荷時・部分障害時             |
+| フォールバック機能マッピング | 機能A障害時に代替機能Bを提供     | 重要度の高い機能の可用性維持     |
 
 ### 3.4 データレイヤー
 
-| パターン | 説明 | 用途 |
-|---------|------|------|
-| Stale-While-Revalidate | キャッシュ返却 + バックグラウンド更新 | 読み取り頻度の高いデータ |
-| Read Replica Fallback | プライマリDB障害時にレプリカから読み取り | DB可用性の向上 |
-| オフラインファースト | ローカルストレージ → 同期キュー → サーバー | モバイル・不安定なネットワーク |
-| キャッシュ階層 | Memory → Redis → DB の順にフォールバック | レスポンス速度の最適化 |
+| パターン               | 説明                                       | 用途                           |
+| ---------------------- | ------------------------------------------ | ------------------------------ |
+| Stale-While-Revalidate | キャッシュ返却 + バックグラウンド更新      | 読み取り頻度の高いデータ       |
+| Read Replica Fallback  | プライマリDB障害時にレプリカから読み取り   | DB可用性の向上                 |
+| オフラインファースト   | ローカルストレージ → 同期キュー → サーバー | モバイル・不安定なネットワーク |
+| キャッシュ階層         | Memory → Redis → DB の順にフォールバック   | レスポンス速度の最適化         |
 
 ---
 
@@ -119,8 +119,13 @@ updated: "YYYY-MM-DD"
  *
  * @throws {Error} development/test環境では元のエラーを再スローする。
  */
-function fallbackInProdOnly<T>(fallbackValue: T, error: unknown, context?: Record<string, unknown>): T {
-  const normalizedError = error instanceof Error ? error : new Error(String(error));
+function fallbackInProdOnly<T>(
+  fallbackValue: T,
+  error: unknown,
+  context?: Record<string, unknown>,
+): T {
+  const normalizedError =
+    error instanceof Error ? error : new Error(String(error));
 
   // フォールバック禁止カテゴリ（Section 1 参照）は環境に関係なく常にスロー
   // ※ プロジェクトで定義した AppError サブクラスに合わせて追加すること:
@@ -135,11 +140,11 @@ function fallbackInProdOnly<T>(fallbackValue: T, error: unknown, context?: Recor
     throw normalizedError;
   }
 
-  logger.error('Fallback activated', normalizedError, context);
+  logger.error("Fallback activated", normalizedError, context);
 
   const env = process.env.NODE_ENV;
   // ホワイトリスト方式: dev/testのみスロー。未定義・staging等は安全にフォールバック
-  if (env === 'development' || env === 'test') {
+  if (env === "development" || env === "test") {
     throw normalizedError;
   }
 
@@ -156,7 +161,7 @@ function fallbackInProdOnly<T>(fallbackValue: T, error: unknown, context?: Recor
 async function getUser(id: string): Promise<User> {
   try {
     // ※ findById は User | null を返すが、null処理は省略（フォールバック問題に焦点）
-    return await userRepository.findById(id) as User;
+    return (await userRepository.findById(id)) as User;
   } catch {
     return DEFAULT_USER; // バグがあっても気づけない
   }
@@ -166,7 +171,7 @@ async function getConfig(key: string): Promise<string> {
   try {
     return await configService.get(key);
   } catch {
-    return ''; // 設定ミスが本番まで検出されない
+    return ""; // 設定ミスが本番まで検出されない
   }
 }
 ```
@@ -178,7 +183,7 @@ async function getConfig(key: string): Promise<string> {
 async function getUser(id: string): Promise<User> {
   try {
     // ※ null処理は省略（フォールバック問題に焦点）
-    return await userRepository.findById(id) as User;
+    return (await userRepository.findById(id)) as User;
   } catch (error) {
     return fallbackInProdOnly(DEFAULT_USER, error, { id });
   }
@@ -189,30 +194,31 @@ async function getConfig(key: string): Promise<string> {
   try {
     return await configService.get(key);
   } catch (error) {
-    const normalizedError = error instanceof Error ? error : new Error(String(error));
-    logger.error('Failed to fetch config', normalizedError, { key });
+    const normalizedError =
+      error instanceof Error ? error : new Error(String(error));
+    logger.error("Failed to fetch config", normalizedError, { key });
 
     const env = process.env.NODE_ENV;
-    if (env === 'development' || env === 'test') {
+    if (env === "development" || env === "test") {
       throw normalizedError;
     }
 
-    return ''; // 本番時のみ: デフォルト値で継続
+    return ""; // 本番時のみ: デフォルト値で継続
   }
 }
 ```
 
 ### 適用判断ガイド
 
-| シナリオ | 開発時 | 本番時 |
-|---------|--------|--------|
-| DB/API通信エラー | スロー（即座に検出） | フォールバック + ログ |
-| 設定値の取得失敗 | スロー（設定ミス検出） | デフォルト値 + アラート |
-| データ変換エラー | スロー（型不整合検出） | 安全なデフォルト + ログ |
-| 認証/認可エラー | スロー | スロー（環境問わず） |
-| バリデーションエラー | スロー | スロー（環境問わず） |
-| データ整合性エラー | スロー | スロー（環境問わず） |
-| セキュリティ関連エラー | スロー | スロー（環境問わず） |
+| シナリオ               | 開発時                 | 本番時                  |
+| ---------------------- | ---------------------- | ----------------------- |
+| DB/API通信エラー       | スロー（即座に検出）   | フォールバック + ログ   |
+| 設定値の取得失敗       | スロー（設定ミス検出） | デフォルト値 + アラート |
+| データ変換エラー       | スロー（型不整合検出） | 安全なデフォルト + ログ |
+| 認証/認可エラー        | スロー                 | スロー（環境問わず）    |
+| バリデーションエラー   | スロー                 | スロー（環境問わず）    |
+| データ整合性エラー     | スロー                 | スロー（環境問わず）    |
+| セキュリティ関連エラー | スロー                 | スロー（環境問わず）    |
 
 ### Result patternとの使い分け
 
@@ -227,21 +233,21 @@ async function getConfig(key: string): Promise<string> {
 
 ### 重要機能のフォールバックマッピング
 
-| 機能 | 重要度 | フォールバック戦略 | フォールバック先 |
-|------|--------|------------------|----------------|
-| [機能A] | Critical | Circuit Breaker + セカンダリ | [代替サービス] |
-| [機能B] | High | キャッシュ + 縮退モード | [キャッシュデータ] |
-| [機能C] | Medium | Feature Flag で無効化 | [機能非表示] |
-| [機能D] | Low | エラー表示のみ | - |
+| 機能    | 重要度   | フォールバック戦略           | フォールバック先   |
+| ------- | -------- | ---------------------------- | ------------------ |
+| [機能A] | Critical | Circuit Breaker + セカンダリ | [代替サービス]     |
+| [機能B] | High     | キャッシュ + 縮退モード      | [キャッシュデータ] |
+| [機能C] | Medium   | Feature Flag で無効化        | [機能非表示]       |
+| [機能D] | Low      | エラー表示のみ               | -                  |
 
 ### フォールバック発動条件テーブル
 
-| トリガー | 検出方法 | フォールバック動作 | 復旧条件 |
-|---------|---------|------------------|---------|
-| API応答タイムアウト | [X]秒超過 | キャッシュデータ返却 | 正常応答の連続[Y]回 |
-| 外部サービス障害 | ヘルスチェック失敗 | セカンダリサービス切替 | プライマリ復旧確認 |
-| DB接続エラー | コネクションプール枯渇 | Read Replica へフォールバック | プライマリ接続回復 |
-| 高負荷 | CPU/メモリ閾値超過 | 縮退モード移行 | リソース使用量正常化 |
+| トリガー            | 検出方法               | フォールバック動作            | 復旧条件             |
+| ------------------- | ---------------------- | ----------------------------- | -------------------- |
+| API応答タイムアウト | [X]秒超過              | キャッシュデータ返却          | 正常応答の連続[Y]回  |
+| 外部サービス障害    | ヘルスチェック失敗     | セカンダリサービス切替        | プライマリ復旧確認   |
+| DB接続エラー        | コネクションプール枯渇 | Read Replica へフォールバック | プライマリ接続回復   |
+| 高負荷              | CPU/メモリ閾値超過     | 縮退モード移行                | リソース使用量正常化 |
 
 ---
 

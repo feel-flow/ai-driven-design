@@ -89,7 +89,10 @@ const timestamp = Math.floor(Date.now() / 1000);
  * @param id - ユーザーID
  * @returns ユーザー情報
  */
-async function getUser(userId: string, options?: GetOptions): Promise<Result<User>> {
+async function getUser(
+  userId: string,
+  options?: GetOptions,
+): Promise<Result<User>> {
   // パラメータ名が不一致（id → userId）
   // options パラメータが未記載
   // 戻り値の型が不正確（Result<User> が未記載）
@@ -110,15 +113,17 @@ async function getUser(userId: string, options?: GetOptions): Promise<Result<Use
 
 ### 検出事項
 
-| # | ファイル | 行 | カテゴリ | 重要度 | 内容 |
-|---|---------|-----|---------|--------|------|
-| 1 | ... | ... | 不整合 | High | ... |
+| #   | ファイル | 行  | カテゴリ | 重要度 | 内容 |
+| --- | -------- | --- | -------- | ------ | ---- |
+| 1   | ...      | ... | 不整合   | High   | ...  |
 
 ### TODO/FIXME 棚卸し
-| # | ファイル | 行 | 種別 | 内容 | 対応状況 |
-|---|---------|-----|------|------|---------|
+
+| #   | ファイル | 行  | 種別 | 内容 | 対応状況 |
+| --- | -------- | --- | ---- | ---- | -------- |
 
 ### サマリー
+
 - 不整合コメント: N件
 - 陳腐化コメント: N件
 - 未対応 TODO/FIXME: N件

@@ -20,14 +20,14 @@ PATTERNS.md および MASTER.md で定義された基準を適用する。
 
 ## 1. 命名規則
 
-| 要素 | パターン | 例 |
-|---|---|---|
-| クラス | PascalCase | `UserService` |
+| 要素             | パターン              | 例                |
+| ---------------- | --------------------- | ----------------- |
+| クラス           | PascalCase            | `UserService`     |
 | インターフェース | PascalCase + I prefix | `IUserRepository` |
-| メソッド | camelCase | `getUserById()` |
-| 変数 | camelCase | `userName` |
-| 定数 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| ファイル | kebab-case | `user-service.ts` |
+| メソッド         | camelCase             | `getUserById()`   |
+| 変数             | camelCase             | `userName`        |
+| 定数             | UPPER_SNAKE_CASE      | `MAX_RETRY_COUNT` |
+| ファイル         | kebab-case            | `user-service.ts` |
 
 ## 2. ファイル構造の標準パターン
 
@@ -35,7 +35,7 @@ PATTERNS.md および MASTER.md で定義された基準を適用する。
 
 ```typescript
 // 1. imports
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 // 2. constants
 const MAX_RETRY_COUNT = 3;
@@ -63,14 +63,14 @@ export { UserService, UserData };
 ```typescript
 // ❌ 禁止: マジックナンバー
 if (retryCount > 3) {
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 setTimeout(callback, 30000);
 
 // ✅ 正しい: 名前付き定数
 const MAX_RETRY_COUNT = 3;
 if (retryCount > MAX_RETRY_COUNT) {
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 const API_CONFIG = {
@@ -85,9 +85,9 @@ setTimeout(callback, API_CONFIG.TIMEOUT_MS);
 
 ## 4. ファイルサイズ制限
 
-| 基準 | 行数 | アクション |
-|---|---|---|
-| ソフトリミット | 500行 | 分割を検討 |
+| 基準           | 行数  | アクション                               |
+| -------------- | ----- | ---------------------------------------- |
+| ソフトリミット | 500行 | 分割を検討                               |
 | ハードリミット | 800行 | 分割を実施（生成コード・スキーマは例外） |
 
 800行を超えるファイルは、責務の分離を基準に複数ファイルに分割する。
@@ -103,7 +103,7 @@ setTimeout(callback, API_CONFIG.TIMEOUT_MS);
 
 ```typescript
 // ✅ パラメタライズドクエリ
-const data = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+const data = await db.query("SELECT * FROM users WHERE id = ?", [id]);
 
 // ❌ 文字列結合（SQLインジェクション脆弱性）
 const data = await db.query(`SELECT * FROM users WHERE id = '${id}'`);
@@ -113,12 +113,12 @@ const data = await db.query(`SELECT * FROM users WHERE id = '${id}'`);
 
 プロジェクトで推奨されるデザインパターン：
 
-| パターン | 用途 |
-|---|---|
+| パターン   | 用途                                           |
+| ---------- | ---------------------------------------------- |
 | Repository | データアクセスの抽象化（インターフェース経由） |
-| Factory | 型に基づくオブジェクト生成の一元化 |
-| Singleton | 設定マネージャー等の単一インスタンス管理 |
-| Decorator | キャッシング、認証、ロール検証の横断的関心事 |
+| Factory    | 型に基づくオブジェクト生成の一元化             |
+| Singleton  | 設定マネージャー等の単一インスタンス管理       |
+| Decorator  | キャッシング、認証、ロール検証の横断的関心事   |
 
 ## 7. 禁止事項チェックリスト
 

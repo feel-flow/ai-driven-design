@@ -68,9 +68,10 @@ AIエージェントがプロジェクトの構造を理解し、タスクを自
 - **開発者の方へ**: まず `docs/AI_SPEC_DRIVEN_DEVELOPMENT.md` で概念を理解し、次に `docs/PRACTICAL_GUIDE.md` で実践方法を学んでください。
 
 ---
+
 ## Revision History
 
-| Date       | Author  | Version | Impact | Summary |
-|------------|---------|---------|--------|---------|
-| 2025-11-07 | copilot | 3.1.0   | medium | Updated index to reflect the 3-way split of the main documentation. |
+| Date       | Author  | Version | Impact | Summary                                                                                                            |
+| ---------- | ------- | ------- | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| 2025-11-07 | copilot | 3.1.0   | medium | Updated index to reflect the 3-way split of the main documentation.                                                |
 | 2025-11-07 | copilot | 3.0.0   | high   | Refactored monolithic file into OPERATIONAL_GUIDE.md and AI_SPEC_DRIVEN_DEVELOPMENT.md. This file is now an index. |

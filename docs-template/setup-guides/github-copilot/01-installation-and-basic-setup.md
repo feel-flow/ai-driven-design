@@ -11,17 +11,21 @@ This guide covers STEP 1 (Installation) and STEP 2 (copilot-instructions.md setu
 ### 1-1: GitHub Copilot Subscription
 
 1. **Access GitHub Copilot page**
+
    - <https://github.com/features/copilot>
 
 2. **Subscribe or start free trial**
+
    - Individual: $10/month
    - Business: $19/user/month
    - Free trial available (first month)
 
 3. **Login with GitHub account**
+
    - Create account if needed
 
 4. **Enter payment information**
+
    - Required even for trial
    - Can cancel before trial ends
 
@@ -34,13 +38,16 @@ This guide covers STEP 1 (Installation) and STEP 2 (copilot-instructions.md setu
 1. **Open VS Code**
 
 2. **Open Extensions Marketplace**
+
    - macOS: `Cmd + Shift + X`
    - Windows/Linux: `Ctrl + Shift + X`
 
 3. **Search for "GitHub Copilot"**
 
 4. **Install the following extensions**:
+
    - **GitHub Copilot** (required)
+
      - ID: `GitHub.copilot`
      - Provides code completion
 
@@ -53,13 +60,16 @@ This guide covers STEP 1 (Installation) and STEP 2 (copilot-instructions.md setu
 ### 1-3: GitHub Account Connection
 
 1. **Click "Sign in to GitHub" in VS Code**
+
    - Located in bottom-left corner
    - Or click Copilot icon and select "Sign in"
 
 2. **Authenticate in browser**
+
    - Login with GitHub account that has Copilot subscription
 
 3. **Authorize VS Code**
+
    - Click "Authorize Visual Studio Code"
 
 4. **Verify connection**
@@ -87,11 +97,11 @@ mkdir -p .github
 
 ### 2-2: Choose Your Setup Method
 
-| Method | Time | Best For |
-|--------|------|----------|
+| Method           | Time         | Best For                             |
+| ---------------- | ------------ | ------------------------------------ |
 | **A: AI Prompt** | **5-10 min** | MASTER.md exists, AI tools available |
-| B: Template | 15 min | Copy from existing project |
-| C: Manual | 30 min | Full customization needed |
+| B: Template      | 15 min       | Copy from existing project           |
+| C: Manual        | 30 min       | Full customization needed            |
 
 ---
 
@@ -166,6 +176,7 @@ Confirmation format:
 ⚠️ Missing Information - Confirmation Required
 
 [Required Confirmations]
+
 1. [Item]: [What is unclear]
    - Why needed: [Reason]
    - Recommended: [Suggested options]
@@ -236,16 +247,19 @@ Create `.github/copilot-instructions.md` with this structure:
 Before generating code suggestions, read and understand `docs-template/MASTER.md`.
 
 ## Project Context
+
 [Project overview - name, purpose, target users]
 
 ## Key Constraints from MASTER.md
 
 ### Type Safety
+
 - TypeScript with strict mode
 - No `any` types (use `unknown` or proper types)
 - Explicit type definitions for all variables, functions, and API responses
 
 ### Code Quality
+
 - No magic numbers/hardcoded values (use named constants)
 - No `console.log` in production code
 - No unused imports or variables
@@ -255,32 +269,39 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 ### Naming Conventions
 
 #### Code
+
 - Variables: camelCase (`userName`, `isActive`)
 - Constants: UPPER_SNAKE_CASE (`MAX_RETRY_COUNT`)
 - Types/Interfaces: PascalCase (`UserProfile`, `ApiResponse`)
 - Files: kebab-case (`user-service.ts`)
 
 #### Documentation Files
+
 - Directories: `number-lowercase-hyphen` (`01-context`, `02-design`)
 - Files: `UPPERCASE.md` (`MASTER.md`, `ARCHITECTURE.md`)
 
 ### Error Handling
+
 - Use Result pattern
 - Implement try-catch blocks with proper error messages
 - Log errors with structured logging
 
 ### Testing
+
 - Generate unit tests for all functions (80%+ coverage target)
 - Use AAA pattern (Arrange-Act-Assert)
 - Mock dependencies appropriately
 
 ## Architecture Patterns
+
 [Your architecture patterns]
+
 - Clean Architecture
 - Repository Pattern
 - etc.
 
 ## Document References
+
 - `docs-template/MASTER.md` - Project overview and rules
 - `docs-template/01-context/PROJECT.md` - Business requirements
 - `docs-template/02-design/ARCHITECTURE.md` - Technical architecture
@@ -288,6 +309,7 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 - `docs-template/04-quality/TESTING.md` - Testing strategies
 
 ## Code Review Checklist
+
 - [ ] MASTER.md rules followed
 - [ ] No magic numbers/hardcoded values
 - [ ] Type safety ensured
@@ -304,9 +326,11 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 ### Content to Copy from MASTER.md
 
 1. **Project Context**
+
    - From `docs-template/MASTER.md` "Project Overview" section
 
 2. **Architecture Patterns**
+
    - From `docs-template/MASTER.md` "Architecture Patterns" section
 
 3. **Code Generation Rules**
@@ -321,11 +345,13 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 ## Key Constraints from MASTER.md
 
 ### Type Safety (from MASTER.md)
+
 - TypeScript strict mode required
 - No `any` type (use `unknown` or proper types)
 - Explicit type definitions for all variables, functions, and API responses
 
 ### Magic Number Prohibition (from MASTER.md)
+
 - No magic numbers or hardcoded values
 - All meaningful values must be extracted to named constants
 - Document units (ms, KB, etc.) and valid ranges
@@ -351,6 +377,7 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 **Symptom**: "No subscription" message appears
 
 **Solution**:
+
 1. Verify GitHub account (correct account with subscription)
 2. Check status at <https://github.com/settings/copilot>
 3. Restart VS Code
@@ -361,6 +388,7 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 **Symptom**: Cannot click install button or errors occur
 
 **Solution**:
+
 1. Update VS Code to latest version
 2. Check system requirements
 3. Run VS Code with administrator privileges
@@ -371,6 +399,7 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 **Symptom**: Browser authentication doesn't return to VS Code
 
 **Solution**:
+
 1. Manually copy authentication code from browser
 2. Open Command Palette (`Cmd/Ctrl + Shift + P`)
 3. Execute "GitHub: Sign in with Device Code"
@@ -383,6 +412,7 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 ### Q: Can I use AI-generated content as-is?
 
 A: Always verify:
+
 - Project name is correct
 - Tech stack versions are current
 - No conflicts with MASTER.md

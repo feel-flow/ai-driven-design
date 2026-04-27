@@ -1,9 +1,9 @@
 ---
 name: リファクタリング
 about: コードの改善・リファクタリング
-title: 'refactor: '
+title: "refactor: "
 labels: refactor
-assignees: ''
+assignees: ""
 ---
 
 ## 概要

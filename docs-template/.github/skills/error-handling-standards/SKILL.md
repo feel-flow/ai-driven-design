@@ -25,16 +25,26 @@ PATTERNS.md のセクション 3, 9 および FALLBACK.md で定義されたパ�
 
 ```typescript
 // ❌ 空の catch ブロック
-try { doSomething(); } catch (e) {}
+try {
+  doSomething();
+} catch (e) {}
 
 // ❌ console.log のみでエラーを握りつぶし
-try { doSomething(); } catch (e) { console.log(e); }
+try {
+  doSomething();
+} catch (e) {
+  console.log(e);
+}
 
 // ❌ エラーを無視して null/undefined を返す
-try { return fetchData(); } catch (e) { return null; }
+try {
+  return fetchData();
+} catch (e) {
+  return null;
+}
 
 // ❌ 汎用的すぎるエラーメッセージ
-throw new Error('Something went wrong');
+throw new Error("Something went wrong");
 ```
 
 すべての catch ブロックは、エラーの**記録**、**再スロー**、または**Result.fail での返却**のいずれかを行うこと。
@@ -51,7 +61,7 @@ abstract class AppError extends Error {
   constructor(
     public message: string,
     public code: string,
-    public statusCode: number
+    public statusCode: number,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -60,35 +70,38 @@ abstract class AppError extends Error {
 
 // バリデーションエラー
 class ValidationError extends AppError {
-  constructor(message: string, public details: any[]) {
-    super(message, 'VALIDATION_ERROR', 400);
+  constructor(
+    message: string,
+    public details: any[],
+  ) {
+    super(message, "VALIDATION_ERROR", 400);
   }
 }
 
 // リソース未検出エラー
 class NotFoundError extends AppError {
   constructor(message: string) {
-    super(message, 'NOT_FOUND', 404);
+    super(message, "NOT_FOUND", 404);
   }
 }
 
 // 内部エラー
 class InternalError extends AppError {
   constructor(message: string) {
-    super(message, 'INTERNAL_ERROR', 500);
+    super(message, "INTERNAL_ERROR", 500);
   }
 }
 ```
 
 ## 3. エラーコードと HTTP ステータスコード
 
-| エラークラス | エラーコード | HTTP ステータス | 用途 |
-|---|---|---|---|
-| ValidationError | `VALIDATION_ERROR` | 400 | 入力バリデーション失敗 |
-| NotFoundError | `NOT_FOUND` | 404 | リソース未検出 |
-| ForbiddenError | `FORBIDDEN` | 403 | 権限不足 |
-| ConflictError | `CONFLICT` | 409 | 重複・競合 |
-| InternalError | `INTERNAL_ERROR` | 500 | 予期しない内部エラー |
+| エラークラス    | エラーコード       | HTTP ステータス | 用途                   |
+| --------------- | ------------------ | --------------- | ---------------------- |
+| ValidationError | `VALIDATION_ERROR` | 400             | 入力バリデーション失敗 |
+| NotFoundError   | `NOT_FOUND`        | 404             | リソース未検出         |
+| ForbiddenError  | `FORBIDDEN`        | 403             | 権限不足               |
+| ConflictError   | `CONFLICT`         | 409             | 重複・競合             |
+| InternalError   | `INTERNAL_ERROR`   | 500             | 予期しない内部エラー   |
 
 ForbiddenError と ConflictError は PATTERNS.md の基本階層には未定義だが、一般的な HTTP エラーとして推奨される拡張。
 新しいエラー種別が必要な場合は、必ず AppError を継承して作成する。
@@ -111,26 +124,26 @@ async function processUser(userId: string): Promise<Result<User>> {
   try {
     const user = await userRepository.findById(userId);
     if (!user) {
-      return Result.fail(new NotFoundError('User not found'));
+      return Result.fail(new NotFoundError("User not found"));
     }
 
     const processed = await processUserData(user);
     return Result.ok(processed);
-
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Failed to process user', err, { userId });
+    logger.error("Failed to process user", err, { userId });
 
     if (error instanceof AppError) {
       return Result.fail(error);
     }
 
-    return Result.fail(new InternalError('Processing failed'));
+    return Result.fail(new InternalError("Processing failed"));
   }
 }
 ```
 
 **Result パターンのメリット:**
+
 - 呼び出し側がエラーハンドリングを忘れない（型で強制）
 - 正常系と異常系が型レベルで明確に区別される
 - try-catch のネストが減りコードが読みやすくなる
@@ -146,23 +159,24 @@ try {
     return Result.fail(error); // そのまま返却
   }
   if (error instanceof NotFoundError) {
-    logger.warn('Resource not found', { error });
+    logger.warn("Resource not found", { error });
     return Result.fail(error);
   }
   // 未知のエラーは InternalError でラップ
-  logger.error('Unexpected error', { error });
-  return Result.fail(new InternalError('Unexpected error occurred'));
+  logger.error("Unexpected error", { error });
+  return Result.fail(new InternalError("Unexpected error occurred"));
 }
 
 // ❌ 悪い例: 汎用的な catch のみ
 try {
   await riskyOperation();
 } catch (error) {
-  throw new Error('Failed'); // 元のエラー情報が失われる
+  throw new Error("Failed"); // 元のエラー情報が失われる
 }
 ```
 
 **ルール:**
+
 - `instanceof` でエラー型をチェック
 - 具体的なエラーから順に処理
 - 未知のエラーは `InternalError` でラップして再スロー
@@ -175,29 +189,32 @@ try {
 ```typescript
 class Logger {
   error(message: string, error: Error, meta?: Record<string, any>): void {
-    console.error(JSON.stringify({
-      level: 'error',
-      message,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-      timestamp: new Date().toISOString(),
-      ...meta,
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message,
+        error: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        },
+        timestamp: new Date().toISOString(),
+        ...meta,
+      }),
+    );
   }
 }
 
 // 使用例
-logger.error('Failed to process user', error, {
-  userId: '123',
-  operation: 'processUser',
-  requestId: req.headers['x-request-id'],
+logger.error("Failed to process user", error, {
+  userId: "123",
+  operation: "processUser",
+  requestId: req.headers["x-request-id"],
 });
 ```
 
 **ログの必須フィールド:**
+
 - `level`: エラーレベル（error / warn / info）
 - `message`: 人間が読めるエラー説明
 - `error.name`: エラークラス名
@@ -206,6 +223,7 @@ logger.error('Failed to process user', error, {
 - `timestamp`: ISO 8601 形式
 
 **禁止事項:**
+
 - 個人情報（パスワード、メールアドレス等）をログに含めない
 - スタックトレースをユーザー向けレスポンスに含めない
 
@@ -236,10 +254,18 @@ AI（Claude Code, Copilot, Cursor等）は `try-catch` + デフォルト値返�
 
 ```typescript
 // ❌ パターン1: 空 catch + デフォルト値
-try { return await fetchData(); } catch { return defaultValue; }
+try {
+  return await fetchData();
+} catch {
+  return defaultValue;
+}
 
 // ❌ パターン2: エラー無視 + 空配列/空文字
-try { return await getItems(); } catch { return []; }
+try {
+  return await getItems();
+} catch {
+  return [];
+}
 
 // ❌ パターン3: catch 内で console.log のみ + フォールバック
 try {
@@ -262,11 +288,14 @@ const data = await fetchData().catch(() => defaultValue);
 try {
   return await fetchData();
 } catch (error) {
-  const normalizedError = error instanceof Error ? error : new Error(String(error));
-  logger.error('Failed to fetch data', normalizedError, { operation: 'fetchData' });
+  const normalizedError =
+    error instanceof Error ? error : new Error(String(error));
+  logger.error("Failed to fetch data", normalizedError, {
+    operation: "fetchData",
+  });
 
   const env = process.env.NODE_ENV;
-  if (env === 'development' || env === 'test') {
+  if (env === "development" || env === "test") {
     throw normalizedError; // 開発時: バグを即座に検出
   }
 
@@ -276,10 +305,10 @@ try {
 
 ### レビュー時の判断基準
 
-| 状況 | 対応 |
-|------|------|
-| catch 内でデフォルト値を返している | 環境分岐を追加するよう指摘 |
-| `.catch(() => default)` パターン | try-catch + 環境分岐に書き換え |
-| 認証/認可/バリデーション/データ整合性エラーにフォールバック | 環境問わずスローに修正 |
-| 既に `fallbackInProdOnly()` または環境分岐あり | OK（ログ記録・エラー正規化を確認） |
-| フォールバックが明示的にビジネス要件 | コメントで理由を明記させる |
+| 状況                                                        | 対応                               |
+| ----------------------------------------------------------- | ---------------------------------- |
+| catch 内でデフォルト値を返している                          | 環境分岐を追加するよう指摘         |
+| `.catch(() => default)` パターン                            | try-catch + 環境分岐に書き換え     |
+| 認証/認可/バリデーション/データ整合性エラーにフォールバック | 環境問わずスローに修正             |
+| 既に `fallbackInProdOnly()` または環境分岐あり              | OK（ログ記録・エラー正規化を確認） |
+| フォールバックが明示的にビジネス要件                        | コメントで理由を明記させる         |

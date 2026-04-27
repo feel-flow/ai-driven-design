@@ -57,6 +57,7 @@
 **目的**: コード品質保証とビルド検証
 
 **主要ステップ**:
+
 1. リポジトリチェックアウト
 2. Node.js環境セットアップ (v18)
 3. 依存関係インストール (`npm ci`)
@@ -71,6 +72,7 @@
 **目的**: Staging環境への自動デプロイ
 
 **主要ステップ**:
+
 1. ビルド成果物ダウンロード
 2. AWS認証情報設定
 3. Amazon ECRログイン
@@ -78,6 +80,7 @@
 5. ECSサービス強制再デプロイ
 
 **実行条件**:
+
 - `needs: test` (テストジョブ成功後)
 - `if: github.ref == 'refs/heads/develop'` (developブランチのみ)
 - `environment: staging` (承認不要)
@@ -87,10 +90,12 @@
 **目的**: Production環境への制御されたデプロイ
 
 **主要ステップ**:
+
 1. Blue-Greenデプロイスクリプト実行
 2. リリースタグをバージョンとして使用
 
 **実行条件**:
+
 - `needs: test` (テストジョブ成功後)
 - `if: github.event_name == 'release'` (releaseイベントのみ)
 - `environment: production` (手動承認推奨)
@@ -98,10 +103,12 @@
 ### 環境変数とシークレット
 
 **必須シークレット**:
+
 - `AWS_ACCESS_KEY_ID`: AWSアクセスキー
 - `AWS_SECRET_ACCESS_KEY`: AWSシークレットキー
 
 **環境固有設定**:
+
 - ECRリポジトリ名 (staging/production)
 - ECSクラスター名
 - AWSリージョン (`ap-northeast-1`)
@@ -126,6 +133,7 @@
 **ベースイメージ**: `node:18-alpine`
 
 **役割**:
+
 - 依存関係インストール (production-only)
 - アプリケーションビルド実行
 - ビルド成果物生成
@@ -146,6 +154,7 @@ RUN npm run build
 **ベースイメージ**: `node:18-alpine`
 
 **役割**:
+
 - 最小限のランタイム環境構築
 - ビルド済み成果物のみコピー
 - セキュリティ強化設定
@@ -197,6 +206,7 @@ CMD ["node", "dist/index.js"]
 **デプロイ戦略**: Rolling Update
 
 **特徴**:
+
 - 自動デプロイ (developブランチpush時)
 - 手動承認不要
 - ECS force-new-deployment でローリング更新
@@ -209,6 +219,7 @@ CMD ["node", "dist/index.js"]
 **デプロイ戦略**: Blue-Green Deployment
 
 **特徴**:
+
 - 手動トリガー (releaseイベント)
 - 環境承認必須 (`environment: production`)
 - 専用デプロイスクリプト実行
@@ -260,14 +271,17 @@ CMD ["node", "dist/index.js"]
 ### よくある問題
 
 **問題**: デプロイジョブがスキップされる
+
 - **原因**: ブランチ条件不一致
 - **解決**: `github.ref` の値を確認
 
 **問題**: Dockerビルド失敗
+
 - **原因**: ビルド成果物が不足
 - **解決**: テストジョブのアーティファクト設定確認
 
 **問題**: ECSデプロイがタイムアウト
+
 - **原因**: ヘルスチェック失敻
 - **解決**: アプリケーションログとヘルスチェックエンドポイント確認
 

@@ -67,15 +67,15 @@
 
 ### 一覧
 
-| # | Perspective | 分析対象 | 推奨CLI | 理由 |
-|---|------------|---------|---------|------|
-| 1 | **Code Review** | コード品質、ガイドライン準拠、バグ検出 | Codex | 汎用レビューはGPT系で別視点 |
-| 2 | **Error Handler Hunt** | サイレント失敗、不適切なcatch | Codex | エラーパターン検出に強い |
-| 3 | **Security Analysis** | 脆弱性、インジェクション、認証問題 | Gemini | 無料枠＋長コンテキスト活用 |
-| 4 | **Test Analysis** | テストカバレッジ、エッジケース不足 | Copilot | 固定料金で繰り返し実行 |
-| 5 | **Type Design Analysis** | 型設計、カプセル化、不変性 | Claude Code | 最も高度な判断力が必要 |
-| 6 | **Comment Analysis** | コメント正確性、ドキュメント品質 | Copilot | 固定料金で繰り返し実行 |
-| 7 | **Code Simplification** | 複雑性削減、リファクタリング提案 | Cursor | エディタ連携が強い |
+| #   | Perspective              | 分析対象                               | 推奨CLI     | 理由                        |
+| --- | ------------------------ | -------------------------------------- | ----------- | --------------------------- |
+| 1   | **Code Review**          | コード品質、ガイドライン準拠、バグ検出 | Codex       | 汎用レビューはGPT系で別視点 |
+| 2   | **Error Handler Hunt**   | サイレント失敗、不適切なcatch          | Codex       | エラーパターン検出に強い    |
+| 3   | **Security Analysis**    | 脆弱性、インジェクション、認証問題     | Gemini      | 無料枠＋長コンテキスト活用  |
+| 4   | **Test Analysis**        | テストカバレッジ、エッジケース不足     | Copilot     | 固定料金で繰り返し実行      |
+| 5   | **Type Design Analysis** | 型設計、カプセル化、不変性             | Claude Code | 最も高度な判断力が必要      |
+| 6   | **Comment Analysis**     | コメント正確性、ドキュメント品質       | Copilot     | 固定料金で繰り返し実行      |
+| 7   | **Code Simplification**  | 複雑性削減、リファクタリング提案       | Cursor      | エディタ連携が強い          |
 
 ### パースペクティブファイル形式
 
@@ -85,29 +85,33 @@
 # Perspective: {Name}
 
 ## Role
+
 [エージェントの役割と責任]
 
 ## Analysis Focus
+
 [何を分析するか、具体的なチェック項目]
 
 ## Severity Classification
+
 [このパースペクティブ固有の重大度基準]
 
 ## Output Template
+
 [結果の出力テンプレート]
 ```
 
 ### Claude Code pr-review-toolkit との対応
 
-| Perspective | pr-review-toolkit サブエージェント | 移譲先CLI |
-|------------|----------------------------------|----------|
-| Code Review | code-reviewer | Codex CLI |
-| Error Handler Hunt | silent-failure-hunter | Codex CLI |
-| Security Analysis | *(新規)* | Gemini CLI |
-| Test Analysis | pr-test-analyzer | Copilot CLI |
-| Type Design Analysis | type-design-analyzer | Claude Code（据置） |
-| Comment Analysis | comment-analyzer | Copilot CLI |
-| Code Simplification | code-simplifier | Cursor CLI |
+| Perspective          | pr-review-toolkit サブエージェント | 移譲先CLI           |
+| -------------------- | ---------------------------------- | ------------------- |
+| Code Review          | code-reviewer                      | Codex CLI           |
+| Error Handler Hunt   | silent-failure-hunter              | Codex CLI           |
+| Security Analysis    | _(新規)_                           | Gemini CLI          |
+| Test Analysis        | pr-test-analyzer                   | Copilot CLI         |
+| Type Design Analysis | type-design-analyzer               | Claude Code（据置） |
+| Comment Analysis     | comment-analyzer                   | Copilot CLI         |
+| Code Simplification  | code-simplifier                    | Cursor CLI          |
 
 ---
 
@@ -138,13 +142,13 @@ adapter-{cli}.sh <perspective-file> <output-file> [--changed-files <file-list>]
 
 ### CLI別実行コマンド
 
-| CLI | コマンド | 主要フラグ | 備考 |
-|-----|---------|-----------|------|
-| Claude Code | `claude` | `-p "..." --allowed-tools "Read,Grep,Glob,Bash(git diff*)"` | ツール制限で安全性確保 |
-| Codex CLI | `codex` | `exec "..." --sandbox read-only` | 読み取り専用サンドボックス |
-| Copilot CLI | `copilot` | `-p "..." --silent --allow-all-tools` | `--silent`でstats出力抑制 |
-| Gemini CLI | `gemini` | `-p "..." --sandbox --output-format json` | サンドボックス＋JSON出力 |
-| Cursor CLI | `cursor-agent` | `--print --model auto "prompt"` | ヘッドレスモード（プロンプトはpositional引数） |
+| CLI         | コマンド       | 主要フラグ                                                  | 備考                                           |
+| ----------- | -------------- | ----------------------------------------------------------- | ---------------------------------------------- |
+| Claude Code | `claude`       | `-p "..." --allowed-tools "Read,Grep,Glob,Bash(git diff*)"` | ツール制限で安全性確保                         |
+| Codex CLI   | `codex`        | `exec "..." --sandbox read-only`                            | 読み取り専用サンドボックス                     |
+| Copilot CLI | `copilot`      | `-p "..." --silent --allow-all-tools`                       | `--silent`でstats出力抑制                      |
+| Gemini CLI  | `gemini`       | `-p "..." --sandbox --output-format json`                   | サンドボックス＋JSON出力                       |
+| Cursor CLI  | `cursor-agent` | `--print --model auto "prompt"`                             | ヘッドレスモード（プロンプトはpositional引数） |
 
 ### アダプター実装の骨格
 
@@ -194,22 +198,22 @@ Output in the standard review format."
 
 ### 重大度レベル
 
-| レベル | 説明 | 対応ポリシー |
-|--------|------|-------------|
-| **Critical** | セキュリティ脆弱性、データ損失、本番障害の可能性 | 必ず修正（確認不要で即対応） |
-| **Warning** | バグの可能性、パフォーマンス問題、ベストプラクティス違反 | 必ず修正（確認不要で即対応） |
-| **Suggestion** | コード品質改善、リファクタリング提案 | 実装が妥当なものは対応（確認不要） |
-| **Info** | 良いプラクティスの確認、参考情報 | 確認のみ（対応不要） |
+| レベル         | 説明                                                     | 対応ポリシー                       |
+| -------------- | -------------------------------------------------------- | ---------------------------------- |
+| **Critical**   | セキュリティ脆弱性、データ損失、本番障害の可能性         | 必ず修正（確認不要で即対応）       |
+| **Warning**    | バグの可能性、パフォーマンス問題、ベストプラクティス違反 | 必ず修正（確認不要で即対応）       |
+| **Suggestion** | コード品質改善、リファクタリング提案                     | 実装が妥当なものは対応（確認不要） |
+| **Info**       | 良いプラクティスの確認、参考情報                         | 確認のみ（対応不要）               |
 
 ### 信頼度スコア
 
 各問題には信頼度スコア（0-100）を付与：
 
-| スコア範囲 | 意味 | 報告 |
-|-----------|------|------|
-| 80-100 | 高確度の問題 | 報告する |
-| 50-79 | 中程度の確度 | Suggestion以下で報告 |
-| 0-49 | 低確度 | 報告しない |
+| スコア範囲 | 意味         | 報告                 |
+| ---------- | ------------ | -------------------- |
+| 80-100     | 高確度の問題 | 報告する             |
+| 50-79      | 中程度の確度 | Suggestion以下で報告 |
+| 0-49       | 低確度       | 報告しない           |
 
 ---
 
@@ -229,6 +233,7 @@ Output in the standard review format."
 ---
 
 ### Critical Issues
+
 - [{file}:{line}] {description}
   - **Severity**: Critical
   - **Confidence**: {score}/100
@@ -236,6 +241,7 @@ Output in the standard review format."
   - **Fix**: {recommended fix}
 
 ### Warnings
+
 - [{file}:{line}] {description}
   - **Severity**: Warning
   - **Confidence**: {score}/100
@@ -243,6 +249,7 @@ Output in the standard review format."
   - **Fix**: {fix}
 
 ### Suggestions
+
 - [{file}:{line}] {description}
   - **Severity**: Suggestion
   - **Confidence**: {score}/100
@@ -250,20 +257,23 @@ Output in the standard review format."
   - **Fix**: {fix}
 
 ### Info / Good Practices
+
 - [{file}:{line}] {description}
 
 ---
 
 ### Summary
-| Severity | Count |
-|----------|-------|
-| Critical | {n} |
-| Warning | {n} |
-| Suggestion | {n} |
-| Info | {n} |
-| **Total** | **{n}** |
+
+| Severity   | Count   |
+| ---------- | ------- |
+| Critical   | {n}     |
+| Warning    | {n}     |
+| Suggestion | {n}     |
+| Info       | {n}     |
+| **Total**  | **{n}** |
 
 ### Verdict
+
 {PASS | NEEDS_WORK | CRITICAL_BLOCK}
 ```
 
@@ -279,19 +289,23 @@ Output in the standard review format."
 **Strategy**: {balanced | minimize_cost | maximize_quality}
 
 ## Reviewers
-| CLI | Perspective | Verdict | Issues |
-|-----|------------|---------|--------|
+
+| CLI   | Perspective   | Verdict   | Issues  |
+| ----- | ------------- | --------- | ------- |
 | {cli} | {perspective} | {verdict} | {count} |
 
 ## Consolidated Issues (Deduplicated)
 
 ### Critical ({total})
+
 ...
 
 ### Warnings ({total})
+
 ...
 
 ## Final Verdict
+
 {PASS | NEEDS_WORK | CRITICAL_BLOCK}
 ```
 
@@ -346,11 +360,11 @@ Output in the standard review format."
 
 ### 推奨使い方
 
-| 場面 | 推奨パターン |
-|------|------------|
-| 通常の開発 | Distributed（コスト効率優先） |
-| 重要なリリース前 | Cross-Model（品質優先） |
-| 新しいCLI導入時 | Cross-Modelで精度検証 |
+| 場面             | 推奨パターン                  |
+| ---------------- | ----------------------------- |
+| 通常の開発       | Distributed（コスト効率優先） |
+| 重要なリリース前 | Cross-Model（品質優先）       |
+| 新しいCLI導入時  | Cross-Modelで精度検証         |
 
 ---
 
@@ -383,11 +397,11 @@ Output in the standard review format."
 
 ### 分散戦略
 
-| 戦略 | 説明 | 適用場面 |
-|------|------|---------|
-| **balanced** | コストと品質のバランス（デフォルト） | 通常の開発 |
-| **minimize_cost** | 固定料金/無料CLIを優先 | 予算制約がある場合 |
-| **maximize_quality** | 最も高品質なCLIに多く割当 | リリース前の最終レビュー |
+| 戦略                 | 説明                                 | 適用場面                 |
+| -------------------- | ------------------------------------ | ------------------------ |
+| **balanced**         | コストと品質のバランス（デフォルト） | 通常の開発               |
+| **minimize_cost**    | 固定料金/無料CLIを優先               | 予算制約がある場合       |
+| **maximize_quality** | 最も高品質なCLIに多く割当            | リリース前の最終レビュー |
 
 ### Toolkit移譲パターン
 
@@ -396,12 +410,12 @@ Claude Code の `pr-review-toolkit` サブエージェントを外部CLIに移�
 ```yaml
 # 移譲マッピング
 toolkit_delegation:
-  code-reviewer: codex-cli           # GPT系の別視点でレビュー
-  silent-failure-hunter: codex-cli   # エラーハンドリングもCodexへ
-  type-design-analyzer: claude-code  # 型設計はClaudeが最強（据置）
-  pr-test-analyzer: copilot-cli      # テスト分析はCopilot（固定料金）
-  comment-analyzer: copilot-cli      # コメント分析もCopilot
-  code-simplifier: cursor-cli        # コード簡素化はCursor
+  code-reviewer: codex-cli # GPT系の別視点でレビュー
+  silent-failure-hunter: codex-cli # エラーハンドリングもCodexへ
+  type-design-analyzer: claude-code # 型設計はClaudeが最強（据置）
+  pr-test-analyzer: copilot-cli # テスト分析はCopilot（固定料金）
+  comment-analyzer: copilot-cli # コメント分析もCopilot
+  code-simplifier: cursor-cli # コード簡素化はCursor
 ```
 
 ### Graceful Degradation（フォールバック）
@@ -410,14 +424,15 @@ CLIが未インストールの場合、パースペクティブを他のCLIに�
 
 ```yaml
 fallback:
-  claude-code: codex-cli       # Claude不可 → Codexへ
-  codex-cli: copilot-cli       # Codex不可 → Copilotへ
-  copilot-cli: codex-cli       # Copilot不可 → Codexへ
-  gemini-cli: copilot-cli      # Gemini不可 → Copilotへ（固定料金）
-  cursor-cli: copilot-cli      # Cursor不可 → Copilotへ（固定料金）
+  claude-code: codex-cli # Claude不可 → Codexへ
+  codex-cli: copilot-cli # Codex不可 → Copilotへ
+  copilot-cli: codex-cli # Copilot不可 → Codexへ
+  gemini-cli: copilot-cli # Gemini不可 → Copilotへ（固定料金）
+  cursor-cli: copilot-cli # Cursor不可 → Copilotへ（固定料金）
 ```
 
 **フォールバック優先順位の設計思想**:
+
 - トークン課金CLIが不可 → 固定料金CLIにフォールバック（コスト増を避ける）
 - 固定料金CLIが不可 → 別のトークン課金CLIにフォールバック（品質維持）
 
@@ -429,13 +444,13 @@ fallback:
 
 ### エントリーポイント一覧
 
-| 呼び出し元 | 方法 | 例 |
-|-----------|------|-----|
-| **ターミナル** | 直接実行 | `bash scripts/multi-review.sh` |
-| **Claude Code** | Bash tool / hook | `bash scripts/multi-review.sh --delegate-toolkit` |
-| **Copilot CLI** | プロンプト経由 | `copilot -p "bash scripts/multi-review.sh を実行して"` |
-| **CI/CD** | GitHub Actions | `- run: bash scripts/multi-review.sh --strategy minimize_cost` |
-| **Husky** | pre-push hook | `.husky/pre-push` から呼び出し |
+| 呼び出し元      | 方法             | 例                                                             |
+| --------------- | ---------------- | -------------------------------------------------------------- |
+| **ターミナル**  | 直接実行         | `bash scripts/multi-review.sh`                                 |
+| **Claude Code** | Bash tool / hook | `bash scripts/multi-review.sh --delegate-toolkit`              |
+| **Copilot CLI** | プロンプト経由   | `copilot -p "bash scripts/multi-review.sh を実行して"`         |
+| **CI/CD**       | GitHub Actions   | `- run: bash scripts/multi-review.sh --strategy minimize_cost` |
+| **Husky**       | pre-push hook    | `.husky/pre-push` から呼び出し                                 |
 
 ### CLI インターフェース
 
