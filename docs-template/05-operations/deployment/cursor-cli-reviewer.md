@@ -112,6 +112,7 @@ Cursor CLIが利用不可の場合、`code-simplification` パースペクティ
 **回避策**:
 
 1. **timeout コマンドでラップ**（推奨）:
+
 ```bash
 # Linux
 timeout 120 cursor-agent --print --model auto "prompt here"
@@ -121,6 +122,7 @@ gtimeout 120 cursor-agent --print --model auto "prompt here"
 ```
 
 2. **アダプターでの対応**:
+
 ```bash
 # adapter-cursor-cli.sh 内
 TIMEOUT=${REVIEW_TIMEOUT:-120}
@@ -136,6 +138,7 @@ timeout "$TIMEOUT" cursor-agent --print --model auto "$PROMPT" > "$OUTPUT_FILE" 
 ```
 
 3. **Cursor CLIをスキップして代替CLIを使用**:
+
 ```bash
 bash scripts/multi-review.sh --cli copilot-cli --perspective code-simplification
 ```
