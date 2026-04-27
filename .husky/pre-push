@@ -1,0 +1,3 @@
+#!/bin/sh
+# docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §4.2 方針 C: 高速サブセット。CI 完全同等は PR 前に `npm run quality:local`。
+npm run lint:md && npm run check

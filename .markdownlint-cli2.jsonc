@@ -1,6 +1,6 @@
 {
   // AI Spec-Driven Development — Markdown Lint CLI設定
-  // ルール設定は .markdownlint.json を参照
+  // ルール設定は .markdownlint.json を参照（MD060 は CJK 併用表で誤検知が多いためオフ）
   // globs は npm script 側で指定（pre-commit hookとの共存のため）
   "ignores": [
     "node_modules",

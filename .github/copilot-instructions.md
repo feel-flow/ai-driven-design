@@ -188,8 +188,8 @@ When reviewing pull requests, GitHub Copilot MUST follow these rules:
    - Respect the "review requested" flag
 
 ### Workflow Integration
-- Align with `.github/workflows/release-drafter.yml` triggers
-- Do not interfere with automated release note generation
+- リリースノートの自動化を使う場合は、チーム方針に合わせる（本リポ主軸は手動。`.github/release-drafter.yml` のカテゴリは参考用）
+- 手動リリースでも、管理用の雑務にリソースを奪わない（コード品質のレビューに集中する）
 - Focus on code quality, not administrative tasks
 
 ### Review Router Workflow
@@ -199,6 +199,7 @@ PR作成後、マージ前に `@review-router` エージェントを呼び出し
 **ワークフロー**: Issue → Branch → Commit → Self-Review → PR → **@review-router** → Review → Merge
 
 **使用方法**:
+
 ```text
 @review-router このPRをレビューして
 ```

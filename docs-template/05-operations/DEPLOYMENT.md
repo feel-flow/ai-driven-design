@@ -32,6 +32,8 @@ updated: "YYYY-MM-DD"
 | [workflow-principles.md](./deployment/workflow-principles.md)                             | ワークフロー運用原則（3原則＋TodoWrite）          | ⭐⭐⭐⭐ -     |
 | [monitoring.md](./deployment/monitoring.md)                                               | モニタリング                                      | ⭐⭐ -         |
 
+**本リポジトリ専用（移行設計）**: [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md)（GitHub Actions を使わない運用。ルートで `npm run quality:local`、Release Drafter **用ワークフロー**は不要でよい。Issue #377）
+
 ## 🚀 クイックスタート（30秒で理解）
 
 ### AI駆動開発の基本フロー

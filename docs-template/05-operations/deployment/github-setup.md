@@ -7,8 +7,10 @@ AI Spec-Driven DevelopmentプロジェクトでGitHubリポジトリを初期設
 このガイドでは、以下を設定します：
 
 1. **GitHubラベル** - Issue/PR管理用ラベル
-2. **Release Drafter** - 自動リリースノート生成
+2. **リリースノート** - 本リポジトリでは [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) に従い **手動**（`gh release create` 等）を前提とする。Release Drafter **用の GitHub Actions ワークフロー**を使う場合は任意（テンプレ利用・fork 先では従来どおり有効化してもよい）。
 3. **推奨ワークフロー** - 標準的な開発フロー
+
+`.github/release-drafter.yml`（設定ファイル）は、**手動でリリースノートをまとめる際のカテゴリ分け**の参考として残すことがあります（ワークフローが無くても意味のあるラベル構造の説明として利用可能）。
 
 ## 1. GitHubラベルの設定
 
@@ -103,11 +105,13 @@ gh pr edit 123 --add-label "minor"
 gh pr edit 123 --add-label "patch"
 ```
 
-**Release Drafterが自動的に次のバージョン番号を判定します**。
+**バージョン方針**（`major` / `minor` / `patch` ラベル）は、手動リリース時も同じ考え方で用いることができます。自動ドラフト用 Actions を使う場合は Release Drafter が次バージョンを解釈します（[移行設計](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) 参照）。
 
-## 2. Release Drafterの設定
+## 2. Release Drafterの設定（参考・任意の自動化）
 
-Release Drafterは、PRのラベルに基づいて自動的にリリースノートを生成します。
+> **本リポジトリ（feel-flow/ai-spec-driven-development）**: `.github/workflows/` 内の Release Drafter **ワークフロー**は使わない運用とした場合、以下の「自動生成」は**オフ**です。PR のラベル付けと、`.github/release-drafter.yml` の**カテゴリ定義**は、手動要約の整理に流用できます。
+
+Release Drafter（Actions 利用時）は、PRのラベルに基づいて自動的にリリースノートを生成します。
 
 ### 設定ファイル
 
@@ -132,11 +136,11 @@ version-resolver:
   default: patch
 ```
 
-### 動作確認
+### 動作確認（Release Drafter ワークフロー利用時）
 
 1. PRを作成し、適切なラベルを付与
 2. PRをマージ
-3. GitHub Actionsで自動的にRelease Draftが作成される
+3. ワークフローが有効であれば Release Draft が更新される
 4. Releasesページで確認
 
 ## 3. ワークフロースクリプトの使用
@@ -165,7 +169,7 @@ version-resolver:
 
 1. 変更をプッシュ
 2. PRを作成（適切なラベル付き）
-3. Release Drafterが起動
+3. 組織の方針で GitHub Actions を使う場合、Release Drafter が起動する
 
 ## 4. 標準化されたラベル体系のメリット
 
@@ -228,7 +232,7 @@ gh label delete "chore" --yes    # → 下記の指針を参照
 
 1. **ユーザーに影響がない保守タスク** → ラベルなしでマージ
 
-   - Release Drafterは自動的に`patch`バージョンとして扱う
+   - 手動リリースではチーム方針に従い `patch` 相当として扱う（自動ドラフト使用時は Release Drafter の解釈に従う）
    - リリースノートには掲載されない（`default: patch`設定による）
 
 2. **ユーザーにメリットがある保守タスク** → 適切なラベルを付与
@@ -259,12 +263,13 @@ gh pr create --title "perf: Optimize build process" --label "enhancement"
 
 ### Release Drafterが動作しない
 
-1. `.github/workflows/release-drafter.yml` が存在するか確認
-2. GitHub Actionsが有効になっているか確認
+1. 自動ドラフト用の **ワークフロー YAML** をリポジトリで使う方針か確認（本リポ主軸は [移行設計](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) の手動フロー）
+2. ワークフロー利用時は GitHub Actions が有効か確認
 3. PRに適切なラベルが付いているか確認
 
 ## 6. 関連ドキュメント
 
+- [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) - 本リポのローカル品質ゲート・手動リリース（Actions 非依存の場合）
 - [Git Workflow](./git-workflow.md) - 開発フローの詳細
 - [Automated Code Review](./automated-code-review.md) - 自動レビューの設定
 - [AI Tools Integration](./ai-tools-integration.md) - AIツールの統合
@@ -274,8 +279,8 @@ gh pr create --title "perf: Optimize build process" --label "enhancement"
 この設定により：
 
 - ✅ **標準化されたラベル体系** - GitHubデフォルト + 最小限のカスタム
-- ✅ **自動バージョニング** - セマンティックバージョニングの自動判定
-- ✅ **自動リリースノート** - PRから自動生成
-- ✅ **効率的なワークフロー** - スクリプトによる自動化
+- ✅ **バージョニングの見通し** - ラベルに基づくセマンティック方針（手動 or Release Drafter 自動）
+- ✅ **リリースノート** - 自動化する場合は Release Drafter。本リポ主軸は [移行設計](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) の手動フロー
+- ✅ **効率的なワークフロー** - スクリプトによる補助（`gh` 等）
 
 AI Spec-Driven Developmentの推奨設定が完了しました。

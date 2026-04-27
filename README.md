@@ -65,17 +65,20 @@ PR マージ後の `/ace-curate` 手動実行を、**別プロセスの subagent
 
 ### 利用可能なコマンド
 
-| コマンド                             | 説明                                                      |
-| ------------------------------------ | --------------------------------------------------------- |
-| `npm run setup`                      | 依存関係インストール + MCP サーバービルド                 |
-| `npm run validate`                   | コア7文書の存在と構造の検証                               |
-| `npm run check`                      | MCP サーバーの動作確認                                    |
-| `npm run build:mcp`                  | MCP サーバーのビルド                                      |
-| `npm run format:md`                  | Prettier による Markdown 整形（`MD060` 等の前処理に利用） |
-| `npm run format:md:check`            | Prettier 整形差分の有無を確認                             |
-| `npm run lint:md`                    | markdownlint（CI と同条件）                               |
-| `npm run setup:labels`               | GitHub ラベルの自動セットアップ                           |
-| `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ                     |
+| コマンド                             | 説明                                                                                         |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `npm run setup`                      | 依存関係インストール + MCP サーバービルド                                                    |
+| `npm run validate`                   | コア7文書の存在と構造の検証                                                                  |
+| `npm run check`                      | MCP サーバーの動作確認                                                                       |
+| `npm run build:mcp`                  | MCP サーバーのビルド                                                                         |
+| `npm run quality:local`              | PR 前の品質ゲート（旧 `CI` ワークフローと同順。`npm ci` および `mcp ci` は未含）               |
+| `npm run lint:md`                    | markdownlint（従来 CI と同条件のパス指定）                                                   |
+| `npm run setup:labels`               | GitHub ラベルの自動セットアップ                                                              |
+| `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ                                                        |
+
+品質ゲートの全体像・リリース手動フローは [docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](./docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) を参照してください。ルートの `package.json` に `format:md` はありません（誤った README 表記は上記のとおりとします）。
+
+**ブランチ保護で「CI」必須ステータスを要求している場合**: ワークフロー削除後は該当チェックが付かなくなるため、リポジトリ管理者が保護ルールの**必須ステータス**を更新する必要がある場合があります。
 
 ### Multi-CLI Review Agent
 

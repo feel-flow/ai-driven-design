@@ -75,7 +75,7 @@ Always start from an Issue and follow the full flow:
 2. **Create Branch** - `git checkout -b feature/#{issue-number}-{description}` (from `develop`)
 3. **Implement** - Follow `docs-template/MASTER.md` constraints
 4. **Self-Review** - Run checklist before PR
-5. **Run Tests** - lint / type-check / test must pass
+5. **Run Tests** - 本リポでは `npm run quality:local` を通す（リモート GitHub Actions 非依存。`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` 参照）
 6. **Commit** - `<type>: #<issue> <subject>`
 7. **Create PR** - `gh pr create --base develop`
 8. **Merge & Cleanup** - Squash merge, return to `develop`, delete feature branch

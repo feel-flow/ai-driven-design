@@ -183,6 +183,9 @@ bash scripts/setup-github-labels.sh
 
 # Multi-CLI Review Agent setup
 bash scripts/setup-multi-review.sh
+
+# 品質ゲート（旧 GitHub Actions CI 相当。npm ci は含まない）
+npm run quality:local
 ```
 
 ### Development Workflow（10ステップ）
@@ -193,7 +196,7 @@ bash scripts/setup-multi-review.sh
 1. Issue       ─ 作業の起点を明確化（/create-issue で作成）
 2. Branch      ─ feature/#<issue>-<description> で作業を分離
 3. Implement   ─ AI駆動で実装・コミット
-4. Test        ─ npm run lint / type-check / test -- --coverage
+4. Test        ─ `npm run quality:local`（PR 前。手順の全体像: [docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md)）
 5. Self-Review ─ 5観点チェック＋Review Toolkit（/pre-commit-check）
 6. PR          ─ develop ベースでPR作成
 7. Review      ─ @review-router＋レビュー対応（修正ループ）
