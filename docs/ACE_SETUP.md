@@ -64,9 +64,9 @@ changeImpact: medium
 
 ユーザーに以下のデフォルトパスを提示し、変更するか質問してください:
 
-| ファイル | デフォルトパス |
-| ------- | ----------- |
-| PLAYBOOK.md | `docs/08-knowledge/PLAYBOOK.md` |
+| ファイル     | デフォルトパス                               |
+| ------------ | -------------------------------------------- |
+| PLAYBOOK.md  | `docs/08-knowledge/PLAYBOOK.md`              |
 | ace-cycle.md | `docs/05-operations/deployment/ace-cycle.md` |
 
 質問例: 「以下のパスにファイルを配置します。変更が必要な場合はお知らせください。そのままでよければ Enter（または「OK」）で進みます。」
@@ -123,12 +123,12 @@ changeImpact: medium
 
 以下のファイルを配置しました:
 
-| ファイル | パス | 状態 |
-|---------|------|------|
-| PLAYBOOK.md | docs/08-knowledge/PLAYBOOK.md | 新規作成 |
-| ace-cycle.md | docs/05-operations/deployment/ace-cycle.md | 新規作成 |
-| ace-curate.md | .claude/commands/ace-curate.md | 新規作成 |
-| copilot-instructions.md | .github/copilot-instructions.md | 追記 |
+| ファイル                | パス                                       | 状態     |
+| ----------------------- | ------------------------------------------ | -------- |
+| PLAYBOOK.md             | docs/08-knowledge/PLAYBOOK.md              | 新規作成 |
+| ace-cycle.md            | docs/05-operations/deployment/ace-cycle.md | 新規作成 |
+| ace-curate.md           | .claude/commands/ace-curate.md             | 新規作成 |
+| copilot-instructions.md | .github/copilot-instructions.md            | 追記     |
 
 ## 次のステップ
 
@@ -146,11 +146,11 @@ changeImpact: medium
 
 テンプレートファイルは以下のリポジトリから取得してください:
 
-| ファイル | リポジトリ内パス | GitHub URL |
-| ------- | -------------- | --------- |
-| PLAYBOOK.md | `docs-template/08-knowledge/PLAYBOOK.md` | [GitHub](https://github.com/feel-flow/ai-spec-driven-development/blob/develop/docs-template/08-knowledge/PLAYBOOK.md) |
-| ace-cycle.md | `docs-template/05-operations/deployment/ace-cycle.md` | [GitHub](https://github.com/feel-flow/ai-spec-driven-development/blob/develop/docs-template/05-operations/deployment/ace-cycle.md) |
-| ace-curate.md | `.claude/commands/ace-curate.md` | [GitHub](https://github.com/feel-flow/ai-spec-driven-development/blob/develop/.claude/commands/ace-curate.md) |
+| ファイル      | リポジトリ内パス                                      | GitHub URL                                                                                                                         |
+| ------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| PLAYBOOK.md   | `docs-template/08-knowledge/PLAYBOOK.md`              | [GitHub](https://github.com/feel-flow/ai-spec-driven-development/blob/develop/docs-template/08-knowledge/PLAYBOOK.md)              |
+| ace-cycle.md  | `docs-template/05-operations/deployment/ace-cycle.md` | [GitHub](https://github.com/feel-flow/ai-spec-driven-development/blob/develop/docs-template/05-operations/deployment/ace-cycle.md) |
+| ace-curate.md | `.claude/commands/ace-curate.md`                      | [GitHub](https://github.com/feel-flow/ai-spec-driven-development/blob/develop/.claude/commands/ace-curate.md)                      |
 
 **リポジトリ**: `feel-flow/ai-spec-driven-development`
 
@@ -196,12 +196,12 @@ PRマージ後に以下の3フェーズを実行してください:
 
 評価マトリクス:
 
-| 基準 | 判定 |
-|------|------|
+| 基準   | 判定                      |
+| ------ | ------------------------- |
 | 汎用性 | 汎用的 / プロジェクト固有 |
-| 再現性 | 高 / 中 / 低 |
-| 影響度 | 高 / 中 / 低 |
-| 新規性 | 新規 / 重複 / 矛盾 |
+| 再現性 | 高 / 中 / 低              |
+| 影響度 | 高 / 中 / 低              |
+| 新規性 | 新規 / 重複 / 矛盾        |
 
 #### Phase 3: Curate（増分更新）
 

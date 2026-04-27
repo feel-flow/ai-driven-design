@@ -7,6 +7,8 @@
     "setup": "npm install && npm --prefix mcp install && npm --prefix mcp run build",
     "validate": "node scripts/validate-docs.mjs",
     "lint:md": "markdownlint-cli2 'docs/**/*.md' 'docs-template/**/*.md' '*.md'",
+    "format:md": "prettier --write 'docs/**/*.md' 'docs-template/**/*.md' '*.md'",
+    "format:md:check": "prettier --check 'docs/**/*.md' 'docs-template/**/*.md' '*.md'",
     "check": "npm --prefix mcp run check",
     "build:mcp": "npm --prefix mcp run build",
     "build:spec-index": "node scripts/build-spec-index.mjs",
@@ -21,6 +23,7 @@
   "devDependencies": {
     "husky": "^9.1.0",
     "markdownlint-cli2": "^0.20.0",
+    "prettier": "3.4.2",
     "vitest": "^4.1.5"
   },
   "engines": {

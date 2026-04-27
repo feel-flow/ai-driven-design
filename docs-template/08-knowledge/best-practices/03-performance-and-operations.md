@@ -13,7 +13,7 @@
 #### 推奨: Redis キャッシュの実装
 
 ```typescript
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
 class CacheService {
   private redis: Redis;
@@ -21,7 +21,7 @@ class CacheService {
   constructor() {
     this.redis = new Redis({
       host: process.env.REDIS_HOST,
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+      port: parseInt(process.env.REDIS_PORT || "6379"),
     });
   }
 
@@ -46,7 +46,7 @@ class CacheService {
 class CachedUserService {
   constructor(
     private userRepository: UserRepository,
-    private cache: CacheService
+    private cache: CacheService,
   ) {}
 
   async findById(id: string): Promise<User | null> {
@@ -79,13 +79,14 @@ async function getUser(id: string) {
     return JSON.parse(cached);
   }
 
-  const user = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+  const user = await db.query("SELECT * FROM users WHERE id = $1", [id]);
   await redis.set(`user:${id}`, JSON.stringify(user));
   return user;
 }
 ```
 
 **問題点**:
+
 - TTL（有効期限）が設定されていない
 - キャッシュ無効化戦略がない
 - エラーハンドリングが不足
@@ -100,30 +101,30 @@ async function getUser(id: string) {
 // 並列処理で効率化
 async function processUsers(userIds: string[]): Promise<User[]> {
   const users = await Promise.all(
-    userIds.map(id => userRepository.findById(id))
+    userIds.map((id) => userRepository.findById(id)),
   );
 
-  return users.filter(user => user !== null) as User[];
+  return users.filter((user) => user !== null) as User[];
 }
 
 // 並行処理の制御（過負荷防止）
 async function processBatch<T>(
   items: T[],
   processor: (item: T) => Promise<void>,
-  concurrency: number = 5
+  concurrency: number = 5,
 ): Promise<void> {
   const semaphore = new Semaphore(concurrency);
 
   await Promise.all(
-    items.map(item =>
+    items.map((item) =>
       semaphore.acquire().then(async (release) => {
         try {
           await processor(item);
         } finally {
           release();
         }
-      })
-    )
+      }),
+    ),
   );
 }
 ```
@@ -144,6 +145,7 @@ async function processUsersSequentially(userIds: string[]): Promise<User[]> {
 ```
 
 **問題点**:
+
 - 順次実行のため処理時間が線形増加
 - I/O待機時間を有効活用できていない
 
@@ -156,45 +158,45 @@ async function processUsersSequentially(userIds: string[]): Promise<User[]> {
 #### 推奨: Winston による構造化ログ
 
 ```typescript
-import winston from 'winston';
+import winston from "winston";
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: "info",
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
-    winston.format.json()
+    winston.format.json(),
   ),
   transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "combined.log" }),
   ],
 });
 
 // アプリケーションログ
 class UserService {
   async createUser(userData: CreateUserRequest): Promise<Result<User>> {
-    logger.info('Creating user', {
+    logger.info("Creating user", {
       email: userData.email,
-      requestId: req.id
+      requestId: req.id,
     });
 
     try {
       const user = await this.userRepository.create(userData);
 
-      logger.info('User created successfully', {
+      logger.info("User created successfully", {
         userId: user.id,
         email: user.email,
-        requestId: req.id
+        requestId: req.id,
       });
 
       return { success: true, data: user };
     } catch (error) {
-      logger.error('Failed to create user', {
+      logger.error("Failed to create user", {
         error: error.message,
         stack: error.stack,
         userData: { email: userData.email },
-        requestId: req.id
+        requestId: req.id,
       });
 
       return { success: false, error };
@@ -204,6 +206,7 @@ class UserService {
 ```
 
 **ログの原則**:
+
 - **構造化**: JSON形式で検索可能
 - **コンテキスト**: requestId などで追跡可能
 - **セキュリティ**: パスワードなどの機密情報は記録しない
@@ -212,12 +215,13 @@ class UserService {
 #### 避けるべき: 非構造化ログ
 
 ```typescript
-console.log('User created'); // 構造化されていない
+console.log("User created"); // 構造化されていない
 console.error(error); // スタックトレースなし
-logger.info('Processing data', { password: userData.password }); // 機密情報のログ
+logger.info("Processing data", { password: userData.password }); // 機密情報のログ
 ```
 
 **問題点**:
+
 - 検索・分析が困難
 - トレーサビリティがない
 - セキュリティリスク
@@ -229,20 +233,20 @@ logger.info('Processing data', { password: userData.password }); // 機密情報
 #### 推奨: アプリケーションメトリクス
 
 ```typescript
-import { Counter, Histogram } from 'prom-client';
+import { Counter, Histogram } from "prom-client";
 
 // リクエスト数カウンター
 const httpRequestsTotal = new Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'path', 'status'],
+  name: "http_requests_total",
+  help: "Total number of HTTP requests",
+  labelNames: ["method", "path", "status"],
 });
 
 // レスポンス時間ヒストグラム
 const httpRequestDuration = new Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'HTTP request duration in seconds',
-  labelNames: ['method', 'path'],
+  name: "http_request_duration_seconds",
+  help: "HTTP request duration in seconds",
+  labelNames: ["method", "path"],
   buckets: [0.1, 0.5, 1, 2, 5],
 });
 
@@ -250,7 +254,7 @@ const httpRequestDuration = new Histogram({
 app.use((req, res, next) => {
   const start = Date.now();
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = (Date.now() - start) / 1000;
 
     httpRequestsTotal.inc({
@@ -261,7 +265,7 @@ app.use((req, res, next) => {
 
     httpRequestDuration.observe(
       { method: req.method, path: req.route?.path || req.path },
-      duration
+      duration,
     );
   });
 
@@ -270,6 +274,7 @@ app.use((req, res, next) => {
 ```
 
 **メトリクスの種類**:
+
 - **Counter**: 累積値（リクエスト数、エラー数）
 - **Gauge**: 現在値（CPU使用率、メモリ使用量）
 - **Histogram**: 分布（レスポンス時間、ペイロードサイズ）
@@ -293,14 +298,15 @@ src/
 
 **各層の責務**:
 
-| 層 | 責務 | 例 |
-|---|------|-----|
-| **Controllers** | HTTPリクエストの処理、バリデーション、レスポンス | ルーティング、リクエストパース |
-| **Services** | ビジネスロジック、トランザクション管理 | ユーザー登録処理、注文処理 |
-| **Repositories** | データアクセス、永続化 | データベースクエリ、外部API呼び出し |
-| **Entities** | ドメインオブジェクト、ビジネスルール | User, Product エンティティ |
+| 層               | 責務                                             | 例                                  |
+| ---------------- | ------------------------------------------------ | ----------------------------------- |
+| **Controllers**  | HTTPリクエストの処理、バリデーション、レスポンス | ルーティング、リクエストパース      |
+| **Services**     | ビジネスロジック、トランザクション管理           | ユーザー登録処理、注文処理          |
+| **Repositories** | データアクセス、永続化                           | データベースクエリ、外部API呼び出し |
+| **Entities**     | ドメインオブジェクト、ビジネスルール             | User, Product エンティティ          |
 
 **原則**:
+
 - 上位層は下位層に依存できるが、逆は禁止
 - 各層は単一責任を持つ
 - インターフェースで層間を疎結合に保つ
@@ -335,6 +341,7 @@ const userService = new UserService(userRepository);
 ```
 
 **利点**:
+
 - テストが容易（モックに置き換え可能）
 - 実装の切り替えが簡単
 - 疎結合で保守性向上
@@ -345,12 +352,13 @@ const userService = new UserService(userRepository);
 class UserService {
   async findById(id: string): Promise<User | null> {
     // 直接データベースに依存
-    return db.query('SELECT * FROM users WHERE id = $1', [id]);
+    return db.query("SELECT * FROM users WHERE id = $1", [id]);
   }
 }
 ```
 
 **問題点**:
+
 - テストが困難（実データベースが必要）
 - 実装変更が困難
 - 密結合で保守性低下
@@ -401,6 +409,7 @@ fi
 ```
 
 **利点**:
+
 - PRマージ済みブランチでの作業を防止
 - 常に最新のdevelopブランチから作業開始
 - マージ忘れやブランチ混乱を削減
@@ -425,6 +434,7 @@ chore/#125-update-dependencies
 ```
 
 **命名規則の利点**:
+
 - Issue とブランチの紐付けが明確
 - PRの自動リンクが機能
 - 作業内容が一目で分かる
@@ -441,6 +451,7 @@ update/stuff
 ```
 
 **問題点**:
+
 - 作業内容が不明確
 - Issue との紐付けができない
 - ブランチ管理が困難
@@ -462,6 +473,7 @@ chore(#125): 依存パッケージを更新
 ```
 
 **Type の種類**:
+
 - `feat`: 新機能
 - `fix`: バグ修正
 - `docs`: ドキュメント
@@ -474,6 +486,6 @@ chore(#125): 依存パッケージを更新
 
 ## 更新履歴
 
-| 日付 | 更新者 | 更新内容 |
-|------|--------|----------|
+| 日付       | 更新者   | 更新内容                         |
+| ---------- | -------- | -------------------------------- |
 | 2025-01-15 | システム | BEST_PRACTICES.md から分離・作成 |

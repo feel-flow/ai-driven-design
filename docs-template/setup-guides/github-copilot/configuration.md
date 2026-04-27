@@ -47,12 +47,12 @@ mkdir -p .vscode
 {
   "github.copilot.enable": {
     "*": true,
-    "yaml": false,        // YAMLファイルで無効
-    "markdown": true,     // Markdownで有効
-    "plaintext": false,   // プレーンテキストで無効
-    "json": true,         // JSONで有効
-    "typescript": true,   // TypeScriptで有効
-    "javascript": true    // JavaScriptで有効
+    "yaml": false, // YAMLファイルで無効
+    "markdown": true, // Markdownで有効
+    "plaintext": false, // プレーンテキストで無効
+    "json": true, // JSONで有効
+    "typescript": true, // TypeScriptで有効
+    "javascript": true // JavaScriptで有効
   }
 }
 ```
@@ -86,6 +86,7 @@ mkdir -p .vscode
 #### テスト手順
 
 1. **新しいファイルを作成**
+
    - 例: `test.ts` または `test.js`
 
 2. **コメントを書く**
@@ -95,6 +96,7 @@ mkdir -p .vscode
    ```
 
 3. **Enterキーを押す**
+
    - Copilotが自動的にコードを提案するはず
 
 4. **`Tab`キーで受け入れ**
@@ -121,6 +123,7 @@ interface User {
 #### テスト手順
 
 1. **Copilot Chatを開く**
+
    - macOS: `Cmd + I`
    - Windows/Linux: `Ctrl + I`
 
@@ -213,6 +216,7 @@ private/
 ### コード補完が表示されない
 
 **対処法**:
+
 1. VS Codeを再起動
 2. GitHubアカウント連携を確認
 3. `.github/copilot-instructions.md`の存在を確認
@@ -221,6 +225,7 @@ private/
 ### MASTER.mdのルールが反映されない
 
 **対処法**:
+
 1. `.github/copilot-instructions.md`の内容を確認
    - MASTER.mdへの参照が明記されているか
    - パスが正しいか
@@ -235,6 +240,7 @@ private/
 ### 提案される速度が遅い
 
 **対処法**:
+
 1. ネットワーク接続を確認
 2. Copilotのステータスを確認（右下のアイコン）
 3. VS Codeの拡張機能を最小限に
@@ -243,6 +249,7 @@ private/
 ### 提案される内容が期待と違う
 
 **対処法**:
+
 1. コメントをより具体的に書く
    - 関数名、引数、戻り値、処理内容を明記
 2. Copilot Chatを使用（より詳細な指示が可能）

@@ -29,13 +29,13 @@ Issue起点の作業に入る前、書籍第10章「日々の開発フロー」�
 
 コア7文書を前提に、タスクの種類ごとに「最初に開く文書」の優先度を揃えます。パスはテンプレート内の本リポジトリ相対表記（プロジェクト展開時は自プロジェクトの `docs/` 配下に置き換え）です。
 
-| タスク種別 | 必須参照 | 推奨参照 | 通常不要 |
-|------------|----------|----------|----------|
-| 新機能 | [MASTER.md](../../MASTER.md), [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [DOMAIN.md](../../02-design/DOMAIN.md) | [PATTERNS.md](../../03-implementation/PATTERNS.md), [TESTING.md](../../04-quality/TESTING.md) | [DEPLOYMENT.md](../DEPLOYMENT.md) |
-| バグ修正 | 該当 **バグチケット**（[GitHub Issue](https://docs.github.com/ja/issues) や Jira 等。Issue 相当でよい。再現手順・期待値必須）, [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md) 全体（修正箇所に紐づく節のみを読む方が効率的） |
-| リファクタリング | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md)（挙動を変えない作業の場合） |
-| インフラ | [MASTER.md](../../MASTER.md), [DEPLOYMENT.md](../DEPLOYMENT.md) | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md) | [DOMAIN.md](../../02-design/DOMAIN.md)（業務ルール非関連の範囲） |
-| ドキュメント | [MASTER.md](../../MASTER.md)（構造・表記のSSOT） | 今回更新する対象文書のみ | 他のコア7文書の全文精読（今回の編集範囲外なら不要） |
+| タスク種別       | 必須参照                                                                                                                                                                          | 推奨参照                                                                                      | 通常不要                                                                              |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 新機能           | [MASTER.md](../../MASTER.md), [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [DOMAIN.md](../../02-design/DOMAIN.md)                                                          | [PATTERNS.md](../../03-implementation/PATTERNS.md), [TESTING.md](../../04-quality/TESTING.md) | [DEPLOYMENT.md](../DEPLOYMENT.md)                                                     |
+| バグ修正         | 該当 **バグチケット**（[GitHub Issue](https://docs.github.com/ja/issues) や Jira 等。Issue 相当でよい。再現手順・期待値必須）, [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md)                                                     | [DOMAIN.md](../../02-design/DOMAIN.md) 全体（修正箇所に紐づく節のみを読む方が効率的） |
+| リファクタリング | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [PATTERNS.md](../../03-implementation/PATTERNS.md)                                                                            | [TESTING.md](../../04-quality/TESTING.md)                                                     | [DOMAIN.md](../../02-design/DOMAIN.md)（挙動を変えない作業の場合）                    |
+| インフラ         | [MASTER.md](../../MASTER.md), [DEPLOYMENT.md](../DEPLOYMENT.md)                                                                                                                   | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md)                                            | [DOMAIN.md](../../02-design/DOMAIN.md)（業務ルール非関連の範囲）                      |
+| ドキュメント     | [MASTER.md](../../MASTER.md)（構造・表記のSSOT）                                                                                                                                  | 今回更新する対象文書のみ                                                                      | 他のコア7文書の全文精読（今回の編集範囲外なら不要）                                   |
 
 > **表の読み方**: 「必須」は実装前に目を通すこと。「通常不要」は、タスクがその領域に手を入れない限り、最初から全文を読まなくてよいという意味合いです。ドキュメント作業では「必須」に [MASTER.md](../../MASTER.md) を入れているため、**更新しないコア7文書を上から下まで読む**ことは原則不要（必要な章だけ差分でよい）です。
 
@@ -96,6 +96,7 @@ ISSUE_NUM=$(echo "$ISSUE_URL" | grep -oE '[0-9]+$')
 ```
 
 **ポイント**:
+
 - Issue番号は自動抽出（競合回避）
 - 受入基準を明確にする
 
@@ -111,6 +112,7 @@ git checkout -b "feature/${ISSUE_NUM}-user-auth"
 ```
 
 **ポイント**:
+
 - ブランチ名にIssue番号を含める
 - 必ずdevelopの最新から分岐
 
@@ -139,6 +141,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 **コミットメッセージの原則**:
+
 - 変更内容を簡潔に記載
 - 参照したドキュメントの場所を明記
 - Issue番号を含める（`Closes #123`）
@@ -166,12 +169,12 @@ npm audit --audit-level=moderate
 
 #### 合格基準
 
-| 項目 | 基準 |
-|------|------|
-| Linter | エラー0件 |
-| 型チェック | エラー0件 |
-| テストカバレッジ | 80%以上 |
-| セキュリティ | moderate以上の脆弱性0件 |
+| 項目             | 基準                    |
+| ---------------- | ----------------------- |
+| Linter           | エラー0件               |
+| 型チェック       | エラー0件               |
+| テストカバレッジ | 80%以上                 |
+| セキュリティ     | moderate以上の脆弱性0件 |
 
 **ポイント**: 全テスト通過後にセルフレビュー（ステップ5）へ進む
 
@@ -182,6 +185,7 @@ npm audit --audit-level=moderate
 #### セルフレビューの5つの観点
 
 **1. コーディング規約の遵守**
+
 - マジックナンバーが存在しないか
 - 型安全性が確保されているか（any型の不適切な使用）
 - エラーハンドリングが適切か
@@ -189,18 +193,21 @@ npm audit --audit-level=moderate
 - 未使用のインポート/変数がないか
 
 **2. 仕様との整合性確認**
+
 - 要件定義通りに実装されているか（PROJECT.md）
 - アーキテクチャパターンに従っているか（ARCHITECTURE.md）
 - ビジネスロジックが仕様通りか（DOMAIN.md）
 - セキュリティ要件を満たしているか（MASTER.md）
 
 **3. テストの充実度確認**
+
 - 単体テストのカバレッジが80%以上
 - エッジケースのテストが含まれているか
 - エラーハンドリングのテストがあるか
 - テストの可読性は十分か
 
 **4. パフォーマンスとセキュリティの確認**
+
 - N+1クエリ問題がないか
 - 不要なループ処理がないか
 - 入力値のサニタイゼーションが適切か
@@ -208,6 +215,7 @@ npm audit --audit-level=moderate
 - 機密情報のハードコーディングがないか
 
 **5. ドキュメントの更新確認**
+
 - README.mdの更新が必要か
 - API仕様書の更新が必要か
 - ARCHITECTURE.mdの更新が必要か
@@ -234,14 +242,14 @@ npm audit --audit-level=moderate
 
 Claude Codeのpr-review-toolkitサブエージェントを活用した包括的なセルフレビューが可能です：
 
-| サブエージェント | 役割 | 主な検出対象 |
-|----------------|------|------------|
-| `code-reviewer` | コード品質の包括的レビュー | 設計問題、命名規則違反、コード重複 |
-| `silent-failure-hunter` | エラーハンドリング漏れ検出 | 未処理例外、空catch、暗黙的失敗 |
-| `type-design-analyzer` | 型設計の妥当性分析 | any型使用、型の粒度不足 |
-| `pr-test-analyzer` | テスト品質の分析 | カバレッジ不足、エッジケース欠落 |
-| `comment-analyzer` | コメント・ドキュメント品質 | 不正確なコメント、JSDoc欠落 |
-| `code-simplifier` | 複雑度の削減提案 | 長関数、深いネスト |
+| サブエージェント        | 役割                       | 主な検出対象                       |
+| ----------------------- | -------------------------- | ---------------------------------- |
+| `code-reviewer`         | コード品質の包括的レビュー | 設計問題、命名規則違反、コード重複 |
+| `silent-failure-hunter` | エラーハンドリング漏れ検出 | 未処理例外、空catch、暗黙的失敗    |
+| `type-design-analyzer`  | 型設計の妥当性分析         | any型使用、型の粒度不足            |
+| `pr-test-analyzer`      | テスト品質の分析           | カバレッジ不足、エッジケース欠落   |
+| `comment-analyzer`      | コメント・ドキュメント品質 | 不正確なコメント、JSDoc欠落        |
+| `code-simplifier`       | 複雑度の削減提案           | 長関数、深いネスト                 |
 
 **Codex CLI クロスモデルレビュー（推奨）**:
 
@@ -266,6 +274,7 @@ bash scripts/codex-review.sh --branch
 詳細は [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md) を参照してください。
 
 **ベストプラクティス**:
+
 - セルフレビューは15-30分程度で完了させる
 - 指摘事項は [Review Response Policy](./review-response-policy.md) に従い即座に修正
 - 問題点は全て記録（ナレッジ蓄積のため）
@@ -280,27 +289,33 @@ PR本文にセルフレビュー結果を含めることで、レビュワーに
 ### チェック項目
 
 #### 1. コーディング規約
+
 - ✅ マジックナンバー: 問題なし（全て定数化済み）
 - ✅ 型安全性: 問題なし（any型使用なし）
 - ✅ エラーハンドリング: 問題なし（Result patternで統一）
 
 #### 2. 仕様との整合性
+
 - ✅ 要件定義: PROJECT.md#3.2の要件を全て実装
 - ✅ アーキテクチャ: Clean Architectureに準拠
 
 #### 3. テスト充実度
+
 - ✅ カバレッジ: 85.3%（目標80%を達成）
 - ✅ エッジケース: 境界値テスト実装済み
 
 #### 4. パフォーマンス・セキュリティ
+
 - ✅ N+1クエリ: 問題なし
 - ✅ 認証・認可: JWT検証を実装
 
 #### 5. ドキュメント更新
+
 - ✅ README.md: 認証セクションを追加
 - ✅ API仕様書: 新規エンドポイントを記載
 
 ### 結論
+
 すべての必須項目をクリアしています。PR作成準備完了。
 ```
 
@@ -346,6 +361,7 @@ Closes #${ISSUE_NUM}
 ```
 
 **PRの原則**:
+
 - タイトルは変更内容を端的に表現
 - 変更ファイルと行番号を明記
 - テスト結果を含める
@@ -371,24 +387,24 @@ VS Code の Copilot Chat で以下を入力：
 
 `@review-router` は変更内容を自動分析し、以下のスキルを判定・実行します：
 
-| スキル | 実行条件 |
-|--------|----------|
-| Code Review | 常に実行（必須） |
-| Error Handler Hunt | 常に実行（必須） |
-| Test Analysis | テストファイルの追加・変更がある場合 |
-| Type Design Analysis | 型定義の追加・変更がある場合 |
-| Comment Analysis | ドキュメント・コメントの変更がある場合 |
-| Code Simplification | 30行超の関数、深いネストがある場合 |
+| スキル               | 実行条件                               |
+| -------------------- | -------------------------------------- |
+| Code Review          | 常に実行（必須）                       |
+| Error Handler Hunt   | 常に実行（必須）                       |
+| Test Analysis        | テストファイルの追加・変更がある場合   |
+| Type Design Analysis | 型定義の追加・変更がある場合           |
+| Comment Analysis     | ドキュメント・コメントの変更がある場合 |
+| Code Simplification  | 30行超の関数、深いネストがある場合     |
 
 #### 統合レポートの確認
 
 ルーターは1つの統合レポートを出力します。以下の判定結果に従って対応してください：
 
-| 判定 | 意味 | 対応 |
-|------|------|------|
-| `PASS` | 問題なし | マージ可能 |
-| `NEEDS_WORK` | 改善推奨の問題あり | 修正後に再レビュー |
-| `CRITICAL_BLOCK` | 重大な問題あり | 必ず修正が必要 |
+| 判定             | 意味               | 対応               |
+| ---------------- | ------------------ | ------------------ |
+| `PASS`           | 問題なし           | マージ可能         |
+| `NEEDS_WORK`     | 改善推奨の問題あり | 修正後に再レビュー |
+| `CRITICAL_BLOCK` | 重大な問題あり     | 必ず修正が必要     |
 
 #### 特定スキルのみ実行する場合
 
@@ -407,6 +423,7 @@ VS Code の Copilot Chat で以下を入力：
 **レビュー指摘を修正したら、必ずレビュワーに対してコメントを残すこと**
 
 レビュワーへのコメントには以下を含める：
+
 1. **感謝の言葉** - 指摘してくれたことへの感謝
 2. **修正内容の説明** - 何をどう修正したか
 3. **変更箇所の明示** - ファイル名と行番号
@@ -487,12 +504,13 @@ mutation($body: String!) {
 
 **AIツール別の再レビューコマンド**:
 
-| AIツール | コマンド | 場所 |
-|---------|---------|------|
-| Gemini Code Assist | `/gemini review` | 返信の最後に記載 |
-| GitHub Copilot | `@githubcopilot review` | 返信の最後に記載 |
+| AIツール           | コマンド                | 場所             |
+| ------------------ | ----------------------- | ---------------- |
+| Gemini Code Assist | `/gemini review`        | 返信の最後に記載 |
+| GitHub Copilot     | `@githubcopilot review` | 返信の最後に記載 |
 
 **レビュー対応の原則**:
+
 - 必ずスレッド形式で返信（一般コメントではない）
 - 修正内容を明確に記載
 - ファイル名・行番号を含める
@@ -508,17 +526,21 @@ mutation($body: String!) {
 ご指摘ありがとうございます。以下の通り修正いたしました。
 
 ## 修正内容
+
 - `validateToken` 関数のエラーハンドリングを改善
 - 期限切れトークンと不正トークンを明示的に区別
 - カスタムエラークラス `TokenExpiredError` を導入
 
 ## 変更箇所
+
 - src/middleware/auth.ts:45-67
 
 ## 修正の理由
+
 期限切れと不正トークンを区別することで、クライアント側で適切なエラーメッセージを表示できるようにしました。
 
 ## テスト
+
 - 期限切れトークンのテストケースを追加 (tests/auth.test.ts:123-145)
 - 不正トークンのテストケースを追加 (tests/auth.test.ts:147-169)
 
@@ -530,6 +552,7 @@ mutation($body: String!) {
 **悪いコメントの例**: 「修正しました。」「指摘された箇所を直しました。」→ 具体性がなく、レビュワーが再度コードを読む必要がある
 
 **コメント作成のチェックリスト**:
+
 - [ ] 修正内容を具体的に説明
 - [ ] 変更ファイルと行番号を明記
 - [ ] 修正理由を説明
@@ -546,21 +569,25 @@ mutation($body: String!) {
 以下のいずれかに該当する場合、ナレッジとして記録する価値があります：
 
 1. **レビュー指摘があり、対応した場合**
+
    - 指摘内容と対応方法
    - なぜその問題が発生したかの分析
    - 再発防止策
 
 2. **技術的な困難に直面し、解決した場合**
+
    - 問題の詳細と原因
    - 試行錯誤のプロセス
    - 最終的な解決方法
 
 3. **新しい技術・ライブラリを導入した場合**
+
    - 選定理由と比較検討内容
    - 導入手順とハマりポイント
    - ベストプラクティス
 
 4. **パフォーマンス改善を実施した場合**
+
    - 改善前後の指標
    - 改善手法の詳細
    - 効果測定結果
@@ -572,16 +599,16 @@ mutation($body: String!) {
 
 #### ナレッジ分類体系（GitHub Discussions）
 
-| カテゴリ | 説明 | タグ例 |
-|---------|------|--------|
-| トラブルシューティング | エラー解決方法、デバッグ手法 | `troubleshooting`, `debugging` |
-| ベストプラクティス | コーディング規約、設計パターン | `best-practice`, `design-pattern` |
-| 技術選定 | ライブラリ・フレームワーク選定理由 | `tech-selection`, `library-comparison` |
-| パフォーマンス | 最適化手法、チューニング方法 | `performance`, `optimization` |
-| セキュリティ | 脆弱性対策、セキュアコーディング | `security`, `vulnerability` |
-| 開発環境 | 環境構築、ツール設定 | `development-env`, `tooling` |
-| テスト戦略 | テスト手法、自動化 | `testing`, `test-automation` |
-| CI/CD | パイプライン、デプロイ | `ci-cd`, `deployment` |
+| カテゴリ               | 説明                               | タグ例                                 |
+| ---------------------- | ---------------------------------- | -------------------------------------- |
+| トラブルシューティング | エラー解決方法、デバッグ手法       | `troubleshooting`, `debugging`         |
+| ベストプラクティス     | コーディング規約、設計パターン     | `best-practice`, `design-pattern`      |
+| 技術選定               | ライブラリ・フレームワーク選定理由 | `tech-selection`, `library-comparison` |
+| パフォーマンス         | 最適化手法、チューニング方法       | `performance`, `optimization`          |
+| セキュリティ           | 脆弱性対策、セキュアコーディング   | `security`, `vulnerability`            |
+| 開発環境               | 環境構築、ツール設定               | `development-env`, `tooling`           |
+| テスト戦略             | テスト手法、自動化                 | `testing`, `test-automation`           |
+| CI/CD                  | パイプライン、デプロイ             | `ci-cd`, `deployment`                  |
 
 #### ナレッジ記録の実行方法
 
@@ -610,6 +637,7 @@ GitHub Discussionsに登録すべきナレッジを抽出してください。
 # [タイトル]: 簡潔で検索しやすい表現
 
 ## メタ情報
+
 - カテゴリ: [カテゴリ名]
 - タグ: `tag1`, `tag2`, `tag3`
 - 関連Issue: #${ISSUE_NUM}
@@ -617,39 +645,47 @@ GitHub Discussionsに登録すべきナレッジを抽出してください。
 - 記録日: YYYY-MM-DD
 
 ## 問題の概要
+
 [何が問題だったか、何を実現したかったか]
 
 ## 原因分析
+
 [問題の根本原因は何か]
 
 ## 解決方法
 
 ### 実装内容
+
 ```[language]
 // コード例
 ```
 
 ### 手順
+
 1. [ステップ1]
 2. [ステップ2]
 
 ### 注意点
+
 - [注意すべきポイント]
 
 ## 効果・結果
+
 - [改善された指標やフィードバック]
 
 ## 学んだこと
+
 [今後に活かせる知見、一般化できる教訓]
 
 ## 関連リソース
+
 - Issue: #${ISSUE_NUM}
 - PR: #${PR_NUMBER}
 - ドキュメント: docs/XXX.md:行番号
 
 ## 検証方法
-[この解決方法が正しく機能することを確認する方法]
 
+[この解決方法が正しく機能することを確認する方法]
 ````
 
 #### GitHub Discussionsへの登録手順
@@ -670,6 +706,7 @@ gh issue comment ${ISSUE_NUM} --body "ナレッジをDiscussionsに登録しま�
 ```
 
 **ナレッジ体系化の原則**:
+
 - 類似Discussionが存在する場合は更新（新規作成しない）
 - タイトルは検索しやすい表現にする
 - コード例は最小限かつ実用的に
@@ -680,6 +717,7 @@ gh issue comment ${ISSUE_NUM} --body "ナレッジをDiscussionsに登録しま�
 GitHub Discussions への記録に加え、ACE Playbook への構造化記録を推奨します。
 
 **ACE サイクル** (Generate → Reflect → Curate):
+
 1. **Generate**: PR diff・レビューコメントから知見を抽出
 2. **Reflect**: 既存 Playbook エントリとの重複・矛盾を照合
 3. **Curate**: PLAYBOOK.md 末尾にエントリを追記
@@ -687,6 +725,7 @@ GitHub Discussions への記録に加え、ACE Playbook への構造化記録を
 詳細手順: [ace-cycle.md](./ace-cycle.md)
 
 **ナレッジ記録の使い分け**:
+
 - **GitHub Discussions**: 人間向けナラティブ（物語的記録）
 - **ACE Playbook**: AIツール向け構造化知見（delta方式）
 
@@ -709,6 +748,7 @@ gh pr merge ${PR_NUMBER} \
 ```
 
 **マージの原則**:
+
 - Squash merge推奨（履歴を整理）
 - `--delete-branch` でリモートブランチを自動削除
 
@@ -729,6 +769,7 @@ git fetch --prune
 ```
 
 **ポイント**:
+
 - ブランチは必ず削除（リモート・ローカル両方）
 - developを最新に更新してから次の作業へ
 
@@ -752,31 +793,37 @@ git fetch --prune
 ## ワークフロー全体のベストプラクティス
 
 ### 1. Issue駆動開発の徹底
+
 - 全ての作業はIssueから開始
 - Issue番号を必ずブランチ名・コミットメッセージに含める
 - Issueテンプレートを活用して情報を標準化
 
 ### 2. 小さく頻繁なコミット
+
 - 機能単位で小さくコミット
 - コミットメッセージは変更理由を明確に
 - セルフレビューはコミット毎に実施
 
 ### 3. AIツールの積極的活用
+
 - コード生成だけでなくレビューにも活用
 - MASTER.md等のドキュメントを常に参照させる
 - セルフレビューとナレッジ抽出を自動化
 
 ### 4. PRサイズの適切な管理
+
 - 1つのPRは1つの機能に集中
 - 変更ファイル数は10ファイル以内推奨
 - 大きな変更は複数のIssue/PRに分割
 
 ### 5. ナレッジの継続的蓄積
+
 - マージ前にACEナレッジ体系化を実施
 - GitHub Discussionsを積極的に活用
 - 定期的にナレッジを見直し・更新
 
 ### 6. ブランチの清潔性維持
+
 - マージ後は速やかにブランチ削除
 - 長期間放置されたブランチは定期的にクリーンアップ
 - developは常に最新かつデプロイ可能な状態に保つ

@@ -17,11 +17,11 @@ ACE (Agentic Context Engineering) フレームワークを、URLを渡すだけ 
 
 ## 作成・変更ファイル一覧
 
-| ファイル | 種別 | 説明 |
-|---------|------|------|
-| `docs/ACE_SETUP.md` | 新規 | 対話型セットアップガイド（AIツール共通） |
-| `docs/ACE_FRAMEWORK.md` | 変更 | セットアップセクション追加（参考文献の前に挿入） |
-| `.claude/commands/ace-setup.md` | 新規 | Claude Code用 `/ace-setup` コマンド |
+| ファイル                        | 種別 | 説明                                             |
+| ------------------------------- | ---- | ------------------------------------------------ |
+| `docs/ACE_SETUP.md`             | 新規 | 対話型セットアップガイド（AIツール共通）         |
+| `docs/ACE_FRAMEWORK.md`         | 変更 | セットアップセクション追加（参考文献の前に挿入） |
+| `.claude/commands/ace-setup.md` | 新規 | Claude Code用 `/ace-setup` コマンド              |
 
 ## 詳細設計
 

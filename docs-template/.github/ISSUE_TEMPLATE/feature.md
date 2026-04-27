@@ -1,9 +1,9 @@
 ---
 name: 新機能追加
 about: 新しい機能を追加する
-title: 'feat: '
+title: "feat: "
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
 ## 概要

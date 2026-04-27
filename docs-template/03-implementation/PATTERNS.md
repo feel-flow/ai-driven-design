@@ -13,21 +13,21 @@ updated: "2026-04-27"
 
 ### 命名規則
 
-| 要素 | パターン | 例 |
-|---|---|---|
-| クラス | PascalCase | UserService |
+| 要素             | パターン              | 例              |
+| ---------------- | --------------------- | --------------- |
+| クラス           | PascalCase            | UserService     |
 | インターフェース | PascalCase + I prefix | IUserRepository |
-| メソッド | camelCase | getUserById() |
-| 変数 | camelCase | userName |
-| 定数 | UPPER_SNAKE_CASE | MAX_RETRY_COUNT |
-| ファイル | kebab-case | user-service.ts |
+| メソッド         | camelCase             | getUserById()   |
+| 変数             | camelCase             | userName        |
+| 定数             | UPPER_SNAKE_CASE      | MAX_RETRY_COUNT |
+| ファイル         | kebab-case            | user-service.ts |
 
 ### コード構造
 
 ```typescript
 // ファイル構造の標準パターン
 // 1. imports
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 // 2. constants
 const MAX_RETRY_COUNT = 3;
@@ -63,9 +63,9 @@ interface IUserRepository {
 // 実装
 class UserRepository implements IUserRepository {
   constructor(private db: Database) {}
-  
+
   async findById(id: string): Promise<User | null> {
-    const data = await this.db.query('SELECT * FROM users WHERE id = ?', [id]);
+    const data = await this.db.query("SELECT * FROM users WHERE id = ?", [id]);
     return data ? User.fromData(data) : null;
   }
 }
@@ -98,11 +98,11 @@ class NotificationFactory {
 class ConfigManager {
   private static instance: ConfigManager;
   private config: Config;
-  
+
   private constructor() {
     this.config = this.loadConfig();
   }
-  
+
   static getInstance(): ConfigManager {
     if (!ConfigManager.instance) {
       ConfigManager.instance = new ConfigManager();
@@ -122,7 +122,7 @@ abstract class AppError extends Error {
   constructor(
     public message: string,
     public code: string,
-    public statusCode: number
+    public statusCode: number,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -138,26 +138,29 @@ interface ValidationDetail {
 
 // 具体的なエラークラス
 class ValidationError extends AppError {
-  constructor(message: string, public details: ValidationDetail[]) {
-    super(message, 'VALIDATION_ERROR', 400);
+  constructor(
+    message: string,
+    public details: ValidationDetail[],
+  ) {
+    super(message, "VALIDATION_ERROR", 400);
   }
 }
 
 class NotFoundError extends AppError {
   constructor(message: string) {
-    super(message, 'NOT_FOUND', 404);
+    super(message, "NOT_FOUND", 404);
   }
 }
 
 class ForbiddenError extends AppError {
   constructor(message: string) {
-    super(message, 'FORBIDDEN', 403);
+    super(message, "FORBIDDEN", 403);
   }
 }
 
 class ConflictError extends AppError {
   constructor(message: string) {
-    super(message, 'CONFLICT', 409);
+    super(message, "CONFLICT", 409);
   }
 }
 ```
@@ -170,21 +173,21 @@ async function processUser(userId: string): Promise<Result<User>> {
   try {
     const user = await userRepository.findById(userId);
     if (!user) {
-      return Result.fail(new NotFoundError('User not found'));
+      return Result.fail(new NotFoundError("User not found"));
     }
-    
+
     const processed = await processUserData(user);
     return Result.ok(processed);
-    
   } catch (error) {
-    const normalizedError = error instanceof Error ? error : new Error(String(error));
-    logger.error('Failed to process user', normalizedError, { userId });
+    const normalizedError =
+      error instanceof Error ? error : new Error(String(error));
+    logger.error("Failed to process user", normalizedError, { userId });
 
     if (normalizedError instanceof ValidationError) {
       return Result.fail(normalizedError);
     }
-    
-    return Result.fail(new InternalError('Processing failed'));
+
+    return Result.fail(new InternalError("Processing failed"));
   }
 }
 ```
@@ -205,13 +208,12 @@ async function processUser(userId: string): Promise<Result<User>> {
 // Promise チェーンパターン
 function fetchUserWithPosts(userId: string): Promise<UserWithPosts> {
   return fetchUser(userId)
-    .then(user => fetchPosts(user.id)
-      .then(posts => ({ ...user, posts }))
-    )
+    .then((user) => fetchPosts(user.id).then((posts) => ({ ...user, posts })))
     .catch((error: unknown) => {
-      const normalizedError = error instanceof Error ? error : new Error(String(error));
-      logger.error('Failed to fetch user with posts', normalizedError);
-      throw new DataFetchError('Could not load user data');
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+      logger.error("Failed to fetch user with posts", normalizedError);
+      throw new DataFetchError("Could not load user data");
     });
 }
 ```
@@ -226,9 +228,10 @@ async function fetchUserWithPosts(userId: string): Promise<UserWithPosts> {
     const posts = await fetchPosts(user.id);
     return { ...user, posts };
   } catch (error) {
-    const normalizedError = error instanceof Error ? error : new Error(String(error));
-    logger.error('Failed to fetch user with posts', normalizedError);
-    throw new DataFetchError('Could not load user data');
+    const normalizedError =
+      error instanceof Error ? error : new Error(String(error));
+    logger.error("Failed to fetch user with posts", normalizedError);
+    throw new DataFetchError("Could not load user data");
   }
 }
 ```
@@ -241,13 +244,13 @@ async function fetchDashboardData(userId: string): Promise<Dashboard> {
   const [user, stats, notifications] = await Promise.all([
     fetchUser(userId),
     fetchUserStats(userId),
-    fetchNotifications(userId)
+    fetchNotifications(userId),
   ]);
-  
+
   return {
     user,
     stats,
-    notifications
+    notifications,
   };
 }
 ```
@@ -258,13 +261,13 @@ async function fetchDashboardData(userId: string): Promise<Dashboard> {
 
 ```typescript
 // DTOバリデーション using class-validator
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
 
 class CreateUserDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-  
+
   @IsNotEmpty()
   @MinLength(8)
   password: string;
@@ -280,23 +283,23 @@ class Validator {
     const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return pattern.test(email);
   }
-  
+
   static isValidPassword(password: string): ValidationResult {
     const errors: string[] = [];
-    
+
     if (password.length < 8) {
-      errors.push('Password must be at least 8 characters');
+      errors.push("Password must be at least 8 characters");
     }
     if (!/[A-Z]/.test(password)) {
-      errors.push('Password must contain uppercase letter');
+      errors.push("Password must contain uppercase letter");
     }
     if (!/[0-9]/.test(password)) {
-      errors.push('Password must contain number');
+      errors.push("Password must contain number");
     }
-    
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }
@@ -308,31 +311,30 @@ class Validator {
 
 ```typescript
 // ユニットテストパターン
-describe('UserService', () => {
+describe("UserService", () => {
   let service: UserService;
   let repository: jest.Mocked<IUserRepository>;
-  
+
   beforeEach(() => {
     repository = createMock<IUserRepository>();
     service = new UserService(repository);
   });
-  
-  describe('findById', () => {
-    it('should return user when found', async () => {
-      const mockUser = { id: '1', name: 'John' };
+
+  describe("findById", () => {
+    it("should return user when found", async () => {
+      const mockUser = { id: "1", name: "John" };
       repository.findById.mockResolvedValue(mockUser);
-      
-      const result = await service.findById('1');
-      
+
+      const result = await service.findById("1");
+
       expect(result).toEqual(mockUser);
-      expect(repository.findById).toHaveBeenCalledWith('1');
+      expect(repository.findById).toHaveBeenCalledWith("1");
     });
-    
-    it('should throw NotFoundError when user not found', async () => {
+
+    it("should throw NotFoundError when user not found", async () => {
       repository.findById.mockResolvedValue(null);
-      
-      await expect(service.findById('1'))
-        .rejects.toThrow(NotFoundError);
+
+      await expect(service.findById("1")).rejects.toThrow(NotFoundError);
     });
   });
 });
@@ -342,32 +344,32 @@ describe('UserService', () => {
 
 ```typescript
 // 統合テストパターン
-describe('User API', () => {
+describe("User API", () => {
   let app: Application;
   let db: Database;
-  
+
   beforeAll(async () => {
     app = await createTestApp();
     db = await createTestDatabase();
   });
-  
+
   afterAll(async () => {
     await db.close();
     await app.close();
   });
-  
-  describe('POST /users', () => {
-    it('should create user successfully', async () => {
+
+  describe("POST /users", () => {
+    it("should create user successfully", async () => {
       const response = await request(app)
-        .post('/users')
+        .post("/users")
         .send({
-          email: 'test@example.com',
-          password: 'SecurePass123'
+          email: "test@example.com",
+          password: "SecurePass123",
         })
         .expect(201);
-      
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.email).toBe('test@example.com');
+
+      expect(response.body).toHaveProperty("id");
+      expect(response.body.email).toBe("test@example.com");
     });
   });
 });
@@ -382,16 +384,16 @@ describe('User API', () => {
 class Sanitizer {
   static sanitizeHtml(input: string): string {
     return input
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;')
-      .replace(/\//g, '&#x2F;');
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;")
+      .replace(/\//g, "&#x2F;");
   }
-  
+
   static sanitizeSql(input: string): string {
     // Use parameterized queries instead
-    return input.replace(/['";\\]/g, '');
+    return input.replace(/['";\\]/g, "");
   }
 }
 ```
@@ -401,30 +403,36 @@ class Sanitizer {
 ```typescript
 // 認証ミドルウェア
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.authorization?.split(' ')[1];
-  
+  const token = req.headers.authorization?.split(" ")[1];
+
   if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
+    return res.status(401).json({ error: "No token provided" });
   }
-  
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: "Invalid token" });
   }
 }
 
 // 認可デコレーター
 function RequireRole(role: Role) {
-  return function(_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
+  return function (
+    _target: unknown,
+    _propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    const originalMethod = descriptor.value as (
+      ...args: unknown[]
+    ) => Promise<unknown>;
 
-    descriptor.value = async function(...args: unknown[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const user = getCurrentUser();
       if (!user.hasRole(role)) {
-        throw new ForbiddenError('Insufficient permissions');
+        throw new ForbiddenError("Insufficient permissions");
       }
       return originalMethod.apply(this, args);
     };
@@ -439,20 +447,26 @@ function RequireRole(role: Role) {
 ```typescript
 // キャッシングデコレーター
 function Cacheable(ttl: number = 3600) {
-  return function(_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
+  return function (
+    _target: unknown,
+    _propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    const originalMethod = descriptor.value as (
+      ...args: unknown[]
+    ) => Promise<unknown>;
     const cache = new Map<string, { value: unknown; timestamp: number }>();
 
-    descriptor.value = async function(...args: unknown[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const key = JSON.stringify(args);
-      
+
       if (cache.has(key)) {
         const cached = cache.get(key);
         if (Date.now() - cached.timestamp < ttl * 1000) {
           return cached.value;
         }
       }
-      
+
       const result = await originalMethod.apply(this, args);
       cache.set(key, { value: result, timestamp: Date.now() });
       return result;
@@ -468,31 +482,31 @@ function Cacheable(ttl: number = 3600) {
 class BatchProcessor<T> {
   private queue: T[] = [];
   private timer: NodeJS.Timeout | null = null;
-  
+
   constructor(
     private batchSize: number,
     private batchDelay: number,
-    private processFn: (items: T[]) => Promise<void>
+    private processFn: (items: T[]) => Promise<void>,
   ) {}
-  
+
   add(item: T): void {
     this.queue.push(item);
-    
+
     if (this.queue.length >= this.batchSize) {
       this.flush();
     } else if (!this.timer) {
       this.timer = setTimeout(() => this.flush(), this.batchDelay);
     }
   }
-  
+
   private async flush(): Promise<void> {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
-    
+
     if (this.queue.length === 0) return;
-    
+
     const batch = this.queue.splice(0, this.batchSize);
     await this.processFn(batch);
   }
@@ -513,28 +527,32 @@ class Logger {
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
-    console.log(JSON.stringify({
-      level: 'info',
-      message,
-      timestamp: new Date().toISOString(),
-      ...this.context,
-      ...meta
-    }));
+    console.log(
+      JSON.stringify({
+        level: "info",
+        message,
+        timestamp: new Date().toISOString(),
+        ...this.context,
+        ...meta,
+      }),
+    );
   }
 
   error(message: string, error: Error, meta?: Record<string, unknown>): void {
-    console.error(JSON.stringify({
-      level: 'error',
-      message,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      },
-      timestamp: new Date().toISOString(),
-      ...this.context,
-      ...meta
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message,
+        error: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        },
+        timestamp: new Date().toISOString(),
+        ...this.context,
+        ...meta,
+      }),
+    );
   }
 }
 ```
@@ -546,13 +564,13 @@ class Logger {
 ```typescript
 // ❌ 悪い例
 if (retryCount > 3) {
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 // ✅ 良い例
 const MAX_RETRY_COUNT = 3;
 if (retryCount > MAX_RETRY_COUNT) {
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 ```
 
@@ -563,11 +581,11 @@ if (retryCount > MAX_RETRY_COUNT) {
 export const API_CONFIG = {
   TIMEOUT_MS: 30000,
   MAX_RETRIES: 3,
-  RATE_LIMIT: 100
+  RATE_LIMIT: 100,
 } as const;
 
 // 使用例
-import { API_CONFIG } from './config/constants';
+import { API_CONFIG } from "./config/constants";
 
 async function fetchWithRetry(url: string) {
   let retries = 0;
@@ -593,15 +611,15 @@ async function fetchWithRetry(url: string) {
 
 Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
-| 分岐 | 判定観点 |
-| --- | --- |
-| Q0 | コード変更 or ドキュメント |
-| Q1 | 外部システム通信（境界モジュール） |
-| Q2 | リクエスト入口（HTTP エンドポイント） |
-| Q3 | オーケストレーション（ユースケース） |
-| Q4 | 永続化・状態保持 |
-| Q5 | ドメインモデル |
-| Q6 | 横断的関心事 |
+| 分岐 | 判定観点                              |
+| ---- | ------------------------------------- |
+| Q0   | コード変更 or ドキュメント            |
+| Q1   | 外部システム通信（境界モジュール）    |
+| Q2   | リクエスト入口（HTTP エンドポイント） |
+| Q3   | オーケストレーション（ユースケース）  |
+| Q4   | 永続化・状態保持                      |
+| Q5   | ドメインモデル                        |
+| Q6   | 横断的関心事                          |
 
 詳細な分岐内容とチェックリストは [DECISION_TREE.md](./DECISION_TREE.md) を参照。
 

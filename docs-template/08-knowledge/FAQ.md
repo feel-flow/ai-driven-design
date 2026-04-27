@@ -94,7 +94,7 @@
    ```typescript
    // ❌ 避けるべき
    const data: any = response.data;
-   
+
    // ✅ 推奨
    interface ApiResponse {
      data: unknown;
@@ -124,7 +124,7 @@
 
 ```typescript
 // エラーハンドリングの実装例
-type Result<T, E = Error> = 
+type Result<T, E = Error> =
   | { success: true; data: T }
   | { success: false; error: E };
 
@@ -133,9 +133,9 @@ async function createUser(userData: CreateUserRequest): Promise<Result<User>> {
     const user = await userService.create(userData);
     return { success: true, data: user };
   } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error : new Error('Unknown error')
+    return {
+      success: false,
+      error: error instanceof Error ? error : new Error("Unknown error"),
     };
   }
 }
@@ -143,9 +143,9 @@ async function createUser(userData: CreateUserRequest): Promise<Result<User>> {
 // 使用例
 const result = await createUser(userData);
 if (result.success) {
-  console.log('User created:', result.data);
+  console.log("User created:", result.data);
 } else {
-  console.error('Error:', result.error.message);
+  console.error("Error:", result.error.message);
 }
 ```
 
@@ -172,9 +172,9 @@ if (user.age > MINIMUM_AGE) {
 // 設定から注入
 const config = {
   user: {
-    minimumAge: parseInt(process.env.MINIMUM_AGE || '18'),
-    maxRetryCount: parseInt(process.env.MAX_RETRY_COUNT || '3'),
-  }
+    minimumAge: parseInt(process.env.MINIMUM_AGE || "18"),
+    maxRetryCount: parseInt(process.env.MAX_RETRY_COUNT || "3"),
+  },
 };
 ```
 
@@ -197,7 +197,7 @@ const config = {
    ```bash
    # 開発環境
    npm run db:migrate
-   
+
    # 本番環境
    npm run db:migrate:prod
    ```
@@ -209,6 +209,7 @@ const config = {
    ```
 
 **注意事項**:
+
 - 本番環境では必ずバックアップを取得してから実行
 - マイグレーションは段階的に実行
 - ロールバック手順を事前に確認
@@ -222,7 +223,7 @@ const config = {
 1. **インデックスの追加**
 
    ```sql
-   CREATE INDEX CONCURRENTLY idx_users_email_active 
+   CREATE INDEX CONCURRENTLY idx_users_email_active
    ON users(email) WHERE active = true;
    ```
 
@@ -231,7 +232,7 @@ const config = {
    ```sql
    -- ❌ 避けるべき
    SELECT * FROM users WHERE LOWER(email) = LOWER($1);
-   
+
    -- ✅ 推奨
    SELECT id, name, email FROM users WHERE email = $1;
    ```
@@ -244,7 +245,7 @@ const config = {
    for (const user of users) {
      user.posts = await postRepository.findByUserId(user.id);
    }
-   
+
    // ✅ 推奨
    const users = await userRepository.findAllWithPosts();
    ```
@@ -299,15 +300,15 @@ const config = {
    ```typescript
    // 200: 成功
    res.status(200).json(data);
-   
+
    // 201: 作成成功
    res.status(201).json(createdData);
-   
+
    // 400: バリデーションエラー
-   res.status(400).json({ error: 'Validation failed' });
-   
+   res.status(400).json({ error: "Validation failed" });
+
    // 404: リソースが見つからない
-   res.status(404).json({ error: 'User not found' });
+   res.status(404).json({ error: "User not found" });
    ```
 
 3. **一貫性のあるレスポンス形式**
@@ -319,7 +320,7 @@ const config = {
      "data": { ... },
      "message": "User created successfully"
    }
-   
+
    // エラーレスポンス
    {
      "success": false,
@@ -338,41 +339,49 @@ const config = {
 **A**: Redisを使用してレート制限を実装してください：
 
 ```typescript
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
 class RateLimiter {
   private redis: Redis;
-  
+
   constructor() {
     this.redis = new Redis({
       host: process.env.REDIS_HOST,
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+      port: parseInt(process.env.REDIS_PORT || "6379"),
     });
   }
-  
-  async checkLimit(key: string, limit: number, window: number): Promise<boolean> {
+
+  async checkLimit(
+    key: string,
+    limit: number,
+    window: number,
+  ): Promise<boolean> {
     const current = await this.redis.incr(key);
-    
+
     if (current === 1) {
       await this.redis.expire(key, window);
     }
-    
+
     return current <= limit;
   }
 }
 
 // ミドルウェアでの使用
-const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+const rateLimitMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const key = `rate_limit:${req.ip}`;
   const limit = 100; // 1時間あたり100リクエスト
   const window = 3600; // 1時間（秒）
-  
+
   const allowed = await rateLimiter.checkLimit(key, limit, window);
-  
+
   if (!allowed) {
-    return res.status(429).json({ error: 'Rate limit exceeded' });
+    return res.status(429).json({ error: "Rate limit exceeded" });
   }
-  
+
   next();
 };
 ```
@@ -386,10 +395,10 @@ const rateLimitMiddleware = async (req: Request, res: Response, next: NextFuncti
 **A**: AAAパターン（Arrange-Act-Assert）に従ってテストを書いてください：
 
 ```typescript
-describe('UserService', () => {
+describe("UserService", () => {
   let userService: UserService;
   let mockRepository: jest.Mocked<UserRepository>;
-  
+
   beforeEach(() => {
     // Arrange: テストの準備
     mockRepository = {
@@ -398,20 +407,20 @@ describe('UserService', () => {
     };
     userService = new UserService(mockRepository);
   });
-  
-  describe('createUser', () => {
-    it('should create a user with valid data', async () => {
+
+  describe("createUser", () => {
+    it("should create a user with valid data", async () => {
       // Arrange: テストデータの準備
       const userData = {
-        name: 'John Doe',
-        email: 'john@example.com',
+        name: "John Doe",
+        email: "john@example.com",
       };
-      const expectedUser = { id: '1', ...userData };
+      const expectedUser = { id: "1", ...userData };
       mockRepository.create.mockResolvedValue(expectedUser);
-      
+
       // Act: テスト対象の実行
       const result = await userService.createUser(userData);
-      
+
       // Assert: 結果の検証
       expect(result.success).toBe(true);
       expect(result.data).toEqual(expectedUser);
@@ -453,7 +462,7 @@ npm run test:coverage
    # テストの実行
    npm run test
    npm run test:e2e
-   
+
    # ビルドの確認
    npm run build
    ```
@@ -463,7 +472,7 @@ npm run test:coverage
    ```bash
    # ステージング環境
    npm run deploy:staging
-   
+
    # 本番環境
    npm run deploy:production
    ```
@@ -473,7 +482,7 @@ npm run test:coverage
    ```bash
    # ヘルスチェック
    curl https://your-app.com/health
-   
+
    # ログの確認
    kubectl logs deployment/your-app
    ```
@@ -497,7 +506,7 @@ npm run test:coverage
    ```bash
    # 前のバージョンにロールバック
    kubectl rollout undo deployment/your-app
-   
+
    # 特定のバージョンにロールバック
    kubectl rollout undo deployment/your-app --to-revision=2
    ```
@@ -521,7 +530,7 @@ npm run test:coverage
    ```bash
    # アプリケーションログ
    kubectl logs deployment/your-app
-   
+
    # システムログ
    journalctl -u your-app-service
    ```
@@ -531,7 +540,7 @@ npm run test:coverage
    ```bash
    # メモリ使用量
    kubectl top pods
-   
+
    # ディスク使用量
    df -h
    ```
@@ -541,7 +550,7 @@ npm run test:coverage
    ```bash
    # 環境変数
    kubectl describe pod your-app-pod
-   
+
    # 設定ファイル
    kubectl get configmap your-app-config -o yaml
    ```
@@ -576,12 +585,12 @@ npm run test:coverage
 
    ```typescript
    // 接続プールの監視
-   pool.on('connect', () => {
-     console.log('New client connected');
+   pool.on("connect", () => {
+     console.log("New client connected");
    });
-   
-   pool.on('error', (err) => {
-     console.error('Unexpected error on idle client', err);
+
+   pool.on("error", (err) => {
+     console.error("Unexpected error on idle client", err);
    });
    ```
 
@@ -594,11 +603,13 @@ npm run test:coverage
 **A**: 以下の基準で優先順位を決定してください：
 
 1. **緊急度**
+
    - 🔴 高: セキュリティ問題、本番障害
    - 🟡 中: 機能改善、パフォーマンス向上
    - 🟢 低: リファクタリング、ドキュメント整備
 
 2. **重要度**
+
    - ビジネス価値の高い機能
    - ユーザーエクスペリエンスの向上
    - 技術的負債の解消
@@ -620,6 +631,7 @@ npm run test:coverage
 - **大規模な変更**: 60-120分
 
 **効率的なレビューのコツ**:
+
 - 変更内容を事前に把握
 - 自動化できる部分は自動化
 - レビューの観点を明確化
@@ -634,16 +646,19 @@ npm run test:coverage
 **A**: 以下の手順で技術導入を進めてください：
 
 1. **技術調査**
+
    - 公式ドキュメントの確認
    - コミュニティの評価
    - 既存システムとの互換性
 
 2. **プロトタイプの作成**
+
    - 小規模な実装
    - パフォーマンステスト
    - セキュリティ評価
 
 3. **チームでの検討**
+
    - 技術選定会議
    - 学習コストの評価
    - メンテナンス性の検討
@@ -668,14 +683,14 @@ npm run test:coverage
 
 ## 更新履歴
 
-| 日付 | 更新者 | 更新内容 |
-|------|--------|----------|
-| 2024-01-15 | 田中 | 初版作成 |
-| 2024-01-20 | 佐藤 | 開発環境関連のQ&Aを追加 |
-| 2024-01-25 | 山田 | コーディング関連のQ&Aを追加 |
-| 2024-02-01 | 田中 | データベース関連のQ&Aを追加 |
-| 2024-02-05 | 佐藤 | API関連のQ&Aを追加 |
-| 2024-02-10 | 山田 | テスト関連のQ&Aを追加 |
-| 2024-02-15 | 田中 | デプロイメント関連のQ&Aを追加 |
-| 2024-02-20 | 佐藤 | トラブルシューティング関連のQ&Aを追加 |
-| 2024-02-25 | 山田 | プロジェクト管理関連のQ&Aを追加 |
+| 日付       | 更新者 | 更新内容                              |
+| ---------- | ------ | ------------------------------------- |
+| 2024-01-15 | 田中   | 初版作成                              |
+| 2024-01-20 | 佐藤   | 開発環境関連のQ&Aを追加               |
+| 2024-01-25 | 山田   | コーディング関連のQ&Aを追加           |
+| 2024-02-01 | 田中   | データベース関連のQ&Aを追加           |
+| 2024-02-05 | 佐藤   | API関連のQ&Aを追加                    |
+| 2024-02-10 | 山田   | テスト関連のQ&Aを追加                 |
+| 2024-02-15 | 田中   | デプロイメント関連のQ&Aを追加         |
+| 2024-02-20 | 佐藤   | トラブルシューティング関連のQ&Aを追加 |
+| 2024-02-25 | 山田   | プロジェクト管理関連のQ&Aを追加       |

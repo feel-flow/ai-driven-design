@@ -65,14 +65,17 @@ PR マージ後の `/ace-curate` 手動実行を、**別プロセスの subagent
 
 ### 利用可能なコマンド
 
-| コマンド | 説明 |
-| -------- | ---- |
-| `npm run setup` | 依存関係インストール + MCP サーバービルド |
-| `npm run validate` | コア7文書の存在と構造の検証 |
-| `npm run check` | MCP サーバーの動作確認 |
-| `npm run build:mcp` | MCP サーバーのビルド |
-| `npm run setup:labels` | GitHub ラベルの自動セットアップ |
-| `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ |
+| コマンド                             | 説明                                                      |
+| ------------------------------------ | --------------------------------------------------------- |
+| `npm run setup`                      | 依存関係インストール + MCP サーバービルド                 |
+| `npm run validate`                   | コア7文書の存在と構造の検証                               |
+| `npm run check`                      | MCP サーバーの動作確認                                    |
+| `npm run build:mcp`                  | MCP サーバーのビルド                                      |
+| `npm run format:md`                  | Prettier による Markdown 整形（`MD060` 等の前処理に利用） |
+| `npm run format:md:check`            | Prettier 整形差分の有無を確認                             |
+| `npm run lint:md`                    | markdownlint（CI と同条件）                               |
+| `npm run setup:labels`               | GitHub ラベルの自動セットアップ                           |
+| `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ                     |
 
 ### Multi-CLI Review Agent
 
@@ -96,13 +99,13 @@ Claude Code からはスラッシュコマンドで実行できます:
 /multi-review --cli codex-cli              # 特定CLIのみ
 ```
 
-| CLI | コスト | デフォルト観点 |
-|-----|--------|---------------|
-| Claude Code | Premium | 型設計分析 |
-| Codex CLI | Standard | コードレビュー、エラーハンドリング |
-| Copilot CLI | Flat-rate | テスト分析、コメント分析 |
-| Gemini CLI | Free-tier | セキュリティ分析 |
-| Cursor Agent | Flat-rate | コード簡素化 |
+| CLI          | コスト    | デフォルト観点                     |
+| ------------ | --------- | ---------------------------------- |
+| Claude Code  | Premium   | 型設計分析                         |
+| Codex CLI    | Standard  | コードレビュー、エラーハンドリング |
+| Copilot CLI  | Flat-rate | テスト分析、コメント分析           |
+| Gemini CLI   | Free-tier | セキュリティ分析                   |
+| Cursor Agent | Flat-rate | コード簡素化                       |
 
 設定: [`scripts/review-config.yaml`](./scripts/review-config.yaml) | 詳細: [`multi-cli-review-orchestration.md`](./docs-template/05-operations/deployment/multi-cli-review-orchestration.md)
 
@@ -309,19 +312,19 @@ docs/
 
 ### Quick Start
 
-| 対象 | ガイド | 所要時間 |
-| ---- | ------ | -------- |
-| 完全初心者 | [GETTING_STARTED_ABSOLUTE_BEGINNER.md](./docs-template/GETTING_STARTED_ABSOLUTE_BEGINNER.md) | 約4.5時間 |
-| 新規プロジェクト | [GETTING_STARTED_NEW_PROJECT.md](./docs-template/GETTING_STARTED_NEW_PROJECT.md) | 8-12時間 |
-| 既存プロジェクト | [GETTING_STARTED.md](./docs-template/GETTING_STARTED.md) | 約2時間 |
+| 対象             | ガイド                                                                                       | 所要時間  |
+| ---------------- | -------------------------------------------------------------------------------------------- | --------- |
+| 完全初心者       | [GETTING_STARTED_ABSOLUTE_BEGINNER.md](./docs-template/GETTING_STARTED_ABSOLUTE_BEGINNER.md) | 約4.5時間 |
+| 新規プロジェクト | [GETTING_STARTED_NEW_PROJECT.md](./docs-template/GETTING_STARTED_NEW_PROJECT.md)             | 8-12時間  |
+| 既存プロジェクト | [GETTING_STARTED.md](./docs-template/GETTING_STARTED.md)                                     | 約2時間   |
 
 ### AIツール設定ガイド
 
-| ツール | ガイド | 設定ファイル |
-| ------ | ------ | ------------ |
-| Claude Code | [SETUP_CLAUDE_CODE.md](./docs-template/SETUP_CLAUDE_CODE.md) | `CLAUDE.md` |
+| ツール         | ガイド                                                             | 設定ファイル                      |
+| -------------- | ------------------------------------------------------------------ | --------------------------------- |
+| Claude Code    | [SETUP_CLAUDE_CODE.md](./docs-template/SETUP_CLAUDE_CODE.md)       | `CLAUDE.md`                       |
 | GitHub Copilot | [SETUP_GITHUB_COPILOT.md](./docs-template/SETUP_GITHUB_COPILOT.md) | `.github/copilot-instructions.md` |
-| Cursor | [SETUP_CURSOR.md](./docs-template/SETUP_CURSOR.md) | `.cursorrules` |
+| Cursor         | [SETUP_CURSOR.md](./docs-template/SETUP_CURSOR.md)                 | `.cursorrules`                    |
 
 ## AIエージェント向け
 

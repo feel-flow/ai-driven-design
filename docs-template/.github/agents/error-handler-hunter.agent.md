@@ -37,16 +37,26 @@ metadata:
 
 ```typescript
 // NG: 空の catch ブロック
-try { doSomething(); } catch (e) {}
+try {
+  doSomething();
+} catch (e) {}
 
 // NG: console.log のみでエラーを握りつぶし
-try { doSomething(); } catch (e) { console.log(e); }
+try {
+  doSomething();
+} catch (e) {
+  console.log(e);
+}
 
 // NG: エラーを無視して null/undefined を返す
-try { return fetchData(); } catch (e) { return null; }
+try {
+  return fetchData();
+} catch (e) {
+  return null;
+}
 
 // NG: 汎用的すぎるエラーメッセージ
-throw new Error('Something went wrong');
+throw new Error("Something went wrong");
 ```
 
 ### 2. カスタムエラークラスの使用
@@ -55,13 +65,13 @@ throw new Error('Something went wrong');
 - エラーコードと HTTP ステータスが正しくマッピングされているか
 - 新しいエラー種別が `AppError` を適切に継承しているか
 
-| エラークラス | HTTP ステータス | 用途 |
-|---|---|---|
-| ValidationError | 400 | 入力バリデーション失敗 |
-| NotFoundError | 404 | リソース未検出 |
-| ForbiddenError | 403 | 権限不足 |
-| ConflictError | 409 | 重複・競合 |
-| InternalError | 500 | 予期しない内部エラー |
+| エラークラス    | HTTP ステータス | 用途                   |
+| --------------- | --------------- | ---------------------- |
+| ValidationError | 400             | 入力バリデーション失敗 |
+| NotFoundError   | 404             | リソース未検出         |
+| ForbiddenError  | 403             | 権限不足               |
+| ConflictError   | 409             | 重複・競合             |
+| InternalError   | 500             | 予期しない内部エラー   |
 
 ### 3. Result パターン
 
@@ -71,7 +81,7 @@ throw new Error('Something went wrong');
 // OK: Result パターン
 async function processUser(id: string): Promise<Result<User>> {
   const user = await repo.findById(id);
-  if (!user) return Result.fail(new NotFoundError('User not found'));
+  if (!user) return Result.fail(new NotFoundError("User not found"));
   return Result.ok(user);
 }
 ```
@@ -97,11 +107,12 @@ async function processUser(id: string): Promise<Result<User>> {
 
 ### 検出事項
 
-| # | ファイル | 行 | パターン | 重要度 | 内容 |
-|---|---------|-----|---------|--------|------|
-| 1 | ... | ... | 空catch | Critical | ... |
+| #   | ファイル | 行  | パターン | 重要度   | 内容 |
+| --- | -------- | --- | -------- | -------- | ---- |
+| 1   | ...      | ... | 空catch  | Critical | ...  |
 
 ### サマリー
+
 - サイレントエラー: N件
 - 不適切なフォールバック: N件
 - 全体評価: PASS / NEEDS_FIX

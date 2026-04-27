@@ -3,6 +3,7 @@
 ## 1. API概要
 
 ### API基本情報
+
 - **バージョン**: v1.0.0
 - **ベースURL**: `https://api.example.com/v1`
 - **プロトコル**: HTTPS
@@ -10,6 +11,7 @@
 - **文字コード**: UTF-8
 
 ### API設計原則
+
 - RESTfulアーキテクチャに準拠
 - リソース指向設計
 - ステートレス通信
@@ -37,17 +39,18 @@ Authorization: Bearer {jwt_token}
 
 ### スコープ定義
 
-| スコープ | 権限 | 説明 |
-|---|---|---|
-| read | 読み取り | リソースの参照のみ |
-| write | 書き込み | リソースの作成・更新・削除 |
-| admin | 管理者 | システム管理操作 |
+| スコープ | 権限     | 説明                       |
+| -------- | -------- | -------------------------- |
+| read     | 読み取り | リソースの参照のみ         |
+| write    | 書き込み | リソースの作成・更新・削除 |
+| admin    | 管理者   | システム管理操作           |
 
 ## 3. エンドポイント一覧
 
 ### ユーザー管理
 
 #### GET /users
+
 ユーザー一覧取得
 
 **リクエスト**
@@ -58,12 +61,12 @@ GET /users?page=1&limit=20&sort=created_at&order=desc
 
 **パラメータ**
 
-| 名前 | 型 | 必須 | 説明 |
-|---|---|---|---|
-| page | integer | No | ページ番号（デフォルト: 1） |
-| limit | integer | No | 取得件数（デフォルト: 20、最大: 100） |
-| sort | string | No | ソートキー |
-| order | string | No | ソート順（asc/desc） |
+| 名前  | 型      | 必須 | 説明                                  |
+| ----- | ------- | ---- | ------------------------------------- |
+| page  | integer | No   | ページ番号（デフォルト: 1）           |
+| limit | integer | No   | 取得件数（デフォルト: 20、最大: 100） |
+| sort  | string  | No   | ソートキー                            |
+| order | string  | No   | ソート順（asc/desc）                  |
 
 **レスポンス**
 
@@ -88,6 +91,7 @@ GET /users?page=1&limit=20&sort=created_at&order=desc
 ```
 
 #### GET /users/{id}
+
 ユーザー詳細取得
 
 **レスポンス**
@@ -109,6 +113,7 @@ GET /users?page=1&limit=20&sort=created_at&order=desc
 ```
 
 #### POST /users
+
 ユーザー作成
 
 **リクエスト**
@@ -138,14 +143,17 @@ GET /users?page=1&limit=20&sort=created_at&order=desc
 ```
 
 #### PUT /users/{id}
+
 ユーザー更新
 
 #### DELETE /users/{id}
+
 ユーザー削除
 
 ### 注文管理
 
 #### POST /orders
+
 注文作成
 
 **リクエスト**
@@ -172,19 +180,19 @@ GET /users?page=1&limit=20&sort=created_at&order=desc
 
 ### HTTPステータスコード
 
-| コード | 意味 | 使用場面 |
-|---|---|---|
-| 200 | OK | 正常処理完了 |
-| 201 | Created | リソース作成成功 |
-| 204 | No Content | 削除成功 |
-| 400 | Bad Request | リクエスト不正 |
-| 401 | Unauthorized | 認証エラー |
-| 403 | Forbidden | 権限エラー |
-| 404 | Not Found | リソース不存在 |
-| 409 | Conflict | 競合エラー |
-| 422 | Unprocessable Entity | バリデーションエラー |
-| 429 | Too Many Requests | レート制限 |
-| 500 | Internal Server Error | サーバーエラー |
+| コード | 意味                  | 使用場面             |
+| ------ | --------------------- | -------------------- |
+| 200    | OK                    | 正常処理完了         |
+| 201    | Created               | リソース作成成功     |
+| 204    | No Content            | 削除成功             |
+| 400    | Bad Request           | リクエスト不正       |
+| 401    | Unauthorized          | 認証エラー           |
+| 403    | Forbidden             | 権限エラー           |
+| 404    | Not Found             | リソース不存在       |
+| 409    | Conflict              | 競合エラー           |
+| 422    | Unprocessable Entity  | バリデーションエラー |
+| 429    | Too Many Requests     | レート制限           |
+| 500    | Internal Server Error | サーバーエラー       |
 
 ### エラーレスポンス
 
@@ -229,11 +237,11 @@ GET /users?page=1&limit=20&sort=created_at&order=desc
 
 ### 制限ルール
 
-| エンドポイント | 制限 | 期間 | ヘッダー |
-|---|---|---|---|
-| 全体 | 1000 | 1時間 | X-RateLimit-Limit |
-| POST /users | 10 | 1時間 | X-RateLimit-Remaining |
-| POST /orders | 100 | 1時間 | X-RateLimit-Reset |
+| エンドポイント | 制限 | 期間  | ヘッダー              |
+| -------------- | ---- | ----- | --------------------- |
+| 全体           | 1000 | 1時間 | X-RateLimit-Limit     |
+| POST /users    | 10   | 1時間 | X-RateLimit-Remaining |
+| POST /orders   | 100  | 1時間 | X-RateLimit-Reset     |
 
 ### レート制限レスポンス
 
@@ -298,16 +306,17 @@ type Mutation {
 ## 8. バージョニング
 
 ### バージョン管理方針
+
 - URLパスでのバージョン指定: `/v1/`, `/v2/`
 - 後方互換性の維持: 最低6ヶ月
 - 非推奨通知: ヘッダー `X-API-Deprecation-Date`
 
 ### バージョン間の差異
 
-| バージョン | 変更内容 | リリース日 | サポート終了日 |
-|---|---|---|---|
-| v1 | 初回リリース | 2024-01-01 | 2025-01-01 |
-| v2 | レスポンス構造変更 | 2024-07-01 | - |
+| バージョン | 変更内容           | リリース日 | サポート終了日 |
+| ---------- | ------------------ | ---------- | -------------- |
+| v1         | 初回リリース       | 2024-01-01 | 2025-01-01     |
+| v2         | レスポンス構造変更 | 2024-07-01 | -              |
 
 ## 9. セキュリティ
 
@@ -331,14 +340,17 @@ Content-Security-Policy: default-src 'self'
 ## 10. 開発者向け情報
 
 ### SDKs
+
 - JavaScript: `npm install @example/api-sdk`
 - Python: `pip install example-api-sdk`
 - Ruby: `gem install example-api-sdk`
 
 ### APIドキュメント
+
 - Swagger UI: <https://api.example.com/docs>
 - OpenAPI仕様: <https://api.example.com/openapi.json>
 
 ### サンドボックス環境
+
 - URL: <https://sandbox.api.example.com/v1>
 - 認証: APIキー（ダッシュボードで発行）

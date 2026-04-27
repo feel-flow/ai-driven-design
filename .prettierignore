@@ -1,0 +1,4 @@
+# markdownlint-cli2 と同様、履歴ファイルは整形対象外
+CHANGELOG.md
+node_modules
+mcp/node_modules

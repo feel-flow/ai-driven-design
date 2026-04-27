@@ -36,8 +36,8 @@ metadata:
 ```typescript
 // NG: 内部実装が露出
 interface UserService {
-  db: Database;              // 内部依存が公開されている
-  cache: Map<string, User>;  // 実装詳細が公開されている
+  db: Database; // 内部依存が公開されている
+  cache: Map<string, User>; // 実装詳細が公開されている
   getUser(id: string): User;
 }
 
@@ -100,10 +100,10 @@ function isUser(data: unknown): data is User {
 ```typescript
 // OK: Discriminated Union で状態を型安全に表現
 type AsyncState<T> =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; data: T }
-  | { status: 'error'; error: AppError };
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: AppError };
 ```
 
 ### 5. 型定義の構造
@@ -118,25 +118,27 @@ type AsyncState<T> =
 
 ```typescript
 // NG: 不要なジェネリクス
-function getValue<T>(value: T): T { return value; }
+function getValue<T>(value: T): T {
+  return value;
+}
 
 // OK: 意味のあるジェネリクス
 function findById<T extends { id: string }>(
   items: T[],
-  id: string
+  id: string,
 ): T | undefined {
-  return items.find(item => item.id === id);
+  return items.find((item) => item.id === id);
 }
 ```
 
 ## 評価指標
 
-| 指標 | 説明 | 評価基準 |
-|---|---|---|
-| カプセル化 | 内部実装の隠蔽度 | High / Medium / Low |
+| 指標           | 説明                   | 評価基準            |
+| -------------- | ---------------------- | ------------------- |
+| カプセル化     | 内部実装の隠蔽度       | High / Medium / Low |
 | 不変条件の表現 | 型レベルでのルール表現 | High / Medium / Low |
-| 有用性 | ドメインの反映度 | High / Medium / Low |
-| 型安全性 | any排除・型ガード使用 | High / Medium / Low |
+| 有用性         | ドメインの反映度       | High / Medium / Low |
+| 型安全性       | any排除・型ガード使用  | High / Medium / Low |
 
 ## 出力フォーマット
 
@@ -145,16 +147,17 @@ function findById<T extends { id: string }>(
 
 ### 型評価
 
-| # | 型名 | ファイル | カプセル化 | 不変条件 | 有用性 | 型安全性 |
-|---|------|---------|-----------|---------|--------|---------|
-| 1 | ... | ... | High | Medium | High | High |
+| #   | 型名 | ファイル | カプセル化 | 不変条件 | 有用性 | 型安全性 |
+| --- | ---- | -------- | ---------- | -------- | ------ | -------- |
+| 1   | ...  | ...      | High       | Medium   | High   | High     |
 
 ### 改善提案
 
-| # | 型名 | カテゴリ | 内容 | 提案 |
-|---|------|---------|------|------|
+| #   | 型名 | カテゴリ | 内容 | 提案 |
+| --- | ---- | -------- | ---- | ---- |
 
 ### サマリー
+
 - 分析対象型数: N
 - 改善提案: N件
 - 全体評価: STRONG / ADEQUATE / NEEDS_IMPROVEMENT

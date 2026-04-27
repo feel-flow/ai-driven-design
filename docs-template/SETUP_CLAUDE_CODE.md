@@ -3,6 +3,7 @@
 このガイドでは、Claude Code (claude.ai/code) を AI仕様駆動開発プロジェクトで使用するための初期設定を説明します。
 
 ## 目次
+
 1. [Claude Codeとは](#claude-codeとは)
 2. [初期セットアップ](#初期セットアップ)
 3. [CLAUDE.mdの設定](#claudemdの設定)
@@ -30,6 +31,7 @@ Claude Code は、Anthropic社が提供するAI開発アシスタントで、以
    ```
 
 2. **アカウント作成**
+
    - メールアドレスで登録
    - または Google/GitHub アカウントで認証
 
@@ -113,7 +115,7 @@ cat > CLAUDE.md << 'EOF'
 3. エラーハンドリングが適切か確認
 4. セキュリティ要件を満たしているか確認
 
-```
+````
 
 ## 🚨 情報不足時の確認ルール（必読）
 
@@ -140,9 +142,10 @@ Claude Codeは、ドキュメント生成やコード生成時に**情報が不�
 
 【次のステップ】
 上記を確認後、「[確認された情報]で進めてください」と指示してください。
-```
+````
 
 ### 推論が許容される範囲（明記が必須）
+
 - TypeScript strict mode: 常に有効（明記）
 - テストカバレッジ: 80%以上（明記）
 - マジックナンバー禁止: 常に適用（明記）
@@ -154,30 +157,31 @@ Claude Codeは、ドキュメント生成やコード生成時に**情報が不�
 
 ## コーディング規約（重要）
 
-| ルール | 適用方法 |
-| ------ | -------- |
-| **マジックナンバー禁止** | 名前付き定数を使用。単位・有効範囲をコメントに記載 |
-| **型安全性** | TypeScript strict: true, any型禁止（unknownまたは適切な型を使用） |
-| **ファイルサイズ** | ソフトリミット: 500行, ハードリミット: 800行 |
-| **関数サイズ** | 30行以下を目標 |
-| **テストカバレッジ** | 80%以上 |
-| **エラーハンドリング** | Result pattern使用、console.logは本番環境で禁止 |
-| **未使用コード** | 未使用のimport・変数は即座に削除 |
+| ルール                   | 適用方法                                                          |
+| ------------------------ | ----------------------------------------------------------------- |
+| **マジックナンバー禁止** | 名前付き定数を使用。単位・有効範囲をコメントに記載                |
+| **型安全性**             | TypeScript strict: true, any型禁止（unknownまたは適切な型を使用） |
+| **ファイルサイズ**       | ソフトリミット: 500行, ハードリミット: 800行                      |
+| **関数サイズ**           | 30行以下を目標                                                    |
+| **テストカバレッジ**     | 80%以上                                                           |
+| **エラーハンドリング**   | Result pattern使用、console.logは本番環境で禁止                   |
+| **未使用コード**         | 未使用のimport・変数は即座に削除                                  |
 
 ### 命名規則
 
-| 対象 | 規則 | 例 |
-| ---- | ---- | --- |
-| 変数・関数 | camelCase | `userName`, `isActive` |
-| 定数 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| 型・インターフェース | PascalCase | `UserProfile`, `ApiResponse` |
-| ファイル（コード） | kebab-case | `user-service.ts`, `api-client.ts` |
-| ディレクトリ（docs） | 数字-英語小文字 | `01-context`, `02-design` |
-| ファイル（docs） | 英語大文字.md | `MASTER.md`, `ARCHITECTURE.md` |
+| 対象                 | 規則             | 例                                 |
+| -------------------- | ---------------- | ---------------------------------- |
+| 変数・関数           | camelCase        | `userName`, `isActive`             |
+| 定数                 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT`                  |
+| 型・インターフェース | PascalCase       | `UserProfile`, `ApiResponse`       |
+| ファイル（コード）   | kebab-case       | `user-service.ts`, `api-client.ts` |
+| ディレクトリ（docs） | 数字-英語小文字  | `01-context`, `02-design`          |
+| ファイル（docs）     | 英語大文字.md    | `MASTER.md`, `ARCHITECTURE.md`     |
 
 詳細は `docs-template/03-implementation/CONVENTIONS.md` を参照
 
 ## アーキテクチャパターン
+
 - Clean Architecture
 - Repository Pattern
 - CQRS (Command Query Responsibility Segregation)
@@ -185,6 +189,7 @@ Claude Codeは、ドキュメント生成やコード生成時に**情報が不�
 - Dependency Injection
 
 ## セキュリティ要件
+
 - Input sanitization（入力サニタイゼーション）
 - SQL injection prevention（SQLインジェクション対策）
 - XSS protection（XSS対策）
@@ -194,11 +199,13 @@ Claude Codeは、ドキュメント生成やコード生成時に**情報が不�
 - Environment variable management（環境変数管理）
 
 ## パフォーマンス目標
+
 - Page load time: < 3 seconds
 - API response time: < 200ms (95th percentile)
 - Concurrent users: 1000
 
 ## 実装優先順位
+
 1. **Phase 1: MVP** - 必須機能のみ
 2. **Phase 2: Extension** - 追加機能
 3. **Phase 3: Optimization** - パフォーマンスとスケーラビリティ
@@ -246,6 +253,7 @@ docs-template/TESTING.mdのテスト戦略に従って、以下の機能のユ�
 ### ❌ よくある間違い
 
 1. **MASTER.mdを参照せずにコード生成**
+
    - 結果: プロジェクトの技術スタックと異なる実装
    - 回避: 必ずMASTER.mdを最初に読み込む
 
@@ -254,7 +262,7 @@ docs-template/TESTING.mdのテスト戦略に従って、以下の機能のユ�
    ```typescript
    // ❌ 間違い
    if (user.age > 18) { ... }
-   
+
    // ✅ 正しい
    const MINIMUM_AGE = 18; // 成人年齢（歳）
    if (user.age > MINIMUM_AGE) { ... }
@@ -265,7 +273,7 @@ docs-template/TESTING.mdのテスト戦略に従って、以下の機能のユ�
    ```typescript
    // ❌ 間違い
    const data: any = response.data;
-   
+
    // ✅ 正しい
    interface ApiResponse {
      data: unknown;
@@ -362,12 +370,12 @@ Issue #XXX を作成しました: [タイトル]
 
 ## よくある問題
 
-| 問題 | 解決方法 |
-| ---- | -------- |
-| ポート競合 | 実行中のプロセスを確認 |
-| CORS エラー | バックエンドのCORS設定を確認 |
-| 型エラー | 型チェックコマンドでエラー箇所を特定 |
-| テスト失敗 | ローカルでテスト実行し、差分を確認 |
+| 問題        | 解決方法                             |
+| ----------- | ------------------------------------ |
+| ポート競合  | 実行中のプロセスを確認               |
+| CORS エラー | バックエンドのCORS設定を確認         |
+| 型エラー    | 型チェックコマンドでエラー箇所を特定 |
+| テスト失敗  | ローカルでテスト実行し、差分を確認   |
 
 ## 参照ドキュメント
 
@@ -384,7 +392,7 @@ Issue #XXX を作成しました: [タイトル]
 **重要**: このガイドは、Claude Codeが一貫性のある高品質なコードを生成するためのものです。必ずMASTER.mdと併せて参照してください。
 EOF
 
-```
+````
 
 ### ステップ2: プロジェクト固有のカスタマイズ（15分）
 
@@ -410,7 +418,7 @@ EOF
 - Zustandを使用
 - グローバル状態は最小限に
 - ローカル状態を優先
-```
+````
 
 **例2: Node.js APIプロジェクトの場合**
 
@@ -418,11 +426,13 @@ EOF
 ## プロジェクト固有のルール
 
 ### API設計
+
 - RESTful API設計原則に従う
 - OpenAPI 3.0仕様を使用
 - バージョニング: /api/v1/...
 
 ### エラーハンドリング
+
 - Result pattern を使用
 - HTTP status codeを適切に設定
 - エラーメッセージは構造化
@@ -433,6 +443,7 @@ EOF
 ### ステップ1: MASTER.mdをアップロード（2分）
 
 1. **Claude Code で新しいプロジェクトを作成**
+
    - プロジェクト名を入力（例: "My AI-Driven Project"）
 
 2. **MASTER.mdをアップロード**
@@ -448,7 +459,7 @@ EOF
    ```
    このMASTER.mdの内容を確認し、プロジェクトの技術スタック、
    コーディング規約、実装優先順位を理解してください。
-   
+
    理解した内容を簡潔に要約してください。
    ```
 
@@ -556,12 +567,13 @@ MASTER.mdの以下の観点でチェックしてください：
 **原因**: プロンプトが曖昧、またはコンテキスト不足
 
 **解決策**:
+
 1. **具体的な要件を明示**
 
    ```
    ❌ 悪い例:
    「ユーザー管理機能を作って」
-   
+
    ✅ 良い例:
    「MASTER.mdのClean Architectureパターンに従って、
    以下の機能を持つユーザー管理機能を実装してください：
@@ -583,16 +595,20 @@ MASTER.mdの以下の観点でチェックしてください：
 **原因**: アップロードしたファイルが多すぎる、または大きすぎる
 
 **解決策**:
+
 1. **必要なファイルのみアップロード**
+
    - MASTER.mdは必須
    - その他は必要に応じて
 
 2. **重い処理はスキル（サブエージェント）で実行**
+
    - コードレビュー、全コードベーススキャンなど、10ファイル以上を読み込む処理はスキルとして実行
    - サブエージェントは独立コンテキストで動作し、メインセッションのトークン枠を消費しない
    - 詳細は [Commands vs Skills ガイド](../docs/CLAUDE_CODE_COMMANDS_SKILLS.md) を参照
 
 3. **ファイルを分割してアップロード**
+
    - 大きなファイルは必要な部分のみ抽出
 
 4. **要約を活用**
@@ -606,6 +622,7 @@ MASTER.mdの以下の観点でチェックしてください：
 **原因**: 大量のコードを一度に生成している、またはサーバーが混雑
 
 **解決策**:
+
 1. **段階的に実装**
 
    ```
@@ -732,9 +749,11 @@ git push origin main
 Claude Code のセットアップは以下の3ステップ：
 
 1. **アカウント取得**（5分）
+
    - Claude Pro 推奨（月額 $20）
 
 2. **CLAUDE.md 作成**（25分）
+
    - テンプレートをカスタマイズ
    - プロジェクト固有のルールを追加
 
@@ -753,6 +772,7 @@ Claude Code のセットアップは以下の3ステップ：
 ---
 
 **参考リンク**:
+
 - [Claude.ai](https://claude.ai)
 - [Claude Code](https://claude.ai/code)
 - [Anthropic Documentation](https://docs.anthropic.com/)

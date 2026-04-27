@@ -1,9 +1,9 @@
 ---
 name: ドキュメント更新
 about: ドキュメントの追加・更新
-title: 'docs: '
+title: "docs: "
 labels: documentation
-assignees: ''
+assignees: ""
 ---
 
 ## 概要

@@ -8,25 +8,27 @@
 
 ## クイックリファレンス
 
-| カテゴリ | ファイル | 主要トピック | いつ使うか |
-|---------|---------|------------|----------|
-| TypeScript規約 | [typescript.md](best-practices/typescript.md) | 型安全性、エラーハンドリング、ジェネリクス | TypeScript実装時 |
-| データベース | [database.md](best-practices/database.md) | クエリ最適化、トランザクション、インデックス | DB設計・実装時 |
-| API設計 | [api-design.md](best-practices/api-design.md) | RESTful API、バリデーション、エラーレスポンス | APIエンドポイント作成時 |
-| セキュリティ | [security.md](best-practices/security.md) | 認証・認可、暗号化、データ保護 | セキュリティ実装時 |
-| テスト | [testing.md](best-practices/testing.md) | 単体テスト、統合テスト、AAAパターン | テスト作成時 |
-| パフォーマンス | [performance.md](best-practices/performance.md) | キャッシュ、非同期処理、並行制御 | 性能最適化時 |
-| ログ・監視 | [logging.md](best-practices/logging.md) | 構造化ログ、エラー追跡、監視 | ロギング実装時 |
-| アーキテクチャ | [architecture.md](best-practices/architecture.md) | レイヤー設計、依存性注入、SOLID原則 | アーキテクチャ設計時 |
-| Git Workflow | [git-workflow.md](best-practices/git-workflow.md) | ブランチ戦略、SessionStart Hook、PR運用 | Git操作時 |
-| ACE Playbook | [PLAYBOOK.md](./PLAYBOOK.md) | 構造化エントリ追記ルール、helpful/harmfulカウンター管理 | PR/Issueマージ後 |
+| カテゴリ       | ファイル                                          | 主要トピック                                            | いつ使うか              |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------- | ----------------------- |
+| TypeScript規約 | [typescript.md](best-practices/typescript.md)     | 型安全性、エラーハンドリング、ジェネリクス              | TypeScript実装時        |
+| データベース   | [database.md](best-practices/database.md)         | クエリ最適化、トランザクション、インデックス            | DB設計・実装時          |
+| API設計        | [api-design.md](best-practices/api-design.md)     | RESTful API、バリデーション、エラーレスポンス           | APIエンドポイント作成時 |
+| セキュリティ   | [security.md](best-practices/security.md)         | 認証・認可、暗号化、データ保護                          | セキュリティ実装時      |
+| テスト         | [testing.md](best-practices/testing.md)           | 単体テスト、統合テスト、AAAパターン                     | テスト作成時            |
+| パフォーマンス | [performance.md](best-practices/performance.md)   | キャッシュ、非同期処理、並行制御                        | 性能最適化時            |
+| ログ・監視     | [logging.md](best-practices/logging.md)           | 構造化ログ、エラー追跡、監視                            | ロギング実装時          |
+| アーキテクチャ | [architecture.md](best-practices/architecture.md) | レイヤー設計、依存性注入、SOLID原則                     | アーキテクチャ設計時    |
+| Git Workflow   | [git-workflow.md](best-practices/git-workflow.md) | ブランチ戦略、SessionStart Hook、PR運用                 | Git操作時               |
+| ACE Playbook   | [PLAYBOOK.md](./PLAYBOOK.md)                      | 構造化エントリ追記ルール、helpful/harmfulカウンター管理 | PR/Issueマージ後        |
 
 ## 各カテゴリの概要
 
 ### 1. TypeScript規約
+
 **ファイル**: [best-practices/typescript.md](best-practices/typescript.md)
 
 **主要内容**:
+
 - 厳密な型定義とany型の回避
 - 型ガードとジェネリクスの活用
 - Resultパターンによるエラーハンドリング
@@ -35,9 +37,11 @@
 **適用場面**: TypeScriptコード実装全般
 
 ### 2. データベース設計
+
 **ファイル**: [best-practices/database.md](best-practices/database.md)
 
 **主要内容**:
+
 - インデックス設計とクエリ最適化
 - N+1問題の回避
 - トランザクション管理
@@ -46,9 +50,11 @@
 **適用場面**: データベーススキーマ設計、クエリ実装
 
 ### 3. API設計
+
 **ファイル**: [best-practices/api-design.md](best-practices/api-design.md)
 
 **主要内容**:
+
 - RESTful原則の遵守
 - 適切なHTTPメソッドとステータスコード
 - スキーマベースバリデーション（Joi等）
@@ -57,9 +63,11 @@
 **適用場面**: APIエンドポイント設計・実装
 
 ### 4. セキュリティ
+
 **ファイル**: [best-practices/security.md](best-practices/security.md)
 
 **主要内容**:
+
 - JWT認証の実装
 - ロールベース認可
 - bcryptによるパスワードハッシュ化
@@ -68,9 +76,11 @@
 **適用場面**: 認証・認可実装、機密データ処理
 
 ### 5. テスト戦略
+
 **ファイル**: [best-practices/testing.md](best-practices/testing.md)
 
 **主要内容**:
+
 - AAAパターン（Arrange-Act-Assert）
 - モックとスタブの使い分け
 - 統合テストのセットアップ
@@ -79,9 +89,11 @@
 **適用場面**: ユニットテスト・統合テスト作成
 
 ### 6. パフォーマンス最適化
+
 **ファイル**: [best-practices/performance.md](best-practices/performance.md)
 
 **主要内容**:
+
 - Redisキャッシュ戦略
 - Promise.allによる並列処理
 - セマフォによる並行制御
@@ -90,9 +102,11 @@
 **適用場面**: パフォーマンス改善、スケーラビリティ向上
 
 ### 7. ログ・監視
+
 **ファイル**: [best-practices/logging.md](best-practices/logging.md)
 
 **主要内容**:
+
 - Winston構造化ログ
 - リクエストIDトレーシング
 - エラースタック記録
@@ -101,9 +115,11 @@
 **適用場面**: ロギング実装、監視設定
 
 ### 8. アーキテクチャパターン
+
 **ファイル**: [best-practices/architecture.md](best-practices/architecture.md)
 
 **主要内容**:
+
 - レイヤーアーキテクチャ（Controllers/Services/Repositories/Entities）
 - 依存性注入（DI）
 - インターフェース駆動設計
@@ -112,9 +128,11 @@
 **適用場面**: プロジェクト構造設計、リファクタリング
 
 ### 9. Git Workflow
+
 **ファイル**: [best-practices/git-workflow.md](best-practices/git-workflow.md)
 
 **主要内容**:
+
 - SessionStart Hookによるブランチ状態チェック
 - Issue駆動開発フロー
 - ブランチ命名規則（feature/#123-description）
@@ -123,9 +141,11 @@
 **適用場面**: 開発開始時、PRマージ後
 
 ### 10. ACE Playbook運用
+
 **ファイル**: [PLAYBOOK.md](./PLAYBOOK.md)
 
 **主要内容**:
+
 - 構造化エントリの追記ルール（delta方式・末尾追記のみ）
 - helpful/harmful カウンターによる知見の有効性追跡
 - エントリのライフサイクル管理（active → deprecated）
@@ -196,8 +216,8 @@ See also: [PLAYBOOK.md](./PLAYBOOK.md) — ACE Playbook（構造化知見、delt
 
 ## 更新履歴
 
-| 日付 | 更新者 | 更新内容 |
-|------|--------|----------|
+| 日付       | 更新者   | 更新内容                                                       |
+| ---------- | -------- | -------------------------------------------------------------- |
 | 2025-11-05 | システム | ベストプラクティス集を索引版に簡潔化、詳細は個別ファイルに分割 |
 
 ## 関連ドキュメント

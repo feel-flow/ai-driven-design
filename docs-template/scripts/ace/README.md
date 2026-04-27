@@ -4,11 +4,11 @@ Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)
 
 ## 含まれるファイル
 
-| ファイル | 説明 |
-|----------|------|
-| `run-subagent.sh` | ロック取得、`git worktree` 作成、`claude -p` 起動、後片付けの骨子 |
-| `check-category-size.ts` | Playbook 内の Category ごとの件数を数え、閾値超過で非ゼロ終了 |
-| `docs-template/.claude/agents/ace-capture.md` | Subagent 用プロンプト（コピー先は `.claude/agents/`） |
+| ファイル                                      | 説明                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| `run-subagent.sh`                             | ロック取得、`git worktree` 作成、`claude -p` 起動、後片付けの骨子 |
+| `check-category-size.ts`                      | Playbook 内の Category ごとの件数を数え、閾値超過で非ゼロ終了     |
+| `docs-template/.claude/agents/ace-capture.md` | Subagent 用プロンプト（コピー先は `.claude/agents/`）             |
 
 post-merge からの呼び出し例は `docs-template/.claude/hooks/post-merge.ace.sample.sh` を参照してください。
 

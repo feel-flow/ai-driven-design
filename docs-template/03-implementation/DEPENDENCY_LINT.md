@@ -22,25 +22,25 @@ updated: "2026-04-27"
 
 Layer 1 の Q1〜Q6 は「配置判断」、Layer 3 は「依存方向の検証」である。運用上は次のように対応付ける。
 
-| Decision Tree 分岐 | 典型ディレクトリ | 推奨レイヤー名（lint 設定で使用） | 依存許可の原則 |
-| --- | --- | --- | --- |
-| Q1 外部システム通信 | `infrastructure/*` | `adapters` | `application` / `domain` に依存可。逆方向は禁止 |
-| Q2 リクエスト入口 | `interfaces/*` | `interfaces` | `application` 呼び出しのみ許可 |
-| Q3 オーケストレーション | `application/*` | `application` | `domain` とポート（抽象）に依存可 |
-| Q4 永続化・状態保持 | `infrastructure/*` | `adapters` | Q1 と同様。実装詳細は内向き禁止 |
-| Q5 ドメインモデル | `domain/*` | `domain` | 内部完結（他レイヤー参照禁止） |
-| Q6 横断関心事 | `shared/*` | `shared` | 最小限の共通依存のみ許可 |
+| Decision Tree 分岐      | 典型ディレクトリ   | 推奨レイヤー名（lint 設定で使用） | 依存許可の原則                                  |
+| ----------------------- | ------------------ | --------------------------------- | ----------------------------------------------- |
+| Q1 外部システム通信     | `infrastructure/*` | `adapters`                        | `application` / `domain` に依存可。逆方向は禁止 |
+| Q2 リクエスト入口       | `interfaces/*`     | `interfaces`                      | `application` 呼び出しのみ許可                  |
+| Q3 オーケストレーション | `application/*`    | `application`                     | `domain` とポート（抽象）に依存可               |
+| Q4 永続化・状態保持     | `infrastructure/*` | `adapters`                        | Q1 と同様。実装詳細は内向き禁止                 |
+| Q5 ドメインモデル       | `domain/*`         | `domain`                          | 内部完結（他レイヤー参照禁止）                  |
+| Q6 横断関心事           | `shared/*`         | `shared`                          | 最小限の共通依存のみ許可                        |
 
 > 例: Q1 で「外部 API クライアント」と判定したモジュールは `layer="adapters"` として扱い、`domain -> adapters` の import を禁止する。
 
 ## 3. 言語別ツール選定基準
 
-| 言語 | 第一候補 | 代替候補 | 選定基準 |
-| --- | --- | --- | --- |
-| Python | `import-linter` | `ruff` + custom rule | 契約ベースで依存方向を定義しやすい。`ignore_imports` が明示的 |
-| TypeScript / JavaScript | `dependency-cruiser` | `eslint-plugin-boundaries` | 依存グラフ可視化とルール化を両立。モノレポでも扱いやすい |
-| Go | `depguard`（golangci-lint） | `go-cleanarch` | CI への統合が容易。パッケージ境界の禁止ルールを定義可能 |
-| Rust | `cargo-deps` + custom clippy lint | `cargo-deny` + script | 依存グラフ可視化と境界違反検知を分離して実装しやすい |
+| 言語                    | 第一候補                          | 代替候補                   | 選定基準                                                      |
+| ----------------------- | --------------------------------- | -------------------------- | ------------------------------------------------------------- |
+| Python                  | `import-linter`                   | `ruff` + custom rule       | 契約ベースで依存方向を定義しやすい。`ignore_imports` が明示的 |
+| TypeScript / JavaScript | `dependency-cruiser`              | `eslint-plugin-boundaries` | 依存グラフ可視化とルール化を両立。モノレポでも扱いやすい      |
+| Go                      | `depguard`（golangci-lint）       | `go-cleanarch`             | CI への統合が容易。パッケージ境界の禁止ルールを定義可能       |
+| Rust                    | `cargo-deps` + custom clippy lint | `cargo-deny` + script      | 依存グラフ可視化と境界違反検知を分離して実装しやすい          |
 
 選定時は以下を比較する:
 
