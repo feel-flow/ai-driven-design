@@ -19,6 +19,9 @@ const HTTP_CLIENT_MAX_RETRIES = 3;
 /** リトライ間の待機（ミリ秒）。指数バックオフに置き換え可。 */
 const HTTP_CLIENT_RETRY_BASE_DELAY_MS = 200;
 
+/** HTTP 429 Too Many Requests。API ごとのレート制限仕様に合わせて扱う。 */
+const HTTP_STATUS_TOO_MANY_REQUESTS = 429;
+
 export type HttpClientResult<T> =
   | { ok: true; data: T }
   | { ok: false; errorCode: string; message: string };
@@ -47,8 +50,8 @@ export function createExternalApiClient(
   return {
     fetchJson: async <T>(path: string) => {
       const target = `${config.baseUrl}${path}`;
-      let attempt = 0;
-      while (attempt <= HTTP_CLIENT_MAX_RETRIES) {
+      let lastError: HttpClientResult<T> | undefined;
+      for (let attempt = 0; attempt <= HTTP_CLIENT_MAX_RETRIES; attempt += 1) {
         const auth = await config.getAuthHeader();
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
@@ -63,32 +66,33 @@ export function createExternalApiClient(
           clearTimeout(timeoutId);
           if (!res.ok) {
             // TODO: res.status に応じたエラーコードマッピング（API 固有）
-            if (res.status === 429 && attempt < HTTP_CLIENT_MAX_RETRIES) {
-              attempt += 1;
-              await delay(HTTP_CLIENT_RETRY_BASE_DELAY_MS * attempt);
-              continue;
-            }
-            return {
+            lastError = {
               ok: false,
               errorCode: `HTTP_${String(res.status)}`,
               message: 'Upstream API error',
             };
+            if (res.status === HTTP_STATUS_TOO_MANY_REQUESTS && attempt < HTTP_CLIENT_MAX_RETRIES) {
+              await delay(HTTP_CLIENT_RETRY_BASE_DELAY_MS * (attempt + 1));
+              continue;
+            }
+            return lastError;
           }
           const data = (await res.json()) as T;
           return { ok: true, data };
         } catch (cause: unknown) {
           clearTimeout(timeoutId);
+          const logContext = buildMaskedLogContext(target);
+          // TODO: 実装時は structuredLogger.warn('HTTP client failed', logContext) 等へ渡す。
+          void logContext;
+          const message = cause instanceof Error ? cause.message : 'Unknown error';
+          lastError = { ok: false, errorCode: 'HTTP_CLIENT_FAILED', message };
           if (attempt < HTTP_CLIENT_MAX_RETRIES) {
-            attempt += 1;
-            await delay(HTTP_CLIENT_RETRY_BASE_DELAY_MS * attempt);
+            await delay(HTTP_CLIENT_RETRY_BASE_DELAY_MS * (attempt + 1));
             continue;
           }
-          void buildMaskedLogContext(target);
-          const message = cause instanceof Error ? cause.message : 'Unknown error';
-          return { ok: false, errorCode: 'HTTP_CLIENT_FAILED', message };
         }
       }
-      return { ok: false, errorCode: 'HTTP_MAX_RETRIES', message: 'Exceeded retries' };
+      return lastError ?? { ok: false, errorCode: 'HTTP_CLIENT_FAILED', message: 'Unknown error' };
     },
   };
 }
