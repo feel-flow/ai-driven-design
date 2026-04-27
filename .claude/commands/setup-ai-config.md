@@ -85,15 +85,15 @@ AskUserQuestion を使用して、どのツール向けの設定を生成する�
 
 ## Git Workflow (Mandatory)
 [docs/05-operations/deployment/git-workflow.md から要約]
-- Issue → Branch → Implement → Self-Review → PR → Merge
-- Branch naming and commit message format
-- PR requirements (self-review/test/issue link)
+- Issue 起票から着手し、ブランチ → 実装 → セルフレビュー → PR → マージの順で進める
+- ブランチ命名規約とコミットメッセージ形式を守る
+- PR にはセルフレビュー結果・テスト結果・Issue リンク（例: `Closes #123`）を含める
 
 ## Self-Review Checklist
 [docs/05-operations/deployment/self-review.md から要約]
 
 ## Out-of-Scope Issues
-- Create issue immediately and continue current task
+- スコープ外の問題は即座に Issue を起票し、現行タスクは継続する（スコープ拡大はしない）
 
 ## Important Rules
 - Always read docs/MASTER.md first for project context

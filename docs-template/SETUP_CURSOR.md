@@ -158,6 +158,8 @@ This is an AI-driven development project starting with a core 7-document structu
 
 ## Git Workflow (Mandatory)
 
+手順の詳細（テンプレ）: `docs-template/05-operations/deployment/git-workflow.md`
+
 Always start from an Issue and follow the full flow:
 
 1. **Create Issue** - `gh issue create --title "..." --body "..."`
