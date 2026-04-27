@@ -26,14 +26,14 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 
 ### 運用ルール
 
-| ルール | 説明 |
-|--------|------|
-| **末尾追記のみ** | エントリは常にファイル末尾に追記。既存エントリの本文（Insight/Context/Action）書き換えは禁止。カウンター更新・Status変更は許可 |
-| **カウンターはインクリメントのみ** | Helpful/Harmful は +1 のみ。減算・リセットはしない |
-| **削除禁止** | エントリを物理的に削除しない。不要な場合は `Status: deprecated` に変更 |
-| **800行超過時は分割** | `playbook/` サブディレクトリにカテゴリ別ファイルとして分割 |
-| **Frontmatter更新** | エントリ追加時に `version`, `updated`, `ace_entry_count` を更新 |
-| **コミット規則** | `knowledge: ACE-XXX [category] [summary]` 形式で記録 |
+| ルール                             | 説明                                                                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **末尾追記のみ**                   | エントリは常にファイル末尾に追記。既存エントリの本文（Insight/Context/Action）書き換えは禁止。カウンター更新・Status変更は許可 |
+| **カウンターはインクリメントのみ** | Helpful/Harmful は +1 のみ。減算・リセットはしない                                                                             |
+| **削除禁止**                       | エントリを物理的に削除しない。不要な場合は `Status: deprecated` に変更                                                         |
+| **800行超過時は分割**              | `playbook/` サブディレクトリにカテゴリ別ファイルとして分割                                                                     |
+| **Frontmatter更新**                | エントリ追加時に `version`, `updated`, `ace_entry_count` を更新                                                                |
+| **コミット規則**                   | `knowledge: ACE-XXX [category] [summary]` 形式で記録                                                                           |
 
 ### エントリID規則
 
@@ -45,24 +45,24 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 
 ## カテゴリ一覧
 
-| カテゴリ | 説明 | 例 |
-|---------|------|----|
-| `coding` | コーディングパターン、言語固有のベストプラクティス | 型安全性、エラーハンドリング |
-| `architecture` | 設計判断、構造上の決定事項 | レイヤー設計、モジュール分割 |
-| `testing` | テスト戦略、テストパターン | モック設計、テストデータ管理 |
-| `security` | セキュリティ対策、脆弱性防止 | 認証、暗号化、入力検証 |
-| `performance` | パフォーマンス最適化 | キャッシュ、クエリ最適化 |
-| `devops` | CI/CD、デプロイ、環境構築 | パイプライン、インフラ設定 |
-| `process` | 開発プロセス、ワークフロー改善 | レビュー手法、タスク管理 |
-| `tooling` | ツール設定、開発環境 | IDE設定、リンター、フォーマッター |
+| カテゴリ       | 説明                                               | 例                                |
+| -------------- | -------------------------------------------------- | --------------------------------- |
+| `coding`       | コーディングパターン、言語固有のベストプラクティス | 型安全性、エラーハンドリング      |
+| `architecture` | 設計判断、構造上の決定事項                         | レイヤー設計、モジュール分割      |
+| `testing`      | テスト戦略、テストパターン                         | モック設計、テストデータ管理      |
+| `security`     | セキュリティ対策、脆弱性防止                       | 認証、暗号化、入力検証            |
+| `performance`  | パフォーマンス最適化                               | キャッシュ、クエリ最適化          |
+| `devops`       | CI/CD、デプロイ、環境構築                          | パイプライン、インフラ設定        |
+| `process`      | 開発プロセス、ワークフロー改善                     | レビュー手法、タスク管理          |
+| `tooling`      | ツール設定、開発環境                               | IDE設定、リンター、フォーマッター |
 
 ---
 
 ## ステータス定義
 
-| ステータス | 説明 | 遷移条件 |
-|-----------|------|----------|
-| `active` | 有効な知見 | 新規作成時のデフォルト |
+| ステータス   | 説明                                   | 遷移条件                                                |
+| ------------ | -------------------------------------- | ------------------------------------------------------- |
+| `active`     | 有効な知見                             | 新規作成時のデフォルト                                  |
 | `deprecated` | 非推奨（古い情報、矛盾が発見された等） | Harmful >= 3 かつ Helpful < Harmful、または明示的な判断 |
 
 ---
@@ -74,14 +74,14 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 ```markdown
 ### ACE-XXX: [タイトル（簡潔で検索しやすい表現）]
 
-| フィールド | 値 |
-|-----------|---|
-| Category | coding / architecture / testing / security / performance / devops / process / tooling |
-| Origin | PR #XXX / Issue #YYY |
-| Date | YYYY-MM-DD |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------- |
+| Category   | coding / architecture / testing / security / performance / devops / process / tooling |
+| Origin     | PR #XXX / Issue #YYY                                                                  |
+| Date       | YYYY-MM-DD                                                                            |
+| Helpful    | 0                                                                                     |
+| Harmful    | 0                                                                                     |
+| Status     | active                                                                                |
 
 **Insight**: [知見の本質を1-2文で記述]
 
@@ -102,20 +102,20 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 
 ### カウンター更新タイミング
 
-| タイミング | 更新内容 |
-|-----------|---------|
-| ACE サイクルで既存エントリと重複する知見を発見 | Helpful +1 |
-| 既存エントリの知見に従って問題を回避できた | Helpful +1 |
-| 既存エントリの知見に従ったが問題が発生した | Harmful +1 |
-| 既存エントリの内容が古くなっていると判明 | 検討の上 deprecated |
+| タイミング                                     | 更新内容            |
+| ---------------------------------------------- | ------------------- |
+| ACE サイクルで既存エントリと重複する知見を発見 | Helpful +1          |
+| 既存エントリの知見に従って問題を回避できた     | Helpful +1          |
+| 既存エントリの知見に従ったが問題が発生した     | Harmful +1          |
+| 既存エントリの内容が古くなっていると判明       | 検討の上 deprecated |
 
 ### エントリ品質の目安
 
-| カウンター状態 | 解釈 |
-|---------------|------|
-| `Helpful >= 5` | 高品質エントリ。PATTERNS.md への昇格を検討 |
-| `Helpful >= 3, Harmful == 0` | 良質なエントリ |
-| `Harmful >= 3, Helpful < Harmful` | deprecated 候補 |
+| カウンター状態                           | 解釈                                       |
+| ---------------------------------------- | ------------------------------------------ |
+| `Helpful >= 5`                           | 高品質エントリ。PATTERNS.md への昇格を検討 |
+| `Helpful >= 3, Harmful == 0`             | 良質なエントリ                             |
+| `Harmful >= 3, Helpful < Harmful`        | deprecated 候補                            |
 | `Helpful == 0, Harmful == 0`（90日以上） | 有効性未検証。次回関連タスクで意識的に検証 |
 
 ---
@@ -139,6 +139,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 ```
 
 分割時の手順：
+
 1. カテゴリ別にエントリをサブファイルに移動
 2. PLAYBOOK.md に索引テーブルを残す（エントリID + タイトル + 参照先）
 3. 以降の新規追記は該当カテゴリのサブファイルに行う
@@ -170,14 +171,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-001: クロスモデルレビューは単一AIモデルでは検出できない問題を発見する
 
-| フィールド | 値 |
-|-----------|---|
-| Category | process |
-| Origin | PR #316 / PR #319 |
-| Date | 2026-03-10 |
-| Helpful | 2 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                |
+| ---------- | ----------------- |
+| Category   | process           |
+| Origin     | PR #316 / PR #319 |
+| Date       | 2026-03-10        |
+| Helpful    | 2                 |
+| Harmful    | 0                 |
+| Status     | active            |
 
 **Insight**: 異なるAIモデル（Claude/Codex/Gemini/CodeRabbit）は異なるカテゴリの問題を検出する。単一モデルのレビューでは見落とされる問題が、クロスモデルレビューで発見される。
 
@@ -189,14 +190,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-002: CLIフラグは実機の --help 出力と照合が必須
 
-| フィールド | 値 |
-|-----------|---|
-| Category | tooling |
-| Origin | PR #316 / Issue #315 |
-| Date | 2026-03-10 |
-| Helpful | 2 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #316 / Issue #315 |
+| Date       | 2026-03-10           |
+| Helpful    | 2                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: Web検索やAI生成の情報だけでは CLI フラグの正確性は保証されない。`codex -p` は存在せず `codex exec` が正解、Copilot `-s` は sandbox ではなく `--silent`、Cursor `-p` は boolean フラグでプロンプトは positional 引数など、実機確認しなければ分からない差異が多い。
 
@@ -208,14 +209,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-003: bash スクリプトは macOS デフォルト環境（bash 3.2）でテストする
 
-| フィールド | 値 |
-|-----------|---|
-| Category | devops |
-| Origin | PR #319 / Issue #317 |
-| Date | 2026-03-10 |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | devops               |
+| Origin     | PR #319 / Issue #317 |
+| Date       | 2026-03-10           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: macOS のデフォルト bash は 3.2（bash 4.0+ が GPLv3 に移行したため Apple が更新を停止）であり、`declare -A`（連想配列）、`head -n -1`（GNU拡張）、`timeout` コマンドなどが使えない。CI環境（Linux, bash 5.x）では動くが macOS では動かないスクリプトが生まれやすい。
 
@@ -227,14 +228,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-004: ドキュメントの動作説明は実装メカニズムと一致させる
 
-| フィールド | 値 |
-|-----------|---|
-| Category | process |
-| Origin | PR #350 |
-| Date | 2026-03-18 |
-| Helpful | 1 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値         |
+| ---------- | ---------- |
+| Category   | process    |
+| Origin     | PR #350    |
+| Date       | 2026-03-18 |
+| Helpful    | 1          |
+| Harmful    | 0          |
+| Status     | active     |
 
 **Insight**: ドキュメントに「自動実行」と記載したが、実際にはCLAUDE.mdの指示に基づいてAIツールが順次実行する仕組みだった。「自動」「手動」「並列」「順次」等の動作表現が実装メカニズムと乖離すると、読者（人間・AI両方）が誤った前提で行動し、トラブルシューティング時に混乱する。
 
@@ -246,14 +247,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-005: 索引と実体を分離する委譲パターンでAIコンテキスト消費を抑える
 
-| フィールド | 値 |
-|-----------|---|
-| Category | architecture |
-| Origin | PR #369 / Issue #368 |
-| Date | 2026-04-26 |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | architecture         |
+| Origin     | PR #369 / Issue #368 |
+| Date       | 2026-04-26           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: AI が常時参照する中心文書（MASTER.md / PATTERNS.md 等）には **索引（概要 + リンク）のみ** を置き、実体は専用ファイルに分離する委譲パターンを採用すると、AI は必要なときだけ実体ファイルをロードできるためコンテキスト消費が抑えられる。文書側の認知負荷も下がり、レビューしやすい diff になる。
 
@@ -265,14 +266,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-006: サンプル付きテンプレファイルには⚠️SAMPLEバナーと固有化手順を必ず併設する
 
-| フィールド | 値 |
-|-----------|---|
-| Category | tooling |
-| Origin | PR #369 / Issue #368 |
-| Date | 2026-04-26 |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #369 / Issue #368 |
+| Date       | 2026-04-26           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: docs-template/ 配下のテンプレで具体例（特定ドメインのパス・名前）を含める場合、採用プロジェクトが固有化を忘れて「サンプルのまま運用される」失敗モードが発生する。冒頭の **⚠️ SAMPLE バナー** と末尾の **「プロジェクト固有化の手順」** セクションをセットで配置することで、採用時の見落としを構造的に防げる。
 
@@ -284,14 +285,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-007: Claude Code skill 内のツール参照は名称・subagent_type を実機 / system prompt で照合する
 
-| フィールド | 値 |
-|-----------|---|
-| Category | tooling |
-| Origin | PR #374 / Issue #373 |
-| Date | 2026-04-26 |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #374 / Issue #373 |
+| Date       | 2026-04-26           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: Claude Code の skill 定義（`.claude/commands/*.md`）に SubAgent 起動を書く際、ツール名は **`Task`** であり `Agent` ではない。subagent_type も Claude Code 公式の組み込み（`Explore` / `general-purpose` 等）と照合する必要がある。誤った名称を skill に書くと、実行時にモデルが対応するツールを引けず失敗する。
 
@@ -303,14 +304,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-008: クロスリポジトリ操作する skill は全 gh コマンドに `--repo` 必須・mention は `@<assignee>` を使う
 
-| フィールド | 値 |
-|-----------|---|
-| Category | tooling |
-| Origin | PR #374 / Issue #373 |
-| Date | 2026-04-26 |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #374 / Issue #373 |
+| Date       | 2026-04-26           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: skill が「クロスリポジトリ対応」を謳う場合、`gh issue view` だけでなく **`gh issue edit` / `gh issue comment` / `gh label create` / `gh issue edit --add-label` の全てに `--repo <owner/repo>` を渡す**必要がある。1 つでも欠けると、別 repo の Issue を更新できないか、現在の repo の同番号 Issue を誤更新する。さらに mention placeholder は `@<owner>` だと GitHub が repo 所有者（organization）と解釈して**組織全体に通知が飛ぶ事故**が起きるため、`@<assignee>` を使う。
 
@@ -322,14 +323,14 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ### ACE-009: 長時間 Orchestrator の失敗の真因は upstream Issue spec 曖昧さ — 探索型 refine が必要
 
-| フィールド | 値 |
-|-----------|---|
-| Category | process |
-| Origin | PR #374 / Issue #373 |
-| Date | 2026-04-26 |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #374 / Issue #373 |
+| Date       | 2026-04-26           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
 
 **Insight**: AI Orchestrator (完遂型 / A 型) で Issue を自動完遂する仕組みが「結構できないものが多い」と感じたとき、真因は **Orchestrator の賢さ不足ではなく、入力 Issue の spec 曖昧さ**であることが多い。曖昧な spec を渡された Orchestrator は推測で穴埋めするしかなく、ハズす。必要なのは「曖昧な Issue → 実行可能な Issue」に研ぎ澄ます探索型 (B 型) skill を upstream に置くこと。
 
@@ -344,11 +345,13 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 ### [1.4.0] - 2026-04-26
 
 #### 追加
+
 - ACE-007: Claude Code skill 内のツール参照は名称・subagent_type を実機 / system prompt で照合する
 - ACE-008: クロスリポジトリ操作する skill は全 gh コマンドに `--repo` 必須・mention は `@<assignee>` を使う
 - ACE-009: 長時間 Orchestrator の失敗の真因は upstream Issue spec 曖昧さ — 探索型 refine が必要
 
 #### 更新
+
 - ACE-001: Helpful +1（PR #374 で 4 reviewer が独立に Critical 検出、クロスモデルレビューの価値再確認）
 - ACE-002: Helpful +1（PR #374 で `Task` ツール名 / `gh state` UPPERCASE / `gh` フラグなど実機照合の重要性が再確認）
 - ACE-004: Helpful +1（PR #374 で「同じ 4 観点」主張と実装の乖離・Architectural 継続動作と Out-of-Scope の矛盾を検出）
@@ -356,21 +359,25 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 ### [1.3.0] - 2026-04-26
 
 #### 追加
+
 - ACE-005: 索引と実体を分離する委譲パターンでAIコンテキスト消費を抑える
 - ACE-006: サンプル付きテンプレファイルには⚠️SAMPLEバナーと固有化手順を必ず併設する
 
 ### [1.2.0] - 2026-03-18
 
 #### 追加
+
 - ACE-004: ドキュメントの動作説明は実装メカニズムと一致させる
 
 #### 更新
+
 - ACE-001: Helpful +1（PR #350 でクロスモデルレビューの有効性が再確認）
 - ACE-002: Helpful +1（コマンド実在確認の重要性が再確認）
 
 ### [1.1.0] - 2026-03-10
 
 #### 追加
+
 - ACE-001: クロスモデルレビューの検出パターン差異
 - ACE-002: CLIフラグの実機確認必須ルール
 - ACE-003: bash 3.2 macOS互換性の知見
@@ -379,4 +386,5 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 ### [1.0.0] - YYYY-MM-DD
 
 #### 追加
+
 - 初版作成：Playbook テンプレート、運用ルール、エントリテンプレートを定義

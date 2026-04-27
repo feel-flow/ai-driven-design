@@ -1,9 +1,9 @@
 ---
 name: インフラ変更
 about: インフラ・デプロイ設定の変更
-title: 'infra: '
+title: "infra: "
 labels: infrastructure
-assignees: ''
+assignees: ""
 ---
 
 ## 概要

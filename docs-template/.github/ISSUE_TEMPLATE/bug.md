@@ -1,9 +1,9 @@
 ---
 name: バグ修正
 about: バグを報告・修正する
-title: 'fix: '
+title: "fix: "
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
 ## 概要

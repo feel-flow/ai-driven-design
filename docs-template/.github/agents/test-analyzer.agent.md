@@ -35,29 +35,29 @@ metadata:
 プロジェクトの最低カバレッジ基準を満たしているか確認する:
 
 | メトリクス | 閾値 |
-|---|---|
-| branches | 70% |
-| functions | 80% |
-| lines | 80% |
-| statements | 80% |
+| ---------- | ---- |
+| branches   | 70%  |
+| functions  | 80%  |
+| lines      | 80%  |
+| statements | 80%  |
 
 ### 2. テストピラミッド
 
 テスト種別の比率が適切か確認する:
 
-| テスト種別 | 比率 | カバレッジ目標 |
-|---|---|---|
-| ユニットテスト | 75% | 80%以上 |
-| 統合テスト | 20% | 60%以上 |
-| E2Eテスト | 5% | クリティカルパス100% |
+| テスト種別     | 比率 | カバレッジ目標       |
+| -------------- | ---- | -------------------- |
+| ユニットテスト | 75%  | 80%以上              |
+| 統合テスト     | 20%  | 60%以上              |
+| E2Eテスト      | 5%   | クリティカルパス100% |
 
 ### 3. テスト品質（AAA パターン）
 
 ```typescript
 // OK: Arrange-Act-Assert パターン
-it('should create user with valid data', async () => {
+it("should create user with valid data", async () => {
   // Arrange
-  const userData = { email: 'test@example.com', name: 'Test User' };
+  const userData = { email: "test@example.com", name: "Test User" };
 
   // Act
   const result = await service.createUser(userData);
@@ -73,12 +73,12 @@ it('should create user with valid data', async () => {
 
 ```typescript
 // OK: 具体的で理解しやすい
-it('should return 404 when user does not exist', () => {});
-it('should validate email format before saving', () => {});
+it("should return 404 when user does not exist", () => {});
+it("should validate email format before saving", () => {});
 
 // NG: 曖昧で情報が不足
-it('works', () => {});
-it('test user', () => {});
+it("works", () => {});
+it("test user", () => {});
 ```
 
 ### 5. テストの独立性
@@ -109,18 +109,22 @@ it('test user', () => {});
 ## Test Analyzer: テスト品質分析
 
 ### カバレッジ評価
+
 | メトリクス | 現在値 | 閾値 | 判定 |
-|---|---|---|---|
+| ---------- | ------ | ---- | ---- |
 
 ### 欠落テスト
-| # | 対象コード | テスト種別 | 内容 |
-|---|-----------|-----------|------|
+
+| #   | 対象コード | テスト種別 | 内容 |
+| --- | ---------- | ---------- | ---- |
 
 ### 品質指摘
-| # | テストファイル | 行 | カテゴリ | 内容 |
-|---|-------------|-----|---------|------|
+
+| #   | テストファイル | 行  | カテゴリ | 内容 |
+| --- | -------------- | --- | -------- | ---- |
 
 ### サマリー
+
 - 欠落テスト: N件
 - 品質指摘: N件
 - 全体評価: PASS / NEEDS_IMPROVEMENT

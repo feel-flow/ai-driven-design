@@ -3,6 +3,7 @@
 このガイドでは、Cursor エディタを AI仕様駆動開発プロジェクトで使用するための初期設定を説明します。
 
 ## 目次
+
 1. [Cursorとは](#cursorとは)
 2. [初期セットアップ](#初期セットアップ)
 3. [.cursorrulesの設定](#cursorrulesの設定)
@@ -31,6 +32,7 @@ Cursor は、AIネイティブなコードエディタで、以下の特徴が�
    ```
 
 2. **インストール**
+
    - macOS: DMGファイルをダウンロードして Applications フォルダに移動
    - Windows: インストーラーを実行
    - Linux: AppImage をダウンロードして実行
@@ -56,11 +58,13 @@ Cursor は、AIネイティブなコードエディタで、以下の特徴が�
 ### ステップ3: AI機能の有効化（5分）
 
 1. **アカウント作成**
+
    - Cursor を起動
    - Sign Up ボタンをクリック
    - メールアドレスまたはGitHubアカウントで登録
 
 2. **プラン選択**
+
    - **Free**: 基本的なAI機能（制限あり）
    - **Pro** ($20/月): 推奨
      - 無制限のAI補完
@@ -238,7 +242,9 @@ When information is missing, DO NOT make assumptions. Always ask for confirmatio
 ⚠️ Missing Information - Confirmation Required
 
 [Required Information]
+
 1. Database Type
+
    - Reason: Design differs significantly between PostgreSQL and MongoDB
    - Options: PostgreSQL (relational) / MongoDB (document-oriented)
    - Please specify: Which one do you want to use?
@@ -358,15 +364,15 @@ EOF
   "cursor.ai.completion.enabled": true,
   "cursor.ai.showDiff": true,
   "cursor.ai.rules": ".cursorrules",
-  
+
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  
+
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  
+
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -481,7 +487,7 @@ interface User {
    - src/controllers/auth-controller.ts (新規作成)
    - src/routes/auth-routes.ts (新規作成)
    - src/models/user.ts (既存ファイルに追加)
-   
+
    MASTER.mdのClean Architectureパターンに従ってください。
    ```
 
@@ -492,6 +498,7 @@ interface User {
 **原因**: AI機能が無効、またはネットワーク接続の問題
 
 **解決策**:
+
 1. **AI設定を確認**
 
    ```
@@ -518,6 +525,7 @@ interface User {
 **原因**: ファイル名の間違い、または場所が違う
 
 **解決策**:
+
 1. **ファイル名を確認**
 
    ```bash
@@ -544,6 +552,7 @@ interface User {
 **原因**: .cursorrules の内容が不十分、またはプロンプトが曖昧
 
 **解決策**:
+
 1. **.cursorrules を更新**
 
    ```
@@ -555,7 +564,7 @@ interface User {
    ```
    ❌ 悪い例:
    「ユーザー登録機能を作って」
-   
+
    ✅ 良い例:
    「docs-template/MASTER.md の規約に従って、
    以下の要件を満たすユーザー登録機能を実装してください:
@@ -577,6 +586,7 @@ interface User {
 **原因**: 大きなプロジェクト、または多くの拡張機能
 
 **解決策**:
+
 1. **インデックスを確認**
 
    ```
@@ -677,6 +687,7 @@ git push origin main
 5. 開発開始！
 
 ## よく使う機能
+
 - AI Chat: ⌘L
 - Command K: ⌘K（コード選択後）
 - 補完受け入れ: Tab
@@ -687,14 +698,17 @@ git push origin main
 Cursor のセットアップは以下の4ステップ：
 
 1. **Cursor インストール**（10分）
+
    - <https://cursor.sh> からダウンロード
    - Pro プラン推奨（月額 $20）
 
 2. **.cursorrules 作成**（25分）
+
    - テンプレートをコピー
    - プロジェクト固有のルールを追加
 
 3. **ワークスペース設定**（10分）
+
    - .vscode/settings.json 作成
    - AI機能を有効化
 
@@ -721,6 +735,7 @@ Cursor のセットアップは以下の4ステップ：
 ---
 
 **参考リンク**:
+
 - [Cursor 公式サイト](https://cursor.sh)
 - [Cursor Documentation](https://docs.cursor.sh)
 - [MASTER.md](docs-template/MASTER.md)

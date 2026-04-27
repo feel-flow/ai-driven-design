@@ -15,7 +15,7 @@
 **推奨**:
 
 ```typescript
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 class AuthService {
   generateToken(user: User): string {
@@ -23,19 +23,19 @@ class AuthService {
       {
         userId: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
       },
       process.env.JWT_SECRET!,
       {
-        expiresIn: '24h',
-        algorithm: 'HS256'
-      }
+        expiresIn: "24h",
+        algorithm: "HS256",
+      },
     );
   }
 
   verifyToken(token: string): UserPayload {
     return jwt.verify(token, process.env.JWT_SECRET!, {
-      algorithms: ['HS256']
+      algorithms: ["HS256"],
     }) as UserPayload;
   }
 }
@@ -49,24 +49,24 @@ class AuthService {
 const requireRole = (role: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.user.role !== role) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return res.status(403).json({ error: "Insufficient permissions" });
     }
     next();
   };
 };
 
 // 使用例
-app.get('/api/admin/users', authenticateJWT, requireRole('admin'), getUsers);
+app.get("/api/admin/users", authenticateJWT, requireRole("admin"), getUsers);
 ```
 
 **避けるべき**:
 
 ```typescript
 // 脆弱な認証
-const token = jwt.sign({ userId: user.id }, 'weak-secret');
+const token = jwt.sign({ userId: user.id }, "weak-secret");
 
 // 認可の不備
-app.get('/api/admin/users', (req, res) => {
+app.get("/api/admin/users", (req, res) => {
   // 認可チェックなし
   res.json(users);
 });
@@ -81,7 +81,7 @@ app.get('/api/admin/users', (req, res) => {
 **推奨**:
 
 ```typescript
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
 class PasswordService {
   private readonly SALT_ROUNDS = 12;
@@ -101,12 +101,12 @@ class PasswordService {
 ```typescript
 // 平文でのパスワード保存
 const user = {
-  email: 'user@example.com',
-  password: 'plaintext-password' // 危険
+  email: "user@example.com",
+  password: "plaintext-password", // 危険
 };
 
 // 弱い暗号化
-const encrypted = Buffer.from(data).toString('base64');
+const encrypted = Buffer.from(data).toString("base64");
 ```
 
 #### 機密データの暗号化
@@ -114,39 +114,39 @@ const encrypted = Buffer.from(data).toString('base64');
 **推奨**:
 
 ```typescript
-import crypto from 'crypto';
+import crypto from "crypto";
 
 class EncryptionService {
-  private readonly algorithm = 'aes-256-gcm';
+  private readonly algorithm = "aes-256-gcm";
   private readonly key: Buffer;
 
   constructor(key: string) {
-    this.key = Buffer.from(key, 'base64');
+    this.key = Buffer.from(key, "base64");
   }
 
   encrypt(data: string): string {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
 
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    let encrypted = cipher.update(data, "utf8", "hex");
+    encrypted += cipher.final("hex");
 
     const authTag = cipher.getAuthTag();
 
-    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+    return iv.toString("hex") + ":" + authTag.toString("hex") + ":" + encrypted;
   }
 
   decrypt(encryptedData: string): string {
-    const parts = encryptedData.split(':');
-    const iv = Buffer.from(parts[0], 'hex');
-    const authTag = Buffer.from(parts[1], 'hex');
+    const parts = encryptedData.split(":");
+    const iv = Buffer.from(parts[0], "hex");
+    const authTag = Buffer.from(parts[1], "hex");
     const encrypted = parts[2];
 
     const decipher = crypto.createDecipheriv(this.algorithm, this.key, iv);
     decipher.setAuthTag(authTag);
 
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+    let decrypted = decipher.update(encrypted, "hex", "utf8");
+    decrypted += decipher.final("utf8");
 
     return decrypted;
   }
@@ -162,7 +162,7 @@ class EncryptionService {
 **推奨**:
 
 ```typescript
-import Joi from 'joi';
+import Joi from "joi";
 
 const createUserSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),
@@ -170,12 +170,16 @@ const createUserSchema = Joi.object({
   age: Joi.number().integer().min(0).max(150).optional(),
 });
 
-const validateCreateUser = (req: Request, res: Response, next: NextFunction) => {
+const validateCreateUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { error } = createUserSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      error: 'Validation failed',
-      details: error.details.map(d => d.message)
+      error: "Validation failed",
+      details: error.details.map((d) => d.message),
     });
   }
   next();
@@ -187,7 +191,7 @@ const validateCreateUser = (req: Request, res: Response, next: NextFunction) => 
 ```typescript
 // 手動バリデーション
 if (!req.body.name || req.body.name.length < 1) {
-  return res.status(400).json({ error: 'Name is required' });
+  return res.status(400).json({ error: "Name is required" });
 }
 
 // 不十分なバリデーション
@@ -203,23 +207,25 @@ if (req.body.email) {
 **推奨**:
 
 ```typescript
-import helmet from 'helmet';
+import helmet from "helmet";
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-}));
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  }),
+);
 ```
 
 ---
@@ -233,7 +239,7 @@ app.use(helmet({
 **推奨**:
 
 ```typescript
-describe('UserService', () => {
+describe("UserService", () => {
   let userService: UserService;
   let mockRepository: jest.Mocked<UserRepository>;
 
@@ -247,15 +253,15 @@ describe('UserService', () => {
     userService = new UserService(mockRepository);
   });
 
-  describe('createUser', () => {
-    it('should create a user with valid data', async () => {
+  describe("createUser", () => {
+    it("should create a user with valid data", async () => {
       // Arrange
       const userData = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        age: 30
+        name: "John Doe",
+        email: "john@example.com",
+        age: 30,
       };
-      const expectedUser = { id: '1', ...userData };
+      const expectedUser = { id: "1", ...userData };
       mockRepository.create.mockResolvedValue(expectedUser);
 
       // Act
@@ -267,12 +273,12 @@ describe('UserService', () => {
       expect(mockRepository.create).toHaveBeenCalledWith(userData);
     });
 
-    it('should return error for invalid email', async () => {
+    it("should return error for invalid email", async () => {
       // Arrange
       const userData = {
-        name: 'John Doe',
-        email: 'invalid-email',
-        age: 30
+        name: "John Doe",
+        email: "invalid-email",
+        age: 30,
       };
 
       // Act
@@ -290,13 +296,13 @@ describe('UserService', () => {
 
 ```typescript
 // テストの不備
-it('should work', async () => {
+it("should work", async () => {
   const result = await userService.createUser({});
   expect(result).toBeDefined();
 });
 
 // モックの不適切な使用
-it('should create user', async () => {
+it("should create user", async () => {
   const result = await userService.createUser(userData);
   expect(result).toBeTruthy();
   // 実際のデータベースに接続している
@@ -312,7 +318,7 @@ it('should create user', async () => {
 **推奨**:
 
 ```typescript
-describe('User API Integration', () => {
+describe("User API Integration", () => {
   let app: Express;
   let testDb: Database;
 
@@ -326,19 +332,19 @@ describe('User API Integration', () => {
   });
 
   beforeEach(async () => {
-    await testDb.query('DELETE FROM users');
+    await testDb.query("DELETE FROM users");
   });
 
-  describe('POST /api/users', () => {
-    it('should create a user and return 201', async () => {
+  describe("POST /api/users", () => {
+    it("should create a user and return 201", async () => {
       const userData = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        age: 30
+        name: "John Doe",
+        email: "john@example.com",
+        age: 30,
       };
 
       const response = await request(app)
-        .post('/api/users')
+        .post("/api/users")
         .send(userData)
         .expect(201);
 
@@ -346,27 +352,23 @@ describe('User API Integration', () => {
         id: expect.any(String),
         name: userData.name,
         email: userData.email,
-        age: userData.age
+        age: userData.age,
       });
 
       // データベースに保存されていることを確認
-      const user = await testDb.query(
-        'SELECT * FROM users WHERE id = $1',
-        [response.body.id]
-      );
+      const user = await testDb.query("SELECT * FROM users WHERE id = $1", [
+        response.body.id,
+      ]);
       expect(user.rows).toHaveLength(1);
     });
 
-    it('should return 400 for invalid data', async () => {
+    it("should return 400 for invalid data", async () => {
       const invalidData = {
-        name: '',
-        email: 'invalid-email'
+        name: "",
+        email: "invalid-email",
       };
 
-      await request(app)
-        .post('/api/users')
-        .send(invalidData)
-        .expect(400);
+      await request(app).post("/api/users").send(invalidData).expect(400);
     });
   });
 });
@@ -379,6 +381,7 @@ describe('User API Integration', () => {
 #### カバレッジ目標
 
 **推奨**:
+
 - 全体カバレッジ: 80%以上
 - 重要な機能: 90%以上
 - ユーティリティ関数: 100%
@@ -389,10 +392,10 @@ describe('User API Integration', () => {
 // jest.config.js
 module.exports = {
   collectCoverageFrom: [
-    'src/**/*.{js,ts}',
-    '!src/**/*.d.ts',
-    '!src/**/*.test.{js,ts}',
-    '!src/index.ts',
+    "src/**/*.{js,ts}",
+    "!src/**/*.d.ts",
+    "!src/**/*.test.{js,ts}",
+    "!src/index.ts",
   ],
   coverageThreshold: {
     global: {
@@ -401,7 +404,7 @@ module.exports = {
       lines: 80,
       statements: 80,
     },
-    './src/services/': {
+    "./src/services/": {
       branches: 90,
       functions: 90,
       lines: 90,
@@ -420,34 +423,38 @@ module.exports = {
 **推奨**:
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('User Registration Flow', () => {
-  test('should allow user to register successfully', async ({ page }) => {
+test.describe("User Registration Flow", () => {
+  test("should allow user to register successfully", async ({ page }) => {
     // ページに移動
-    await page.goto('http://localhost:3000/register');
+    await page.goto("http://localhost:3000/register");
 
     // フォーム入力
-    await page.fill('input[name="name"]', 'John Doe');
-    await page.fill('input[name="email"]', 'john@example.com');
-    await page.fill('input[name="password"]', 'SecurePassword123!');
+    await page.fill('input[name="name"]', "John Doe");
+    await page.fill('input[name="email"]', "john@example.com");
+    await page.fill('input[name="password"]', "SecurePassword123!");
 
     // 送信
     await page.click('button[type="submit"]');
 
     // リダイレクトと成功メッセージを確認
-    await expect(page).toHaveURL('http://localhost:3000/dashboard');
-    await expect(page.locator('.success-message')).toContainText('Welcome, John Doe');
+    await expect(page).toHaveURL("http://localhost:3000/dashboard");
+    await expect(page.locator(".success-message")).toContainText(
+      "Welcome, John Doe",
+    );
   });
 
-  test('should show validation errors', async ({ page }) => {
-    await page.goto('http://localhost:3000/register');
+  test("should show validation errors", async ({ page }) => {
+    await page.goto("http://localhost:3000/register");
 
     // 空のフォーム送信
     await page.click('button[type="submit"]');
 
     // エラーメッセージを確認
-    await expect(page.locator('.error-message')).toContainText('Name is required');
+    await expect(page.locator(".error-message")).toContainText(
+      "Name is required",
+    );
   });
 });
 ```
@@ -456,7 +463,7 @@ test.describe('User Registration Flow', () => {
 
 ## 更新履歴
 
-| 日付 | 更新者 | 更新内容 |
-|------|--------|----------|
-| 2024-02-01 | 田中 | セキュリティとテストのベストプラクティスを抽出 |
-| 2025-01-15 | システム | 階層化ドキュメント構造に対応 |
+| 日付       | 更新者   | 更新内容                                       |
+| ---------- | -------- | ---------------------------------------------- |
+| 2024-02-01 | 田中     | セキュリティとテストのベストプラクティスを抽出 |
+| 2025-01-15 | システム | 階層化ドキュメント構造に対応                   |

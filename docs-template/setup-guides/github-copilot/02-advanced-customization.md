@@ -90,6 +90,7 @@ AIプロンプトを活用して、MASTER.mdの内容を基に自動生成・更
 
 ```markdown
 # プロジェクト固有のルール
+
 - React 18使用
 - 関数コンポーネントのみ（クラスコンポーネント禁止）
 - Hooks優先（useState, useEffect, useContext等）
@@ -102,6 +103,7 @@ AIプロンプトを活用して、MASTER.mdの内容を基に自動生成・更
 
 ```markdown
 # プロジェクト固有のルール
+
 - Node.js 20 LTS使用
 - Express.js使用
 - RESTful API設計
@@ -184,6 +186,7 @@ EOF
 ### Q1: AIが生成した内容をそのまま使っても大丈夫？
 
 **A:** 必ず以下を確認：
+
 - ✅ プロジェクト名が正しいか
 - ✅ 技術スタックのバージョンが最新か
 - ✅ MASTER.mdの内容と矛盾がないか

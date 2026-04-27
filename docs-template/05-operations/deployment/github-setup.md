@@ -18,27 +18,27 @@ AI Spec-Driven Developmentでは、**GitHubデフォルトラベル + 必要最�
 
 #### GitHubデフォルトラベル（そのまま使用）
 
-| ラベル | 用途 | カラー |
-|--------|------|--------|
-| `bug` | バグ報告・修正 | #d73a4a |
-| `enhancement` | 新機能・改善 | #a2eeef |
-| `documentation` | ドキュメント更新 | #0075ca |
-| `duplicate` | 重複Issue/PR | #cfd3d7 |
+| ラベル             | 用途             | カラー  |
+| ------------------ | ---------------- | ------- |
+| `bug`              | バグ報告・修正   | #d73a4a |
+| `enhancement`      | 新機能・改善     | #a2eeef |
+| `documentation`    | ドキュメント更新 | #0075ca |
+| `duplicate`        | 重複Issue/PR     | #cfd3d7 |
 | `good first issue` | 初心者向けタスク | #7057ff |
-| `help wanted` | ヘルプ募集 | #008672 |
-| `invalid` | 無効なIssue | #e4e669 |
-| `question` | 質問 | #d876e3 |
-| `wontfix` | 対応しない | #ffffff |
+| `help wanted`      | ヘルプ募集       | #008672 |
+| `invalid`          | 無効なIssue      | #e4e669 |
+| `question`         | 質問             | #d876e3 |
+| `wontfix`          | 対応しない       | #ffffff |
 
 #### カスタムラベル（追加が必要）
 
-| ラベル | 用途 | カラー | バージョン影響 |
-|--------|------|--------|---------------|
-| `major` | メジャーバージョン変更（破壊的変更） | #D93F0B | v1.0.0 → v2.0.0 |
-| `minor` | マイナーバージョン変更（新機能追加） | #FBCA04 | v1.0.0 → v1.1.0 |
-| `patch` | パッチバージョン変更（バグ修正） | #5FBF4A | v1.0.0 → v1.0.1 |
-| `hotfix` | 緊急修正（本番環境の重大な不具合） | #E11D21 | - |
-| `urgent` | 緊急対応が必要 | #FF6B00 | - |
+| ラベル   | 用途                                 | カラー  | バージョン影響  |
+| -------- | ------------------------------------ | ------- | --------------- |
+| `major`  | メジャーバージョン変更（破壊的変更） | #D93F0B | v1.0.0 → v2.0.0 |
+| `minor`  | マイナーバージョン変更（新機能追加） | #FBCA04 | v1.0.0 → v1.1.0 |
+| `patch`  | パッチバージョン変更（バグ修正）     | #5FBF4A | v1.0.0 → v1.0.1 |
+| `hotfix` | 緊急修正（本番環境の重大な不具合）   | #E11D21 | -               |
+| `urgent` | 緊急対応が必要                       | #FF6B00 | -               |
 
 ### 自動セットアップ（推奨）
 
@@ -50,6 +50,7 @@ AI Spec-Driven Developmentでは、**GitHubデフォルトラベル + 必要最�
 ```
 
 **スクリプトの動作**:
+
 - カスタムラベル（major, minor, patch, hotfix, urgent）を作成
 - 既存ラベルはスキップ（エラーなし）
 - GitHubデフォルトラベルはそのまま使用
@@ -114,21 +115,21 @@ Release Drafterは、PRのラベルに基づいて自動的にリリースノー
 
 ```yaml
 categories:
-   - title: '🚀 Features'
-     labels: ['enhancement']
-   - title: '🛠 Fixes'
-     labels: ['bug', 'hotfix']
-   - title: '📚 Documentation'
-     labels: ['documentation']
+  - title: "🚀 Features"
+    labels: ["enhancement"]
+  - title: "🛠 Fixes"
+    labels: ["bug", "hotfix"]
+  - title: "📚 Documentation"
+    labels: ["documentation"]
 
 version-resolver:
-   major:
-     labels: ['major']
-   minor:
-     labels: ['minor', 'enhancement']
-   patch:
-     labels: ['patch', 'bug', 'documentation', 'hotfix']
-   default: patch
+  major:
+    labels: ["major"]
+  minor:
+    labels: ["minor", "enhancement"]
+  patch:
+    labels: ["patch", "bug", "documentation", "hotfix"]
+  default: patch
 ```
 
 ### 動作確認
@@ -149,6 +150,7 @@ version-resolver:
 ```
 
 自動的に：
+
 1. `enhancement` ラベル付きのIssueを作成
 2. `feature/#123-user-auth` ブランチを作成
 3. 開発を開始できる状態に
@@ -160,6 +162,7 @@ version-resolver:
 ```
 
 自動的に：
+
 1. 変更をプッシュ
 2. PRを作成（適切なラベル付き）
 3. Release Drafterが起動
@@ -211,23 +214,25 @@ gh label delete "chore" --yes    # → 下記の指針を参照
 
 **`chore` タスクの分類と推奨ラベル**:
 
-| タスクの種類 | 推奨ラベル | バージョン影響 | リリースノート掲載 | 理由 |
-|------------|-----------|--------------|------------------|------|
-| **依存関係の更新**（セキュリティ修正なし） | ラベルなし | patch | 掲載しない | ユーザーに影響なし |
-| **依存関係の更新**（セキュリティ修正あり） | `bug` | patch | 🛠 Fixes に掲載 | セキュリティ改善として重要 |
-| **ビルドプロセス改善** | ラベルなし | patch | 掲載しない | 内部改善のみ |
-| **リファクタリング**（機能変更なし） | ラベルなし | patch | 掲載しない | 内部品質向上 |
-| **リファクタリング**（パフォーマンス改善あり） | `enhancement` | minor | 🚀 Features に掲載 | ユーザーメリットあり |
-| **CI/CDパイプライン改善** | ラベルなし | patch | 掲載しない | 開発効率化のみ |
-| **開発ツール追加** | ラベルなし | patch | 掲載しない | 開発者向け |
+| タスクの種類                                   | 推奨ラベル    | バージョン影響 | リリースノート掲載    | 理由                       |
+| ---------------------------------------------- | ------------- | -------------- | --------------------- | -------------------------- |
+| **依存関係の更新**（セキュリティ修正なし）     | ラベルなし    | patch          | 掲載しない            | ユーザーに影響なし         |
+| **依存関係の更新**（セキュリティ修正あり）     | `bug`         | patch          | Fixes セクションに    | セキュリティ改善として重要 |
+| **ビルドプロセス改善**                         | ラベルなし    | patch          | 掲載しない            | 内部改善のみ               |
+| **リファクタリング**（機能変更なし）           | ラベルなし    | patch          | 掲載しない            | 内部品質向上               |
+| **リファクタリング**（パフォーマンス改善あり） | `enhancement` | minor          | Features セクションに | ユーザーメリットあり       |
+| **CI/CDパイプライン改善**                      | ラベルなし    | patch          | 掲載しない            | 開発効率化のみ             |
+| **開発ツール追加**                             | ラベルなし    | patch          | 掲載しない            | 開発者向け                 |
 
 **運用ルール**:
 
 1. **ユーザーに影響がない保守タスク** → ラベルなしでマージ
+
    - Release Drafterは自動的に`patch`バージョンとして扱う
    - リリースノートには掲載されない（`default: patch`設定による）
 
 2. **ユーザーにメリットがある保守タスク** → 適切なラベルを付与
+
    - セキュリティ修正 → `bug` ラベル（Fixesセクションに掲載）
    - パフォーマンス改善 → `enhancement` ラベル（Featuresセクションに掲載）
 

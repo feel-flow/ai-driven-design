@@ -160,10 +160,10 @@ def process(data):
 # OK: docstring/型ヒントあり
 def process(data: int) -> int:
     """データを2倍にして返す。
-    
+
     Args:
         data: 処理対象の整数値
-        
+
     Returns:
         入力値の2倍
     """
@@ -199,16 +199,16 @@ issues = []
 while iteration < max_iterations:
     # 1. 各ファイルを5観点でレビュー
     issues = review_all_files_from_5_perspectives()
-    
+
     # 2. 問題がなければ終了
     if len(issues) == 0:
         print("全レビュー観点をパス")
         break
-    
+
     # 3. 問題があれば修復
     for issue in issues:
         apply_fix(issue)
-    
+
     iteration += 1
 
 # 4. 最終確認とPR作成
@@ -221,14 +221,14 @@ else:
 
 ### 修復可能な問題の例
 
-| 問題タイプ | 自動修復 | 例 |
-|-----------|---------|-----|
-| SQLインジェクション | 可能 | f-string → パラメータ化クエリ |
-| マジックナンバー | 可能 | 数値 → 名前付き定数 |
-| 弱いハッシュ | 可能 | MD5 → bcrypt |
-| 未使用import | 可能 | 削除 |
-| docstring不足 | 可能 | 自動生成 |
-| 型ヒント不足 | 可能 | 自動追加 |
+| 問題タイプ          | 自動修復 | 例                            |
+| ------------------- | -------- | ----------------------------- |
+| SQLインジェクション | 可能     | f-string → パラメータ化クエリ |
+| マジックナンバー    | 可能     | 数値 → 名前付き定数           |
+| 弱いハッシュ        | 可能     | MD5 → bcrypt                  |
+| 未使用import        | 可能     | 削除                          |
+| docstring不足       | 可能     | 自動生成                      |
+| 型ヒント不足        | 可能     | 自動追加                      |
 
 ---
 
@@ -257,23 +257,26 @@ Devinの全タスクで以下のワークフローを適用：
 ## セルフレビュー結果
 
 ### 実施日時
+
 {date}
 
 ### レビュー観点
 
-| 観点 | 結果 | 検出数 | 修正数 |
-|------|------|--------|--------|
-| Security | PASS | 0 | 0 |
-| Performance | PASS | 0 | 0 |
-| Testing | PASS | 0 | 0 |
-| Documentation | PASS | 1 | 1 |
-| Business Logic | PASS | 2 | 2 |
+| 観点           | 結果 | 検出数 | 修正数 |
+| -------------- | ---- | ------ | ------ |
+| Security       | PASS | 0      | 0      |
+| Performance    | PASS | 0      | 0      |
+| Testing        | PASS | 0      | 0      |
+| Documentation  | PASS | 1      | 1      |
+| Business Logic | PASS | 2      | 2      |
 
 ### 修正内容
+
 - docstring追加: src/utils.py:45
 - マジックナンバー定数化: src/auth.py:23, src/config.py:12
 
 ### 結論
+
 全レビュー観点をパス。PR作成準備完了。
 ```
 

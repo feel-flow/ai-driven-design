@@ -18,38 +18,38 @@
 // monitoring/alarms.ts
 const alarms = [
   {
-    name: 'HighCPUUtilization',
-    metric: 'CPUUtilization',
+    name: "HighCPUUtilization",
+    metric: "CPUUtilization",
     threshold: 80,
     evaluationPeriods: 2,
-    action: 'scale-up'
+    action: "scale-up",
   },
   {
-    name: 'HighErrorRate',
-    metric: 'HTTPCode_Target_5XX_Count',
+    name: "HighErrorRate",
+    metric: "HTTPCode_Target_5XX_Count",
     threshold: 10,
     evaluationPeriods: 1,
-    action: 'alert'
+    action: "alert",
   },
   {
-    name: 'LowHealthyHosts',
-    metric: 'HealthyHostCount',
+    name: "LowHealthyHosts",
+    metric: "HealthyHostCount",
     threshold: 1,
-    comparisonOperator: 'LessThanThreshold',
-    action: 'critical-alert'
-  }
+    comparisonOperator: "LessThanThreshold",
+    action: "critical-alert",
+  },
 ];
 ```
 
 ### 主要メトリクス
 
-| メトリクス | 閾値 | アクション |
-|---|---|---|
-| CPU使用率 | 80% | スケールアップ |
-| エラー率 | 10件/分 | アラート通知 |
-| ヘルシーホスト数 | < 1 | 緊急アラート |
-| レスポンスタイム | > 1000ms | 警告通知 |
-| メモリ使用率 | 85% | スケールアップ |
+| メトリクス       | 閾値     | アクション     |
+| ---------------- | -------- | -------------- |
+| CPU使用率        | 80%      | スケールアップ |
+| エラー率         | 10件/分  | アラート通知   |
+| ヘルシーホスト数 | < 1      | 緊急アラート   |
+| レスポンスタイム | > 1000ms | 警告通知       |
+| メモリ使用率     | 85%      | スケールアップ |
 
 ---
 
@@ -140,12 +140,12 @@ aws route53 change-resource-record-sets \
 
 ### 定期メンテナンス
 
-| タスク | 頻度 | 手順 | 担当 |
-|---|---|---|---|
-| セキュリティパッチ | 月次 | patch-update.sh | DevOps |
-| 証明書更新 | 3ヶ月 | cert-renewal.sh | DevOps |
-| ログローテーション | 週次 | 自動 | - |
-| バックアップ検証 | 月次 | backup-verify.sh | DevOps |
+| タスク             | 頻度  | 手順             | 担当   |
+| ------------------ | ----- | ---------------- | ------ |
+| セキュリティパッチ | 月次  | patch-update.sh  | DevOps |
+| 証明書更新         | 3ヶ月 | cert-renewal.sh  | DevOps |
+| ログローテーション | 週次  | 自動             | -      |
+| バックアップ検証   | 月次  | backup-verify.sh | DevOps |
 
 ### トラブルシューティング
 
@@ -188,12 +188,12 @@ aws cloudwatch get-metric-statistics \
 
 ### 緊急連絡先
 
-| 役割 | 連絡方法 | 対応時間 |
-|---|---|---|
-| オンコール | PagerDuty | 24/7 |
-| DevOps Team | Slack #incidents | 24/7 |
-| Security Team | <security@example.com> | 24/7 |
-| Management | emergency-contact-list | Business Hours |
+| 役割          | 連絡方法               | 対応時間       |
+| ------------- | ---------------------- | -------------- |
+| オンコール    | PagerDuty              | 24/7           |
+| DevOps Team   | Slack #incidents       | 24/7           |
+| Security Team | <security@example.com> | 24/7           |
+| Management    | emergency-contact-list | Business Hours |
 
 ---
 
@@ -201,13 +201,13 @@ aws cloudwatch get-metric-statistics \
 
 ### 目標値
 
-| KPI | 目標 | 測定方法 |
-|---|---|---|
-| システム稼働率 | 99.9% | CloudWatch Uptime |
-| MTTR (平均復旧時間) | < 30分 | インシデント記録 |
-| MTBF (平均故障間隔) | > 720時間 | インシデント記録 |
-| デプロイ頻度 | 週2回以上 | CI/CDログ |
-| デプロイ成功率 | > 95% | CI/CDログ |
+| KPI                 | 目標      | 測定方法          |
+| ------------------- | --------- | ----------------- |
+| システム稼働率      | 99.9%     | CloudWatch Uptime |
+| MTTR (平均復旧時間) | < 30分    | インシデント記録  |
+| MTBF (平均故障間隔) | > 720時間 | インシデント記録  |
+| デプロイ頻度        | 週2回以上 | CI/CDログ         |
+| デプロイ成功率      | > 95%     | CI/CDログ         |
 
 ### レポーティング
 

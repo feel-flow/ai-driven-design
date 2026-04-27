@@ -18,14 +18,14 @@ multi-agent.sh --task review|explore|implement [options]
 
 ### コンポーネント
 
-| コンポーネント | 説明 |
-|--------------|------|
-| `multi-agent.sh` | 統一オーケストレーター |
-| `multi-review.sh` | 後方互換ラッパー（→ multi-agent.sh --task review） |
+| コンポーネント      | 説明                                                 |
+| ------------------- | ---------------------------------------------------- |
+| `multi-agent.sh`    | 統一オーケストレーター                               |
+| `multi-review.sh`   | 後方互換ラッパー（→ multi-agent.sh --task review）   |
 | `adapter-common.sh` | 共通ユーティリティ（prompt構築、出力、タイムアウト） |
-| `*-adapter.sh` | CLI固有の薄いラッパー（5つ） |
-| `perspectives/` | タスクタイプ別プロンプトテンプレート |
-| `agent-config.yaml` | 設定ファイル（v2.0） |
+| `*-adapter.sh`      | CLI固有の薄いラッパー（5つ）                         |
+| `perspectives/`     | タスクタイプ別プロンプトテンプレート                 |
+| `agent-config.yaml` | 設定ファイル（v2.0）                                 |
 
 ## タスクタイプ
 
@@ -33,39 +33,39 @@ multi-agent.sh --task review|explore|implement [options]
 
 コード変更を分析し、問題を検出する read-only タスク。
 
-| Perspective | デフォルトCLI | 内容 |
-|------------|-------------|------|
-| type-design-analysis | claude-code | 型設計分析 |
-| code-review | codex-cli | コードレビュー |
-| error-handler-hunt | codex-cli | エラーハンドリング検出 |
-| test-analysis | copilot-cli | テスト分析 |
-| comment-analysis | copilot-cli | コメント分析 |
-| security-analysis | gemini-cli | セキュリティ分析 |
-| code-simplification | cursor-cli | コード簡素化 |
+| Perspective          | デフォルトCLI | 内容                   |
+| -------------------- | ------------- | ---------------------- |
+| type-design-analysis | claude-code   | 型設計分析             |
+| code-review          | codex-cli     | コードレビュー         |
+| error-handler-hunt   | codex-cli     | エラーハンドリング検出 |
+| test-analysis        | copilot-cli   | テスト分析             |
+| comment-analysis     | copilot-cli   | コメント分析           |
+| security-analysis    | gemini-cli    | セキュリティ分析       |
+| code-simplification  | cursor-cli    | コード簡素化           |
 
 ### Explore（探索）
 
 コードベースを分析し、構造やパターンを可視化する read-only タスク。
 
-| Perspective | デフォルトCLI | 内容 |
-|------------|-------------|------|
-| architecture-analysis | claude-code | アーキテクチャ構造分析 |
-| dependency-mapping | codex-cli | 依存関係マッピング |
-| api-surface-analysis | copilot-cli | API サーフェス分析 |
-| tech-debt-assessment | gemini-cli | 技術的負債評価 |
-| pattern-discovery | cursor-cli | パターン検出 |
+| Perspective           | デフォルトCLI | 内容                   |
+| --------------------- | ------------- | ---------------------- |
+| architecture-analysis | claude-code   | アーキテクチャ構造分析 |
+| dependency-mapping    | codex-cli     | 依存関係マッピング     |
+| api-surface-analysis  | copilot-cli   | API サーフェス分析     |
+| tech-debt-assessment  | gemini-cli    | 技術的負債評価         |
+| pattern-discovery     | cursor-cli    | パターン検出           |
 
 ### Implement（実装）
 
 コード生成・変更をステージングディレクトリに出力するタスク。
 
-| Perspective | デフォルトCLI | 内容 |
-|------------|-------------|------|
-| feature-implementation | claude-code | コア実装 |
-| refactoring | codex-cli | リファクタリング |
-| test-writing | copilot-cli | テスト生成 |
-| documentation | gemini-cli | ドキュメント生成 |
-| migration | cursor-cli | マイグレーション |
+| Perspective            | デフォルトCLI | 内容             |
+| ---------------------- | ------------- | ---------------- |
+| feature-implementation | claude-code   | コア実装         |
+| refactoring            | codex-cli     | リファクタリング |
+| test-writing           | copilot-cli   | テスト生成       |
+| documentation          | gemini-cli    | ドキュメント生成 |
+| migration              | cursor-cli    | マイグレーション |
 
 ## 使い方
 
@@ -98,27 +98,27 @@ bash scripts/multi-review.sh --dry-run
 
 ### オプション
 
-| オプション | 説明 | デフォルト |
-|----------|------|----------|
-| `--task` | タスクタイプ | review |
-| `--description` | タスク説明 | (explore/implementで必須) |
-| `--cli <name>` | 特定CLIのみ実行 | 全CLI |
-| `--perspective <name>` | 特定perspectiveのみ | 全perspective |
-| `--strategy` | balanced/minimize_cost/maximize_quality | タスク別 |
-| `--mode` | distributed/cross-model | distributed |
-| `--parallel/--sequential` | 実行方式 | parallel |
-| `--include-diff` | implementにdiffを含める | false |
-| `--dry-run` | プラン確認のみ | false |
-| `--timeout` | タイムアウト(秒) | タスク別 |
+| オプション                | 説明                                    | デフォルト                |
+| ------------------------- | --------------------------------------- | ------------------------- |
+| `--task`                  | タスクタイプ                            | review                    |
+| `--description`           | タスク説明                              | (explore/implementで必須) |
+| `--cli <name>`            | 特定CLIのみ実行                         | 全CLI                     |
+| `--perspective <name>`    | 特定perspectiveのみ                     | 全perspective             |
+| `--strategy`              | balanced/minimize_cost/maximize_quality | タスク別                  |
+| `--mode`                  | distributed/cross-model                 | distributed               |
+| `--parallel/--sequential` | 実行方式                                | parallel                  |
+| `--include-diff`          | implementにdiffを含める                 | false                     |
+| `--dry-run`               | プラン確認のみ                          | false                     |
+| `--timeout`               | タイムアウト(秒)                        | タスク別                  |
 
 ## タスク別デフォルト設定
 
-| 項目 | Review | Explore | Implement |
-|------|--------|---------|-----------|
-| Strategy | balanced | minimize_cost | maximize_quality |
+| 項目       | Review           | Explore           | Implement           |
+| ---------- | ---------------- | ----------------- | ------------------- |
+| Strategy   | balanced         | minimize_cost     | maximize_quality    |
 | Output Dir | .review-results/ | .explore-results/ | .implement-results/ |
-| Timeout | 300s | 600s | 900s |
-| Diff 含む | Yes | No | Optional |
+| Timeout    | 300s             | 600s              | 900s                |
+| Diff 含む  | Yes              | No                | Optional            |
 
 ## 設定 (agent-config.yaml)
 

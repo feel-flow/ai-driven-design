@@ -7,6 +7,7 @@
 ---
 
 ## 目次
+
 - [TypeScript規約](#typescript規約)
 - [データベース規約](#データベース規約)
 - [API設計規約](#api設計規約)
@@ -31,11 +32,11 @@ interface User {
 // 型ガードの使用
 function isUser(obj: unknown): obj is User {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'id' in obj &&
-    'name' in obj &&
-    'email' in obj
+    "id" in obj &&
+    "name" in obj &&
+    "email" in obj
   );
 }
 
@@ -48,6 +49,7 @@ class Repository<T> {
 ```
 
 **避けるべき**:
+
 - `any`型の使用
 - 型アサーション (`as`) の乱用
 - 型チェックの省略
@@ -68,7 +70,7 @@ async function createUser(userData: CreateUserRequest): Promise<Result<User>> {
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error : new Error('Unknown error')
+      error: error instanceof Error ? error : new Error("Unknown error"),
     };
   }
 }
@@ -81,15 +83,16 @@ class ValidationError extends Error {
   constructor(
     message: string,
     public field: string,
-    public value: unknown
+    public value: unknown,
   ) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
   }
 }
 ```
 
 **避けるべき**:
+
 - エラーの無視 (空の`catch`ブロック)
 - 汎用的なエラーメッセージ (`'Something went wrong'`)
 - エラー情報の損失
@@ -119,6 +122,7 @@ SELECT * FROM users WHERE email = $1 AND active = $2;
 ```
 
 **避けるべき**:
+
 - N+1クエリ問題（ループ内でのクエリ実行）
 - `SELECT *` の使用（必要なカラムのみ指定する）
 - インデックスを無視するクエリ（例: `WHERE LOWER(email) = ...`）
@@ -131,39 +135,38 @@ SELECT * FROM users WHERE email = $1 AND active = $2;
 async function transferMoney(
   fromUserId: string,
   toUserId: string,
-  amount: number
+  amount: number,
 ): Promise<Result<void>> {
   const client = await pool.connect();
 
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     // 送金元の残高確認（行ロック）
     const fromBalance = await client.query(
-      'SELECT balance FROM accounts WHERE user_id = $1 FOR UPDATE',
-      [fromUserId]
+      "SELECT balance FROM accounts WHERE user_id = $1 FOR UPDATE",
+      [fromUserId],
     );
 
     if (fromBalance.rows[0].balance < amount) {
-      throw new Error('Insufficient funds');
+      throw new Error("Insufficient funds");
     }
 
     // 送金処理
     await client.query(
-      'UPDATE accounts SET balance = balance - $1 WHERE user_id = $2',
-      [amount, fromUserId]
+      "UPDATE accounts SET balance = balance - $1 WHERE user_id = $2",
+      [amount, fromUserId],
     );
 
     await client.query(
-      'UPDATE accounts SET balance = balance + $1 WHERE user_id = $2',
-      [amount, toUserId]
+      "UPDATE accounts SET balance = balance + $1 WHERE user_id = $2",
+      [amount, toUserId],
     );
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     return { success: true, data: undefined };
-
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     return { success: false, error: error as Error };
   } finally {
     client.release();
@@ -172,12 +175,14 @@ async function transferMoney(
 ```
 
 **重要ポイント**:
+
 - データ整合性が必要な操作には必ずトランザクションを使用
 - `FOR UPDATE` で競合状態を防止
 - エラー時には必ず `ROLLBACK`
 - `finally` でコネクションを確実に解放
 
 **避けるべき**:
+
 - 複数の更新操作をトランザクションなしで実行
 - ロールバック処理の欠如
 - コネクションリークの放置
@@ -192,20 +197,20 @@ async function transferMoney(
 
 ```typescript
 // GET: リソース取得
-app.get('/api/users/:id', async (req, res) => {
+app.get("/api/users/:id", async (req, res) => {
   try {
     const user = await userService.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // POST: リソース作成
-app.post('/api/users', async (req, res) => {
+app.post("/api/users", async (req, res) => {
   try {
     const user = await userService.create(req.body);
     res.status(201).json(user); // 201 Created
@@ -213,27 +218,28 @@ app.post('/api/users', async (req, res) => {
     if (error instanceof ValidationError) {
       return res.status(400).json({ error: error.message });
     }
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // PUT: リソース全体更新
-app.put('/api/users/:id', async (req, res) => {
+app.put("/api/users/:id", async (req, res) => {
   // 実装
 });
 
 // PATCH: リソース部分更新
-app.patch('/api/users/:id', async (req, res) => {
+app.patch("/api/users/:id", async (req, res) => {
   // 実装
 });
 
 // DELETE: リソース削除
-app.delete('/api/users/:id', async (req, res) => {
+app.delete("/api/users/:id", async (req, res) => {
   // 実装
 });
 ```
 
 **HTTPステータスコード**:
+
 - `200 OK`: 成功（GET、PUT、PATCH）
 - `201 Created`: 作成成功（POST）
 - `204 No Content`: 成功（DELETE、内容なし）
@@ -244,6 +250,7 @@ app.delete('/api/users/:id', async (req, res) => {
 - `500 Internal Server Error`: サーバーエラー
 
 **避けるべき**:
+
 - 不適切なHTTPメソッド（例: `GET /api/users/delete/:id`）
 - 一貫性のないレスポンス形式
 - エラーハンドリングの欠如
@@ -253,7 +260,7 @@ app.delete('/api/users/:id', async (req, res) => {
 **推奨: スキーマベースのバリデーション**
 
 ```typescript
-import Joi from 'joi';
+import Joi from "joi";
 
 const createUserSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),
@@ -262,27 +269,33 @@ const createUserSchema = Joi.object({
 });
 
 // ミドルウェアでのバリデーション
-const validateCreateUser = (req: Request, res: Response, next: NextFunction) => {
+const validateCreateUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { error } = createUserSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      error: 'Validation failed',
-      details: error.details.map(d => d.message)
+      error: "Validation failed",
+      details: error.details.map((d) => d.message),
     });
   }
   next();
 };
 
-app.post('/api/users', validateCreateUser, createUserHandler);
+app.post("/api/users", validateCreateUser, createUserHandler);
 ```
 
 **バリデーションルール**:
+
 - 入力値は全てバリデーション必須
 - スキーマ定義を使用（Joi、Zod等）
 - エラーメッセージは明確に
 - バリデーションは早期に実施（ミドルウェア層）
 
 **避けるべき**:
+
 - 手動バリデーション（if文の連続）
 - 不十分なバリデーション（例: メール形式チェックなし）
 - バリデーションロジックの分散
@@ -332,26 +345,31 @@ app.post('/api/users', validateCreateUser, createUserHandler);
 ## 重要な原則
 
 ### 1. 型安全性
+
 - TypeScriptの厳密な型定義を活用
 - `any`型は原則使用禁止
 - 型ガードで実行時の型安全性を確保
 
 ### 2. エラーハンドリング
+
 - Resultパターンで明示的なエラー処理
 - カスタムエラークラスで詳細な情報を提供
 - エラーを無視しない
 
 ### 3. データベース
+
 - トランザクションで整合性を保証
 - パラメータ化クエリでSQLインジェクション対策
 - インデックスでクエリを最適化
 
 ### 4. API設計
+
 - RESTful原則に従う
 - 適切なHTTPメソッドとステータスコードを使用
 - スキーマベースのバリデーション
 
 ### 5. コードの可読性
+
 - 明確な命名規則
 - 適切なコメント
 - 関数は単一責任に保つ
@@ -363,18 +381,21 @@ app.post('/api/users', validateCreateUser, createUserHandler);
 実装時に以下を確認してください:
 
 **TypeScript**:
+
 - [ ] 厳密な型定義を使用している
 - [ ] `any`型を使用していない
 - [ ] エラーハンドリングが適切（Resultパターン）
 - [ ] カスタムエラークラスを定義している
 
 **Database**:
+
 - [ ] パラメータ化クエリを使用している
 - [ ] 必要なカラムのみを指定している（`SELECT *`は避ける）
 - [ ] データ整合性が必要な操作でトランザクションを使用している
 - [ ] インデックスが適切に設定されている
 
 **API**:
+
 - [ ] 適切なHTTPメソッドを使用している
 - [ ] 適切なHTTPステータスコードを返している
 - [ ] スキーマベースのバリデーションを実装している
@@ -385,8 +406,8 @@ app.post('/api/users', validateCreateUser, createUserHandler);
 
 ## 更新履歴
 
-| 日付 | 更新者 | 更新内容 |
-|------|--------|----------|
-| 2024-01-15 | 田中 | TypeScript規約を追加 |
-| 2024-01-20 | 佐藤 | データベース規約を追加 |
-| 2024-02-01 | 山田 | API設計規約を追加 |
+| 日付       | 更新者 | 更新内容               |
+| ---------- | ------ | ---------------------- |
+| 2024-01-15 | 田中   | TypeScript規約を追加   |
+| 2024-01-20 | 佐藤   | データベース規約を追加 |
+| 2024-02-01 | 山田   | API設計規約を追加      |

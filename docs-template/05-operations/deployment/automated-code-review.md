@@ -57,15 +57,15 @@
 
 ### 主な機能
 
-| 機能 | 説明 |
-|------|------|
-| 自動レビュー | `git commit` 時に自動でコードレビューを実行 |
-| Multi-CLI対応 | Claude Code、Codex、Copilot、Gemini、Cursor の5 CLIを統合 |
-| コスト最適化 | 固定料金/無料CLIを優先するコスト戦略を選択可能 |
-| 優先度分類 | Critical / Important / Quality の3段階で問題を分類 |
-| ブロック機能 | Criticalな問題があればコミットをブロック |
-| スラッシュコマンド | `/code-review` で手動レビューも可能 |
-| スキップ機能 | 緊急時は `--no-verify` でスキップ可能 |
+| 機能               | 説明                                                      |
+| ------------------ | --------------------------------------------------------- |
+| 自動レビュー       | `git commit` 時に自動でコードレビューを実行               |
+| Multi-CLI対応      | Claude Code、Codex、Copilot、Gemini、Cursor の5 CLIを統合 |
+| コスト最適化       | 固定料金/無料CLIを優先するコスト戦略を選択可能            |
+| 優先度分類         | Critical / Important / Quality の3段階で問題を分類        |
+| ブロック機能       | Criticalな問題があればコミットをブロック                  |
+| スラッシュコマンド | `/code-review` で手動レビューも可能                       |
+| スキップ機能       | 緊急時は `--no-verify` でスキップ可能                     |
 
 ---
 
@@ -207,20 +207,25 @@ SKIP_CLAUDE_REVIEW=1 git commit -m "chore: 設定ファイルの更新"
 
 ```markdown
 ## Review Summary
+
 **Files reviewed**: 3
 **Total changes**: +127 / -23
 
 ## Critical Issues
+
 None found
 
 ## Important Issues
+
 - src/api/user.ts:45 - Missing error handling for database query
 
 ## Suggestions
+
 - src/utils/format.ts:12 - Magic number 86400 should be a named constant (SECONDS_PER_DAY)
 - src/components/Button.tsx:8 - Consider extracting repeated style logic
 
 ## Verdict: APPROVED
+
 **Reason**: No critical issues found. One important issue noted for follow-up.
 ```
 
@@ -236,11 +241,13 @@ None found
 ## Project-Specific Rules
 
 ### Frontend (React)
+
 - TypeScript strict mode必須
 - styled-componentsの命名規則に従う
 - アクセシビリティ属性を確認
 
 ### Backend (Node.js)
+
 - 全てのDB操作はトランザクション内で実行
 - ログ出力は構造化ログ形式
 - 環境変数の直接参照禁止（設定クラス経由）
@@ -324,18 +331,18 @@ npx husky init
 
 ## コマンドリファレンス
 
-| コマンド | 説明 |
-|----------|------|
-| `git commit` | 自動レビュー実行（pre-commit hook） |
-| `/code-review` | Claude Code内で手動レビュー |
-| `npm run code-review` | ステージ済み変更をClaude Codeでレビュー |
-| `npm run code-review:branch` | ブランチ全体をClaude Codeでレビュー |
-| `npm run code-review:codex` | Codex CLIでレビュー |
-| `npm run code-review:copilot` | Copilot CLIでレビュー |
-| `npm run code-review:gemini` | Gemini CLIでレビュー |
-| `npm run code-review:cursor` | Cursor Agentでレビュー |
-| `git commit --no-verify` | レビューをスキップ |
-| `SKIP_CLAUDE_REVIEW=1 git commit` | 環境変数でスキップ |
+| コマンド                          | 説明                                    |
+| --------------------------------- | --------------------------------------- |
+| `git commit`                      | 自動レビュー実行（pre-commit hook）     |
+| `/code-review`                    | Claude Code内で手動レビュー             |
+| `npm run code-review`             | ステージ済み変更をClaude Codeでレビュー |
+| `npm run code-review:branch`      | ブランチ全体をClaude Codeでレビュー     |
+| `npm run code-review:codex`       | Codex CLIでレビュー                     |
+| `npm run code-review:copilot`     | Copilot CLIでレビュー                   |
+| `npm run code-review:gemini`      | Gemini CLIでレビュー                    |
+| `npm run code-review:cursor`      | Cursor Agentでレビュー                  |
+| `git commit --no-verify`          | レビューをスキップ                      |
+| `SKIP_CLAUDE_REVIEW=1 git commit` | 環境変数でスキップ                      |
 
 ---
 
@@ -343,14 +350,15 @@ npx husky init
 
 この自動レビューは [セルフレビュー](./self-review.md) を補完するものです:
 
-| 観点 | セルフレビュー | 自動レビュー |
-|------|----------------|--------------|
-| 実行タイミング | PR作成前（任意） | コミット時（自動） |
-| 範囲 | 包括的（設計、テスト含む） | コード変更のみ |
-| 深さ | 詳細（15-30分） | 高速（数十秒） |
-| 目的 | 品質保証の証跡作成 | 明らかな問題の早期検出 |
+| 観点           | セルフレビュー             | 自動レビュー           |
+| -------------- | -------------------------- | ---------------------- |
+| 実行タイミング | PR作成前（任意）           | コミット時（自動）     |
+| 範囲           | 包括的（設計、テスト含む） | コード変更のみ         |
+| 深さ           | 詳細（15-30分）            | 高速（数十秒）         |
+| 目的           | 品質保証の証跡作成         | 明らかな問題の早期検出 |
 
 **推奨フロー**:
+
 1. 開発中 → 自動レビューで継続的にチェック
 2. PR作成前 → セルフレビューで包括的に確認
 3. PR作成後 → チームレビューで最終確認

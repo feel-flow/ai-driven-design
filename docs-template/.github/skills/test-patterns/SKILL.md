@@ -31,22 +31,22 @@ TESTING.md で定義されたパターンと基準を適用する。
    /--------------\
 ```
 
-| テスト種別 | 比率 | カバレッジ目標 | 優先度 |
-|---|---|---|---|
-| ユニットテスト | 75% | 80%以上 | 高 |
-| 統合テスト | 20% | 60%以上 | 中 |
-| E2Eテスト | 5% | クリティカルパス100% | 高 |
+| テスト種別     | 比率 | カバレッジ目標       | 優先度 |
+| -------------- | ---- | -------------------- | ------ |
+| ユニットテスト | 75%  | 80%以上              | 高     |
+| 統合テスト     | 20%  | 60%以上              | 中     |
+| E2Eテスト      | 5%   | クリティカルパス100% | 高     |
 
 ## 2. カバレッジ閾値
 
 プロジェクトの最低カバレッジ基準：
 
 | メトリクス | 閾値 |
-|---|---|
-| branches | 70% |
-| functions | 80% |
-| lines | 80% |
-| statements | 80% |
+| ---------- | ---- |
+| branches   | 70%  |
+| functions  | 80%  |
+| lines      | 80%  |
+| statements | 80%  |
 
 ```javascript
 // jest.config.js
@@ -65,7 +65,7 @@ coverageThreshold: {
 すべてのテストは Arrange-Act-Assert パターンに従うこと：
 
 ```typescript
-describe('UserService', () => {
+describe("UserService", () => {
   let service: UserService;
   let mockRepository: jest.Mocked<IUserRepository>;
 
@@ -75,11 +75,11 @@ describe('UserService', () => {
     service = new UserService(mockRepository);
   });
 
-  describe('createUser', () => {
-    it('should create user successfully with valid data', async () => {
+  describe("createUser", () => {
+    it("should create user successfully with valid data", async () => {
       // Arrange
-      const userData = { email: 'test@example.com', name: 'Test User' };
-      const expectedUser = { id: '123', ...userData };
+      const userData = { email: "test@example.com", name: "Test User" };
+      const expectedUser = { id: "123", ...userData };
       mockRepository.save.mockResolvedValue(expectedUser);
 
       // Act
@@ -88,17 +88,18 @@ describe('UserService', () => {
       // Assert
       expect(result).toEqual(expectedUser);
       expect(mockRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining(userData)
+        expect.objectContaining(userData),
       );
     });
 
-    it('should throw ValidationError for invalid email', async () => {
+    it("should throw ValidationError for invalid email", async () => {
       // Arrange
-      const invalidData = { email: 'invalid-email', name: 'Test User' };
+      const invalidData = { email: "invalid-email", name: "Test User" };
 
       // Act & Assert
-      await expect(service.createUser(invalidData))
-        .rejects.toThrow(ValidationError);
+      await expect(service.createUser(invalidData)).rejects.toThrow(
+        ValidationError,
+      );
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -111,14 +112,14 @@ describe('UserService', () => {
 
 ```typescript
 // ✅ 良い例: 具体的で理解しやすい
-it('should return 404 when user does not exist', () => {});
-it('should validate email format before saving', () => {});
-it('should retry 3 times on network failure', () => {});
+it("should return 404 when user does not exist", () => {});
+it("should validate email format before saving", () => {});
+it("should retry 3 times on network failure", () => {});
 
 // ❌ 悪い例: 曖昧で情報が不足
-it('works', () => {});
-it('test user', () => {});
-it('error case', () => {});
+it("works", () => {});
+it("test user", () => {});
+it("error case", () => {});
 ```
 
 ## 5. テストの独立性
@@ -127,24 +128,33 @@ it('error case', () => {});
 
 ```typescript
 // ✅ 良い例: 各テストが独立
-describe('UserService', () => {
+describe("UserService", () => {
   let service: UserService;
 
   beforeEach(() => {
     service = new UserService(); // 各テストで新しいインスタンス
   });
 
-  test('test1', () => { /* 他のテストに依存しない */ });
-  test('test2', () => { /* 他のテストに依存しない */ });
+  test("test1", () => {
+    /* 他のテストに依存しない */
+  });
+  test("test2", () => {
+    /* 他のテストに依存しない */
+  });
 });
 
 // ❌ 悪い例: テスト間で状態を共有
 let globalUser;
-test('create user', () => { globalUser = createUser(); });
-test('update user', () => { updateUser(globalUser); }); // 前のテストに依存
+test("create user", () => {
+  globalUser = createUser();
+});
+test("update user", () => {
+  updateUser(globalUser);
+}); // 前のテストに依存
 ```
 
 **ルール:**
+
 - `beforeEach` でインスタンスを再作成
 - テスト間でグローバル変数を共有しない
 - テストの実行順序に依存しない
@@ -157,7 +167,7 @@ test('update user', () => { updateUser(globalUser); }); // 前のテストに依
 
 ```typescript
 // jest-mock-extended の使用を推奨
-import { mock } from 'jest-mock-extended';
+import { mock } from "jest-mock-extended";
 
 const mockRepository = mock<IUserRepository>();
 ```
@@ -169,9 +179,9 @@ const mockRepository = mock<IUserRepository>();
 ```typescript
 class UserBuilder {
   private user: Partial<User> = {
-    id: '123',
-    email: 'default@example.com',
-    name: 'Default User',
+    id: "123",
+    email: "default@example.com",
+    name: "Default User",
   };
 
   withEmail(email: string): this {
@@ -190,7 +200,7 @@ class UserBuilder {
 }
 
 // 使用例
-const user = new UserBuilder().withEmail('custom@example.com').build();
+const user = new UserBuilder().withEmail("custom@example.com").build();
 ```
 
 ### フィクスチャ
@@ -201,18 +211,18 @@ const user = new UserBuilder().withEmail('custom@example.com').build();
 // fixtures/users.ts
 export const fixtures = {
   validUser: {
-    id: '123',
-    email: 'john@example.com',
-    name: 'John Doe',
-    role: 'user',
-    createdAt: new Date('2024-01-01'),
+    id: "123",
+    email: "john@example.com",
+    name: "John Doe",
+    role: "user",
+    createdAt: new Date("2024-01-01"),
   },
   adminUser: {
-    id: '456',
-    email: 'admin@example.com',
-    name: 'Admin User',
-    role: 'admin',
-    createdAt: new Date('2024-01-01'),
+    id: "456",
+    email: "admin@example.com",
+    name: "Admin User",
+    role: "admin",
+    createdAt: new Date("2024-01-01"),
   },
 };
 ```

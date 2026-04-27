@@ -68,6 +68,7 @@ Cursor でも原則は同じです。
 5. 自動承認により確認なしで実行される
 
 **重要な前提**:
+
 - built-in file tools は workspace 境界を持つ
 - terminal commands は shell の cwd と構文解釈の影響を受ける
 - したがって、削除事故の主要リスクは file tool よりも terminal cleanup 側にある
@@ -87,6 +88,7 @@ Remove-Item -Force "d:\Git\cogniphotobase\_temp_*_output.md" -ErrorAction Silent
 ```
 
 **危険な理由**:
+
 - 固定ドライブ、固定絶対パスを前提にしている
 - 実行対象プロジェクトと無関係なディレクトリを削除対象にしている
 - 実行前 cleanup を無条件に行っている
@@ -107,6 +109,7 @@ Remove-Item -Force "d:\Git\cogniphotobase\_temp_*_output.md" -ErrorAction Silent
 ### 原則2: 相対削除を禁止する
 
 以下は原則禁止:
+
 - `rm -rf .`
 - `rm -rf ./*`
 - `del /s *`
@@ -130,6 +133,7 @@ Remove-Item -Force "d:\Git\cogniphotobase\_temp_*_output.md" -ErrorAction Silent
 一時ファイルの cleanup が必要な場合は、workspace 配下の専用ディレクトリを使用する。
 
 例:
+
 - `.tmp/agent/`
 - `.artifacts/agent/`
 - `tmp/agent-sandbox/`
@@ -201,6 +205,7 @@ Remove-TempPathSafely $extractRoot $sandboxRoot
 ```
 
 **このパターンの要点**:
+
 - `Get-Location` ではなく対象ファイル基準で temp を作る
 - 対象ファイルの近傍に専用 sandbox を閉じ込める
 - 削除対象を 1 つの検証済みディレクトリに限定する
@@ -214,11 +219,11 @@ Remove-TempPathSafely $extractRoot $sandboxRoot
 
 ## OS 差分
 
-| 項目 | Windows | macOS |
-| ---- | ------- | ----- |
-| terminal sandbox | 基本的に前提にしにくい | 一部ツールで利用可能 |
-| 削除防止の主手段 | approval + hook + deny ルール | approval + hook + deny ルール + sandbox |
-| 推奨方針 | terminal cleanup を強く制限 | sandbox で境界制御しつつ削除自体は hook で制限 |
+| 項目             | Windows                       | macOS                                          |
+| ---------------- | ----------------------------- | ---------------------------------------------- |
+| terminal sandbox | 基本的に前提にしにくい        | 一部ツールで利用可能                           |
+| 削除防止の主手段 | approval + hook + deny ルール | approval + hook + deny ルール + sandbox        |
+| 推奨方針         | terminal cleanup を強く制限   | sandbox で境界制御しつつ削除自体は hook で制限 |
 
 ### Windows
 
@@ -233,14 +238,14 @@ macOS では、対応ツールに限れば sandbox で許可範囲外へのア�
 
 ## ハーネス構成
 
-| レイヤー | 役割 | 防げること | 防げないこと |
-| -------- | ---- | ---------- | ------------ |
-| Instructions / Skills | AIへの行動規範を与える | 誤った cleanup 方針の提案 | 悪いコマンドの実行そのもの |
-| Custom Agent の tool 制限 | 不要な tools を外す | terminal 利用の頻度低減 | 許可済み terminal 内の誤削除 |
-| `chat.tools.terminal.autoApprove` | 危険コマンドを deny/ask | 削除系自動承認 | シェル構文の回避技法 |
-| `chat.tools.terminal.blockDetectedFileWrites` | workspace 外書き込みの検知 | 外側への明白な write | 検知漏れする複雑構文 |
-| `PreToolUse` hook | 実行前に強制ブロック | 危険コマンド、危険パス、相対削除 | hook 自体の不備 |
-| Agent Debug Logs / Chat Debug View | 監査と原因分析 | 事故原因の特定 | 実行済みの削除 |
+| レイヤー                                      | 役割                       | 防げること                       | 防げないこと                 |
+| --------------------------------------------- | -------------------------- | -------------------------------- | ---------------------------- |
+| Instructions / Skills                         | AIへの行動規範を与える     | 誤った cleanup 方針の提案        | 悪いコマンドの実行そのもの   |
+| Custom Agent の tool 制限                     | 不要な tools を外す        | terminal 利用の頻度低減          | 許可済み terminal 内の誤削除 |
+| `chat.tools.terminal.autoApprove`             | 危険コマンドを deny/ask    | 削除系自動承認                   | シェル構文の回避技法         |
+| `chat.tools.terminal.blockDetectedFileWrites` | workspace 外書き込みの検知 | 外側への明白な write             | 検知漏れする複雑構文         |
+| `PreToolUse` hook                             | 実行前に強制ブロック       | 危険コマンド、危険パス、相対削除 | hook 自体の不備              |
+| Agent Debug Logs / Chat Debug View            | 監査と原因分析             | 事故原因の特定                   | 実行済みの削除               |
 
 ※ 上記の設定キーは Copilot / VS Code の具体例であり、Claude Code や Cursor では同等機能へ読み替える。
 
@@ -253,6 +258,7 @@ macOS では、対応ツールに限れば sandbox で許可範囲外へのア�
 ### 1. terminal auto-approve で削除系を deny
 
 最低限、以下を deny する:
+
 - `rm`
 - `rmdir`
 - `del`
@@ -268,6 +274,7 @@ macOS では、対応ツールに限れば sandbox で許可範囲外へのア�
 ### 3. `PreToolUse` hook で削除コマンドを強制審査
 
 以下の条件では `deny` または `ask` を返す:
+
 - 相対パス削除
 - ワイルドカード削除
 - ドライブ直下の削除
@@ -278,18 +285,21 @@ macOS では、対応ツールに限れば sandbox で許可範囲外へのア�
 ### 4. cleanup 対象を専用ディレクトリ配下に固定
 
 削除可能なのは次に限定する:
+
 - `<workspace>/.tmp/agent/**`
 - `<workspace>/.artifacts/agent/**`
 
 PowerShell 系 skill では、用途別にさらに細分化してよい。
 
 例:
+
 - `<workspace>/.tmp/agent/openxml-reader/extract/**`
 - `<workspace>/.tmp/agent/openxml-reader/output/**`
 
 ### 5. 絶対パス検証を必須化
 
 cleanup 前に以下を満たすこと:
+
 - 絶対パスである
 - workspace 配下である
 - 許可済み cleanup ルート配下である
@@ -298,6 +308,7 @@ cleanup 前に以下を満たすこと:
 ### 6. skill 内の記述で禁止すべき例
 
 以下は skill 文面として禁止:
+
 - 特定ドライブ直下を temp として決め打ちする
 - project 名を含む固定絶対パスを削除対象にする
 - `_temp_*` のようなワイルドカード cleanup を推奨する
@@ -337,13 +348,13 @@ sandbox は「その中なら自由に削除してよい」という意味では
 
 ## 承認ルール
 
-| 操作 | 既定動作 | 条件 |
-| ---- | -------- | ---- |
-| file tool による workspace 内編集 | 通常運用 | review 前提 |
-| terminal での非破壊コマンド | allow または ask | 明示的な安全コマンドのみ |
-| cleanup 専用ディレクトリ内の削除 | ask | 絶対パスかつ許可済みルート配下 |
-| cleanup 専用ディレクトリ外の削除 | deny | 例外なし |
-| workspace 外の write / delete | deny | 例外なし |
+| 操作                              | 既定動作         | 条件                           |
+| --------------------------------- | ---------------- | ------------------------------ |
+| file tool による workspace 内編集 | 通常運用         | review 前提                    |
+| terminal での非破壊コマンド       | allow または ask | 明示的な安全コマンドのみ       |
+| cleanup 専用ディレクトリ内の削除  | ask              | 絶対パスかつ許可済みルート配下 |
+| cleanup 専用ディレクトリ外の削除  | deny             | 例外なし                       |
+| workspace 外の write / delete     | deny             | 例外なし                       |
 
 ---
 

@@ -9,14 +9,15 @@ owner: feel-flow
 phase: mvp
 tags: [ai, mcp, codex, vs-code, integration, openai]
 references:
-   - mcp/README.md
-   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
+  - mcp/README.md
+  - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
 changeImpact: medium
 ---
 
 # VS Code Codex拡張とMCPツール連携ガイド
 
 > **関連文書**:
+>
 > - [MCPサーバーセットアップ](../mcp/README.md) - このリポジトリのMCPサーバー
 > - [AI Spec Driven Development](AI_SPEC_DRIVEN_DEVELOPMENT.md) - 仕様駆動開発の概要
 >
@@ -82,6 +83,7 @@ changeImpact: medium
 OpenAI Codex VS Code拡張は、VS Code内でCodex CLIの機能を利用できる公式拡張機能です。
 
 **主な特徴**:
+
 - サイドバーに専用「Codex」パネル
 - 自然言語でコード生成・編集を指示
 - **Auto context**機能でコードコンテキストを自動取得
@@ -110,13 +112,13 @@ codex --version
 
 Codex拡張のUIは以下の要素で構成されています：
 
-| 要素 | 説明 |
-|------|------|
-| **Tasks** | 過去に実行したタスクの履歴 |
-| **プロンプト入力欄** | 「Ask Codex to do anything」 |
-| **Auto context** | 現在のファイル/選択範囲を自動でコンテキストに追加 |
-| **Local / Cloud** | 実行環境の選択 |
-| **設定アイコン** | MCP設定、config.tomlへのアクセス |
+| 要素                 | 説明                                              |
+| -------------------- | ------------------------------------------------- |
+| **Tasks**            | 過去に実行したタスクの履歴                        |
+| **プロンプト入力欄** | 「Ask Codex to do anything」                      |
+| **Auto context**     | 現在のファイル/選択範囲を自動でコンテキストに追加 |
+| **Local / Cloud**    | 実行環境の選択                                    |
+| **設定アイコン**     | MCP設定、config.tomlへのアクセス                  |
 
 ### 2.4 Auto context機能
 
@@ -143,10 +145,10 @@ Model Context Protocol（MCP）は、AIツールに外部ツールやコンテ�
 
 **対応するサーバータイプ**:
 
-| タイプ | 説明 | 例 |
-|--------|------|-----|
-| **STDIO** | ローカルプロセスとして起動 | Context7, Playwright |
-| **Streamable HTTP** | HTTPエンドポイントにアクセス | リモートAPIサーバー |
+| タイプ              | 説明                         | 例                   |
+| ------------------- | ---------------------------- | -------------------- |
+| **STDIO**           | ローカルプロセスとして起動   | Context7, Playwright |
+| **Streamable HTTP** | HTTPエンドポイントにアクセス | リモートAPIサーバー  |
 
 ### 3.2 設定方法
 
@@ -213,25 +215,25 @@ enabled = false
 
 **設定項目リファレンス**:
 
-| 項目 | 説明 | 必須 |
-|------|------|------|
-| `command` | 起動コマンド（STDIOサーバー） | ○ |
-| `args` | コマンド引数 | - |
-| `env` | 環境変数 | - |
-| `url` | サーバーアドレス（HTTPサーバー） | ○ |
-| `bearer_token_env_var` | 認証トークンの環境変数名 | - |
-| `enabled` | サーバーの有効/無効 | - |
-| `tool_timeout_sec` | ツール実行タイムアウト | - |
+| 項目                   | 説明                             | 必須 |
+| ---------------------- | -------------------------------- | ---- |
+| `command`              | 起動コマンド（STDIOサーバー）    | ○    |
+| `args`                 | コマンド引数                     | -    |
+| `env`                  | 環境変数                         | -    |
+| `url`                  | サーバーアドレス（HTTPサーバー） | ○    |
+| `bearer_token_env_var` | 認証トークンの環境変数名         | -    |
+| `enabled`              | サーバーの有効/無効              | -    |
+| `tool_timeout_sec`     | ツール実行タイムアウト           | -    |
 
 ### 3.4 推奨MCPサーバー
 
-| サーバー | 用途 | コマンド |
-|----------|------|---------|
-| **Context7** | 開発者ドキュメント検索 | `npx -y @upstash/context7-mcp` |
-| **Playwright** | ブラウザ自動操作 | `npx -y @anthropic/mcp-playwright` |
-| **GitHub** | PR・Issue管理 | `npx -y @modelcontextprotocol/server-github` |
-| **Figma** | デザインファイルアクセス | `npx -y @anthropic/mcp-figma` |
-| **Sentry** | エラーログ分析 | （要設定） |
+| サーバー       | 用途                     | コマンド                                     |
+| -------------- | ------------------------ | -------------------------------------------- |
+| **Context7**   | 開発者ドキュメント検索   | `npx -y @upstash/context7-mcp`               |
+| **Playwright** | ブラウザ自動操作         | `npx -y @anthropic/mcp-playwright`           |
+| **GitHub**     | PR・Issue管理            | `npx -y @modelcontextprotocol/server-github` |
+| **Figma**      | デザインファイルアクセス | `npx -y @anthropic/mcp-figma`                |
+| **Sentry**     | エラーログ分析           | （要設定）                                   |
 
 ---
 
@@ -288,11 +290,11 @@ mcp__codex__codex({
 
 **活用パターン**:
 
-| パターン | Claude Code | Codex |
-|----------|-------------|-------|
-| **コード生成 → レビュー** | 実装を生成 | レビュー・改善提案 |
-| **レビュー → 修正** | 修正を実行 | 変更点をレビュー |
-| **ドキュメント → 実装** | 仕様を読み取り | コードを生成 |
+| パターン                  | Claude Code    | Codex              |
+| ------------------------- | -------------- | ------------------ |
+| **コード生成 → レビュー** | 実装を生成     | レビュー・改善提案 |
+| **レビュー → 修正**       | 修正を実行     | 変更点をレビュー   |
+| **ドキュメント → 実装**   | 仕様を読み取り | コードを生成       |
 
 ---
 
@@ -300,14 +302,14 @@ mcp__codex__codex({
 
 ### 5.1 Claude Code vs Codex の使い分け
 
-| 観点 | Claude Code | Codex |
-|------|-------------|-------|
-| **提供元** | Anthropic | OpenAI |
-| **実行環境** | CLI / VS Code拡張 | CLI / VS Code拡張 |
+| 観点             | Claude Code            | Codex                  |
+| ---------------- | ---------------------- | ---------------------- |
+| **提供元**       | Anthropic              | OpenAI                 |
+| **実行環境**     | CLI / VS Code拡張      | CLI / VS Code拡張      |
 | **設定ファイル** | CLAUDE.md, plugin.json | AGENTS.md, config.toml |
-| **MCP設定場所** | .mcp.json | ~/.codex/config.toml |
-| **強み** | 長文コンテキスト処理 | コード生成・補完 |
-| **課金体系** | サブスクリプション | 従量課金 |
+| **MCP設定場所**  | .mcp.json              | ~/.codex/config.toml   |
+| **強み**         | 長文コンテキスト処理   | コード生成・補完       |
+| **課金体系**     | サブスクリプション     | 従量課金               |
 
 **使い分けの指針**:
 
@@ -318,10 +320,12 @@ mcp__codex__codex({
 ### 5.2 タスク委譲のベストプラクティス
 
 1. **明確なプロンプト設計**
+
    - 期待する出力形式を明示
    - 制約条件を具体的に記述
 
 2. **コンテキストの適切な提供**
+
    - Auto contextを活用
    - 必要に応じて手動でファイルを追加
 
@@ -333,11 +337,11 @@ mcp__codex__codex({
 
 **注意すべきポイント**:
 
-| リスク | 対策 |
-|--------|------|
-| APIキーの漏洩 | 環境変数で管理、.envをgitignore |
-| 機密コードの送信 | sandbox設定でread-onlyを使用 |
-| 不正なコード実行 | approval-policyを適切に設定 |
+| リスク           | 対策                            |
+| ---------------- | ------------------------------- |
+| APIキーの漏洩    | 環境変数で管理、.envをgitignore |
+| 機密コードの送信 | sandbox設定でread-onlyを使用    |
+| 不正なコード実行 | approval-policyを適切に設定     |
 
 **sandbox設定**:
 
@@ -377,6 +381,7 @@ approval-policy = "never"
 **症状**: VS Code拡張でMCPサーバーが表示されない
 
 **対処法**:
+
 1. `~/.codex/config.toml` の構文エラーを確認
 2. VS Codeを再起動
 3. CLIで動作確認: `codex mcp list`
@@ -391,6 +396,7 @@ codex mcp test <サーバー名>
 **症状**: MCPサーバー接続時に認証エラー
 
 **対処法**:
+
 1. 環境変数が正しく設定されているか確認
 2. トークンの有効期限を確認
 
@@ -404,6 +410,7 @@ echo $GITHUB_PERSONAL_ACCESS_TOKEN
 **症状**: MCPツールの実行がタイムアウト
 
 **対処法**:
+
 1. `tool_timeout_sec` を増やす
 2. ネットワーク接続を確認
 
@@ -438,6 +445,6 @@ tool_timeout_sec = 120  # 2分に延長
 
 ## 更新履歴
 
-| 日付 | バージョン | 変更内容 |
-|------|------------|----------|
-| 2025-01-16 | 1.0.0 | 初版作成 |
+| 日付       | バージョン | 変更内容 |
+| ---------- | ---------- | -------- |
+| 2025-01-16 | 1.0.0      | 初版作成 |

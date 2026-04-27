@@ -23,11 +23,11 @@ mkdir -p .github
 
 ### 方法の比較
 
-| 方法 | 所要時間 | 適している場合 |
-|------|---------|--------------|
+| 方法                | 所要時間   | 適している場合                |
+| ------------------- | ---------- | ----------------------------- |
 | **A: AIプロンプト** | **5-10分** | MASTER.md作成済み、AI利用可能 |
-| B: テンプレート | 15分 | 既存プロジェクトから流用 |
-| C: 手動作成 | 30分 | フルカスタマイズしたい |
+| B: テンプレート     | 15分       | 既存プロジェクトから流用      |
+| C: 手動作成         | 30分       | フルカスタマイズしたい        |
 
 ---
 
@@ -106,6 +106,7 @@ mkdir -p .github
 ⚠️ 情報不足により確認が必要です
 
 【必須確認事項】
+
 1. [項目名]: [何が不明か]
    - 理由: [なぜ確認が必要か]
    - 推奨: [推奨される選択肢]
@@ -212,16 +213,19 @@ cp path/to/ai-spec-driven-development/.github/copilot-instructions.md \
 Before generating any code suggestions, you MUST read and understand `docs-template/MASTER.md`.
 
 ## Project Context
+
 [ここにプロジェクトの概要を記入]
 
 ## Key Constraints from MASTER.md
 
 ### Type Safety
+
 - Use TypeScript with strict type safety
 - No `any` types (use `unknown` or proper types)
 - Explicit type definitions for all variables, functions, and API responses
 
 ### Code Quality
+
 - No magic numbers/hardcoded values (use named constants)
 - No `console.log` in production code
 - No unused imports or variables
@@ -231,32 +235,39 @@ Before generating any code suggestions, you MUST read and understand `docs-templ
 ### Naming Conventions
 
 #### Code
+
 - Variables: camelCase (e.g., `userName`, `isActive`)
 - Constants: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
 - Types/Interfaces: PascalCase (e.g., `UserProfile`, `ApiResponse`)
 - Files: kebab-case (e.g., `user-service.ts`)
 
 #### Documentation Files
+
 - Directories: `number-lowercase-hyphen` (e.g., `01-context`, `02-design`)
 - Files: `UPPERCASE.md` (e.g., `MASTER.md`, `ARCHITECTURE.md`)
 
 ### Error Handling
+
 - Use Result pattern for error handling
 - Implement try-catch blocks with proper error messages
 - Log errors with structured logging
 
 ### Testing
+
 - Generate unit tests for all functions (80%+ coverage target)
 - Use AAA pattern (Arrange-Act-Assert)
 - Mock dependencies appropriately
 
 ## Architecture Patterns
+
 [プロジェクトで使用するアーキテクチャパターンを記入]
+
 - Clean Architecture
 - Repository Pattern
 - etc.
 
 ## Document References
+
 - `docs-template/MASTER.md` - Project overview and rules
 - `docs-template/01-context/PROJECT.md` - Business requirements
 - `docs-template/02-design/ARCHITECTURE.md` - Technical architecture
@@ -264,6 +275,7 @@ Before generating any code suggestions, you MUST read and understand `docs-templ
 - `docs-template/04-quality/TESTING.md` - Testing strategies
 
 ## Code Review Checklist
+
 - [ ] MASTER.md rules followed
 - [ ] No magic numbers/hardcoded values
 - [ ] Type safety ensured
@@ -280,9 +292,11 @@ Before generating any code suggestions, you MUST read and understand `docs-templ
 ### MASTER.mdからコピーすべき内容
 
 1. **Project Context**
+
    - `docs-template/MASTER.md` の「プロジェクト概要」セクション
 
 2. **Architecture Patterns**
+
    - `docs-template/MASTER.md` の「アーキテクチャパターン」セクション
 
 3. **コード生成ルール**
@@ -297,11 +311,13 @@ Before generating any code suggestions, you MUST read and understand `docs-templ
 ## Key Constraints from MASTER.md
 
 ### Type Safety (from MASTER.md)
+
 - TypeScript strict mode必須
 - any型禁止（unknownまたは適切な型を使用）
 - 全ての変数・関数・APIレスポンスに明示的な型定義
 
 ### Magic Number Prohibition (from MASTER.md)
+
 - マジックナンバー・ハードコード値禁止
 - 全ての意味のある値は名前付き定数に抽出
 - 単位（ms, KB等）と有効範囲を文書化
@@ -376,6 +392,7 @@ GitHub Copilot用の.github/copilot-instructions.mdに変換してください�
 ### Q: AIが生成した内容をそのまま使っても大丈夫？
 
 A: 必ず以下を確認してください：
+
 - プロジェクト名が正しいか
 - 技術スタックのバージョンが最新か
 - MASTER.mdの内容と矛盾がないか
@@ -404,6 +421,7 @@ A: 以下のプロンプトを使用：
 ### Q: 複数のAIツールでプロンプトを試したい場合は？
 
 A: 各ツールで試して、最も良い結果を選択：
+
 1. GitHub Copilot Chat で生成
 2. Claude Code で生成
 3. Cursor で生成

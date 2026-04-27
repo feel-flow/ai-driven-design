@@ -28,11 +28,11 @@ Multi-CLI の全体オーケストレーションとは別に、**Claude系 + GP
 
 ### Codex CLI 3パターン
 
-| パターン | 実行タイミング | 自動/提案 | 説明 |
-|---------|-------------|----------|------|
-| **Cross-Model Review** | セルフレビュー時 | 必須（順次実行） | Claude Toolkit + Codex CLI でデュアルレビュー |
-| **Parallel Task Suggestion** | 独立サブタスク発見時 | ユーザーに提案 | 並列実行による効率化 |
-| **Second Opinion** | 設計判断の分岐点 | ユーザーに提案 | アーキテクチャ決定の第二意見 |
+| パターン                     | 実行タイミング       | 自動/提案        | 説明                                          |
+| ---------------------------- | -------------------- | ---------------- | --------------------------------------------- |
+| **Cross-Model Review**       | セルフレビュー時     | 必須（順次実行） | Claude Toolkit + Codex CLI でデュアルレビュー |
+| **Parallel Task Suggestion** | 独立サブタスク発見時 | ユーザーに提案   | 並列実行による効率化                          |
+| **Second Opinion**           | 設計判断の分岐点     | ユーザーに提案   | アーキテクチャ決定の第二意見                  |
 
 #### Pattern 1: Cross-Model Review（必須・順次実行）
 
@@ -223,18 +223,18 @@ bash scripts/multi-review.sh --cli copilot-cli --perspective test-analysis
 
 ### コスト戦略
 
-| 戦略 | 説明 | 推奨場面 |
-|------|------|---------|
-| `balanced` | コストと品質のバランス | 通常の開発（デフォルト） |
-| `minimize_cost` | 固定料金/無料CLIを優先使用 | 予算制約がある場合 |
-| `maximize_quality` | 高品質CLIに多く割当 | リリース前の最終レビュー |
+| 戦略               | 説明                       | 推奨場面                 |
+| ------------------ | -------------------------- | ------------------------ |
+| `balanced`         | コストと品質のバランス     | 通常の開発（デフォルト） |
+| `minimize_cost`    | 固定料金/無料CLIを優先使用 | 予算制約がある場合       |
+| `maximize_quality` | 高品質CLIに多く割当        | リリース前の最終レビュー |
 
 ### モード
 
-| モード | 説明 |
-|--------|------|
+| モード        | 説明                                              |
+| ------------- | ------------------------------------------------- |
 | `distributed` | 各CLIが異なるパースペクティブを担当（デフォルト） |
-| `cross-model` | 全CLIで同じパースペクティブを実行して比較 |
+| `cross-model` | 全CLIで同じパースペクティブを実行して比較         |
 
 ### よくあるカスタマイズ例
 
@@ -246,11 +246,13 @@ agents:
   copilot-cli:
     command: copilot
     cost_tier: flat-rate
-    default_perspectives: [code-review, test-analysis, comment-analysis, error-handler-hunt]
+    default_perspectives:
+      [code-review, test-analysis, comment-analysis, error-handler-hunt]
   gemini-cli:
     command: gemini
     cost_tier: free-tier
-    default_perspectives: [security-analysis, code-simplification, type-design-analysis]
+    default_perspectives:
+      [security-analysis, code-simplification, type-design-analysis]
 ```
 
 #### 例2: Claude + Codex のクロスモデル比較
@@ -421,12 +423,14 @@ bash scripts/multi-review.sh
 Cursor CLI (`cursor-agent -p`) は非インタラクティブモードでハングする既知の問題があります。
 
 **回避策**:
+
 - `timeout` コマンドでラップ: `timeout 120 cursor-agent -p "..."`
 - Cursor CLIをスキップ: `--cli copilot-cli` で代替
 
 ### 結果の不整合
 
 Cross-Modelモードで異なるCLIが矛盾する結果を返した場合：
+
 - 信頼度スコアが高い方を優先
 - Critical/Warning は両方報告（安全側に倒す）
 - Suggestion/Info は重複除去

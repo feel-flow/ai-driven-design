@@ -35,6 +35,7 @@ docs/
 ```
 
 **重要ポイント**:
+
 - コア7文書は最小構成です。プロジェクトに応じて各フォルダ内に文書を追加してください（例: `02-design/API.md`, `06-reference/GLOSSARY.md`）
 - 新しいドキュメントを作成する際は、適切な番号付きフォルダ内に配置してください
 - ドキュメント参照時は必ずフォルダパスを含めてください（例: `01-business/PROJECT.md`）
@@ -73,18 +74,21 @@ MASTER.mdには以下の重要な情報が含まれています：
 以下の情報が不明な場合は、**推論せずに必ず確認**してください：
 
 **プロジェクト基本情報**:
+
 - プロジェクト名（具体的な名称）
 - ターゲットユーザー（誰のために作るか）
 - 主要機能（何を実現するか）
 - 技術スタック（使用する言語・フレームワーク）
 
 **技術的詳細**:
+
 - データベース種別（PostgreSQL? MongoDB? MySQL?）
 - 認証方式（JWT? OAuth? Session?）
 - デプロイ環境（AWS? GCP? Azure? Vercel?）
 - API形式（REST? GraphQL? gRPC?）
 
 **ビジネス要件**:
+
 - パフォーマンス要件（具体的な数値）
 - セキュリティ要件（必須の対策）
 - スケーラビリティ要件（同時接続数等）
@@ -98,7 +102,9 @@ MASTER.mdには以下の重要な情報が含まれています：
 確認をお願いします：
 
 【必須確認事項】
+
 1. [項目名]: [何が不明か]
+
    - 例: データベース種別
    - 理由: PostgreSQLとMongoDBで設計が大きく異なるため
    - 推奨: PostgreSQL（リレーショナルデータの場合）/ MongoDB（ドキュメント指向の場合）
@@ -107,6 +113,7 @@ MASTER.mdには以下の重要な情報が含まれています：
    ...
 
 【オプション確認事項（推論で進める場合の前提）】
+
 1. [項目名]: [推論内容]
    - 前提: [この前提で進めます]
    - リスク: [後で変更が必要になる可能性]
@@ -154,6 +161,7 @@ MASTER.mdには以下の重要な情報が含まれています：
 **設定ファイル**: `AGENTS.md` (本ファイル)
 
 **必須手順**:
+
 1. **常に日本語で応答する** (Always respond in Japanese)
 2. プロジェクト開始時に `AGENTS.md` と `docs-template/MASTER.md` を確認
 3. コード生成前にMASTER.mdの内容を参照
@@ -166,16 +174,17 @@ MASTER.mdには以下の重要な情報が含まれています：
 **設定ファイル**: `CLAUDE.md`
 
 **必須手順**:
+
 1. プロジェクト開始時に `CLAUDE.md` を確認
 2. `docs-template/MASTER.md` を必ず読み込む
 3. コード生成前にMASTER.mdの内容を参照
 
 **利用可能なスラッシュコマンド**:
 
-| コマンド | 用途 |
-| --------- | ------ |
-| `/init-docs` | コア7文書 + 拡張フォルダ構造を初期化 |
-| `/validate-docs` | コア7文書の存在と構造要件を検証 |
+| コマンド           | 用途                                                      |
+| ------------------ | --------------------------------------------------------- |
+| `/init-docs`       | コア7文書 + 拡張フォルダ構造を初期化                      |
+| `/validate-docs`   | コア7文書の存在と構造要件を検証                           |
 | `/setup-ai-config` | CLAUDE.md / .cursorrules / copilot-instructions.md を生成 |
 
 **プロンプト例**:
@@ -195,6 +204,7 @@ MASTER.mdには以下の重要な情報が含まれています：
 **設定ファイル**: `.github/copilot-instructions.md` または `AGENTS.md`
 
 **必須手順**:
+
 1. リポジトリのルートに `AGENTS.md` を配置
 2. コード補完前にMASTER.mdの内容を確認
 3. コメントでMASTER.mdの参照を明記
@@ -216,6 +226,7 @@ interface User {
 **設定ファイル**: `.cursorrules` または `AGENTS.md`
 
 **必須手順**:
+
 1. `.cursorrules` ファイルにMASTER.md参照を記載
 2. チャット機能でMASTER.mdの内容を確認
 3. コード生成時にMASTER.mdの制約を適用
@@ -269,6 +280,7 @@ Always reference MASTER.md for project-specific requirements.
 **設定ファイル**: `AGENTS.md` または エージェント固有の設定ファイル
 
 **必須手順**:
+
 1. この `AGENTS.md` ファイルを確認
 2. `docs-template/MASTER.md` を必ず読み込む
 3. プロジェクト固有の要件を理解してから作業開始
@@ -349,6 +361,7 @@ Always reference MASTER.md for project-specific requirements.
 ### ❌ よくある間違い
 
 1. **MASTER.mdを参照せずにコード生成**
+
    - 結果: プロジェクトの技術スタックと異なる実装
    - 回避: 必ずMASTER.mdを最初に読み込む
 
@@ -357,7 +370,7 @@ Always reference MASTER.md for project-specific requirements.
    ```typescript
    // ❌ 間違い
    if (user.age > 18) { ... }
-   
+
    // ✅ 正しい
    const MINIMUM_AGE = 18; // 成人年齢（歳）
    if (user.age > MINIMUM_AGE) { ... }
@@ -368,7 +381,7 @@ Always reference MASTER.md for project-specific requirements.
    ```typescript
    // ❌ 間違い
    const data: any = response.data;
-   
+
    // ✅ 正しい
    interface ApiResponse {
      data: unknown;
@@ -385,12 +398,12 @@ Always reference MASTER.md for project-specific requirements.
    } catch (error) {
      // 何もしない
    }
-   
+
    // ✅ 正しい
    try {
      await riskyOperation();
    } catch (error) {
-     logger.error('Operation failed', { error: error.message });
+     logger.error("Operation failed", { error: error.message });
      return { success: false, error: error as Error };
    }
    ```
@@ -443,8 +456,8 @@ Issue #XXX を作成しました: [タイトル]
 
 ## 更新履歴
 
-| 日付 | 更新者 | 更新内容 |
-|------|--------|----------|
+| 日付       | 更新者 | 更新内容                                                 |
+| ---------- | ------ | -------------------------------------------------------- |
 | 2026-01-25 | Gemini | 言語設定（日本語固定）およびGemini Code Assist設定の追加 |
 
 ---

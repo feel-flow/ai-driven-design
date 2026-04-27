@@ -20,21 +20,21 @@ AI エージェント（Claude Code / Cursor / Copilot）が AI-SDD 採用プロ
 
 ## 対象スコープ
 
-| Issue 受け入れ基準 | スコープ | 本仕様での扱い |
-| --- | --- | --- |
-| PATTERNS.md に Decision Tree セクション追加 | ✅ | 新セクション「11. 配置判断」として索引＋委譲 |
-| PATTERNS.md に追加先チェックリスト追加 | ✅ | DECISION_TREE.md 側に 3 列表として実装 |
-| templates/ ディレクトリ導入ガイド（Layer 2） | ❌ | 別 Issue |
-| 依存方向 lint 言語別ガイド（Layer 3） | ❌ | 別 Issue |
-| claude-trader PR #55 リファレンスリンク | ✅ | DECISION_TREE.md 末尾の「参考実装」節 |
+| Issue 受け入れ基準                           | スコープ | 本仕様での扱い                               |
+| -------------------------------------------- | -------- | -------------------------------------------- |
+| PATTERNS.md に Decision Tree セクション追加  | ✅       | 新セクション「11. 配置判断」として索引＋委譲 |
+| PATTERNS.md に追加先チェックリスト追加       | ✅       | DECISION_TREE.md 側に 3 列表として実装       |
+| templates/ ディレクトリ導入ガイド（Layer 2） | ❌       | 別 Issue                                     |
+| 依存方向 lint 言語別ガイド（Layer 3）        | ❌       | 別 Issue                                     |
+| claude-trader PR #55 リファレンスリンク      | ✅       | DECISION_TREE.md 末尾の「参考実装」節        |
 
 ## 作成・変更ファイル一覧
 
-| ファイル | 種別 | 説明 |
-| --- | --- | --- |
-| `docs-template/03-implementation/DECISION_TREE.md` | 新規 | Decision Tree 本体・チェックリスト・プロジェクト固有化手順 |
-| `docs-template/03-implementation/PATTERNS.md` | 変更 | 新セクション「11. 配置判断（Decision Tree）」を追加、DECISION_TREE.md へ委譲 |
-| `docs-template/MASTER.md` | 変更 | コーディングルール節に Decision Tree への一文リンクを追加 |
+| ファイル                                           | 種別 | 説明                                                                         |
+| -------------------------------------------------- | ---- | ---------------------------------------------------------------------------- |
+| `docs-template/03-implementation/DECISION_TREE.md` | 新規 | Decision Tree 本体・チェックリスト・プロジェクト固有化手順                   |
+| `docs-template/03-implementation/PATTERNS.md`      | 変更 | 新セクション「11. 配置判断（Decision Tree）」を追加、DECISION_TREE.md へ委譲 |
+| `docs-template/MASTER.md`                          | 変更 | コーディングルール節に Decision Tree への一文リンクを追加                    |
 
 ## 詳細設計
 
@@ -81,10 +81,15 @@ updated: "YYYY-MM-DD"
 > **Related**: [ARCHITECTURE.md](../02-design/ARCHITECTURE.md) | [DOMAIN.md](../02-design/DOMAIN.md)
 
 ## 1. 適用シーン
+
 ## 2. Decision Tree（Q0〜Q6）
+
 ## 3. 追加先チェックリスト
+
 ## 4. プロジェクト固有化の手順
+
 ## 5. 参考実装
+
 ## Changelog
 ```
 
@@ -132,6 +137,7 @@ Q6. 横断的関心事？（Cross-cutting）
 ```
 
 **Issue 原案との差分**:
+
 - Q2（Issue 原案「ルールベース or Claude 任せ」）→ 汎用的な「HTTP エンドポイント入口」に置換
 - Q6（Issue 原案「ダッシュボード/バックテスト/レポート」）→ 汎用的な「横断的関心事」に置換
 - Q0, Q1, Q3, Q4, Q5 は Issue 原案を踏襲
@@ -146,16 +152,16 @@ Q6. 横断的関心事？（Cross-cutting）
 > Q1〜Q6 の各分岐の回答と、下表の「追加種別」は **1:1 対応** させる。
 > Q1〜Q6 を書き換えた場合は本表も同じ分類で更新する。
 
-| 追加種別 (Q番号) | 実装先 | テスト追加先 | 必須ドキュメント更新 |
-| --- | --- | --- | --- |
-| 外部 API クライアント (Q1) | infrastructure/clients/ | tests/infrastructure/ | ARCHITECTURE.md |
-| DB アクセス (Q1) | infrastructure/repositories/ | tests/infrastructure/ | ARCHITECTURE.md |
-| REST ルート (Q2) | interfaces/controllers/ | tests/interfaces/ | ARCHITECTURE.md |
-| ユースケース (Q3) | application/use-cases/ | tests/application/ | ARCHITECTURE.md |
-| DB スキーマ (Q4) | migrations/ | tests/migrations/ | ARCHITECTURE.md, DOMAIN.md |
-| エンティティ (Q5) | domain/entities/ | tests/domain/ | DOMAIN.md |
-| 値オブジェクト (Q5) | domain/value-objects/ | tests/domain/ | DOMAIN.md |
-| 認証ミドルウェア (Q6) | shared/auth/ | tests/shared/ | ARCHITECTURE.md |
+| 追加種別 (Q番号)           | 実装先                       | テスト追加先          | 必須ドキュメント更新       |
+| -------------------------- | ---------------------------- | --------------------- | -------------------------- |
+| 外部 API クライアント (Q1) | infrastructure/clients/      | tests/infrastructure/ | ARCHITECTURE.md            |
+| DB アクセス (Q1)           | infrastructure/repositories/ | tests/infrastructure/ | ARCHITECTURE.md            |
+| REST ルート (Q2)           | interfaces/controllers/      | tests/interfaces/     | ARCHITECTURE.md            |
+| ユースケース (Q3)          | application/use-cases/       | tests/application/    | ARCHITECTURE.md            |
+| DB スキーマ (Q4)           | migrations/                  | tests/migrations/     | ARCHITECTURE.md, DOMAIN.md |
+| エンティティ (Q5)          | domain/entities/             | tests/domain/         | DOMAIN.md                  |
+| 値オブジェクト (Q5)        | domain/value-objects/        | tests/domain/         | DOMAIN.md                  |
+| 認証ミドルウェア (Q6)      | shared/auth/                 | tests/shared/         | ARCHITECTURE.md            |
 
 > 📝 注: 「雛形」列は Layer 2（templates/ 導入）Issue で追加予定
 ```
@@ -222,15 +228,15 @@ Q6. 横断的関心事？（Cross-cutting）
 
 Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
-| 分岐 | 判定観点 |
-| --- | --- |
-| Q0 | コード変更 or ドキュメント |
-| Q1 | 外部システム通信（境界モジュール） |
-| Q2 | リクエスト入口（HTTP エンドポイント） |
-| Q3 | オーケストレーション（ユースケース） |
-| Q4 | 永続化・状態保持 |
-| Q5 | ドメインモデル |
-| Q6 | 横断的関心事 |
+| 分岐 | 判定観点                              |
+| ---- | ------------------------------------- |
+| Q0   | コード変更 or ドキュメント            |
+| Q1   | 外部システム通信（境界モジュール）    |
+| Q2   | リクエスト入口（HTTP エンドポイント） |
+| Q3   | オーケストレーション（ユースケース）  |
+| Q4   | 永続化・状態保持                      |
+| Q5   | ドメインモデル                        |
+| Q6   | 横断的関心事                          |
 
 詳細な分岐内容とチェックリストは [DECISION_TREE.md](./DECISION_TREE.md) を参照。
 ```
@@ -273,6 +279,7 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 ```
 
 **到達経路の二重化**:
+
 - MCP サーバー経由（Claude Desktop / MCP クライアント接続時）: 既存の `DOCS_TEMPLATE_ROOT` 再帰スキャンに DECISION_TREE.md も自動で含まれる（サーバー側コード変更不要）
 - 直接ファイル読込（Claude Code CLI / Cursor / Copilot）: MASTER.md リンク、または PATTERNS.md 11 節の委譲リンクで到達
 
@@ -282,23 +289,23 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 Decision Tree はドキュメントのため実行時例外はない。代わりに **テンプレ採用時・運用時の失敗モード** と防御策を定義する。
 
-| # | 失敗モード | 発生タイミング | 防御策 |
-| --- | --- | --- | --- |
-| F1 | Web API サンプルのパスが消えないまま使われる | 採用直後、「4. プロジェクト固有化」手順をスキップ | ファイル冒頭に `⚠️ SAMPLE` バナー |
-| F2 | 自プロジェクトと合わない分岐が残る | CLI/バッチ/Lambda 等異なるドメイン | Q2 等の末尾に「該当しない → 該当 Q セクションごと削除可」明記 |
-| F3 | Decision Tree とコード実態の乖離 | リファクタ後に更新忘れ | Changelog に「構造変更時は本ファイルも同時更新」注記 |
-| F4 | チェックリストが Q1〜Q6 と矛盾 | Q を書き換えたがチェックリスト放置 | チェックリスト冒頭に「Q1〜Q6 と 1:1 対応」明記 |
-| F5 | 複数 AI ツールで判断がブレる | MCP 経由 vs 直接読込で差異 | 同一ファイル参照のため構造上発生しない（データフローで担保済み） |
+| #   | 失敗モード                                   | 発生タイミング                                    | 防御策                                                           |
+| --- | -------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| F1  | Web API サンプルのパスが消えないまま使われる | 採用直後、「4. プロジェクト固有化」手順をスキップ | ファイル冒頭に `⚠️ SAMPLE` バナー                                |
+| F2  | 自プロジェクトと合わない分岐が残る           | CLI/バッチ/Lambda 等異なるドメイン                | Q2 等の末尾に「該当しない → 該当 Q セクションごと削除可」明記    |
+| F3  | Decision Tree とコード実態の乖離             | リファクタ後に更新忘れ                            | Changelog に「構造変更時は本ファイルも同時更新」注記             |
+| F4  | チェックリストが Q1〜Q6 と矛盾               | Q を書き換えたがチェックリスト放置                | チェックリスト冒頭に「Q1〜Q6 と 1:1 対応」明記                   |
+| F5  | 複数 AI ツールで判断がブレる                 | MCP 経由 vs 直接読込で差異                        | 同一ファイル参照のため構造上発生しない（データフローで担保済み） |
 
 ### 7. テスト
 
-| レイヤー | 検証項目 | 実行コマンド | 合格基準 |
-| --- | --- | --- | --- |
-| L1: Lint | Markdown 形式・リンク妥当性 | `npm run lint:md` | エラー 0 |
-| L2: 文書整合性 | docs-template 全体の構造整合性 | `npm run validate` | 新規追加ファイルが警告を出さない |
-| L3: MCP サーバー | 新 DECISION_TREE.md がスキャン対象に含まれる | `npm run check` | exit code 0、警告なし |
-| L4: MCP ユニット | スキャン結果に DECISION_TREE.md が登場 | `npm test` | パス |
-| L5: 手動検証 | AI ツールがツリーを実際に追従できるか | 別セッションで検証プロンプト実行 | 期待配置先を AI が選択 |
+| レイヤー         | 検証項目                                     | 実行コマンド                     | 合格基準                         |
+| ---------------- | -------------------------------------------- | -------------------------------- | -------------------------------- |
+| L1: Lint         | Markdown 形式・リンク妥当性                  | `npm run lint:md`                | エラー 0                         |
+| L2: 文書整合性   | docs-template 全体の構造整合性               | `npm run validate`               | 新規追加ファイルが警告を出さない |
+| L3: MCP サーバー | 新 DECISION_TREE.md がスキャン対象に含まれる | `npm run check`                  | exit code 0、警告なし            |
+| L4: MCP ユニット | スキャン結果に DECISION_TREE.md が登場       | `npm test`                       | パス                             |
+| L5: 手動検証     | AI ツールがツリーを実際に追従できるか        | 別セッションで検証プロンプト実行 | 期待配置先を AI が選択           |
 
 **手動検証シナリオ（L5）**:
 

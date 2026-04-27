@@ -5,6 +5,7 @@
 このドキュメントでは、AI仕様駆動開発をサポートするAIツールの統合方法と選択ガイドを提供します。
 
 ## 目次
+
 - [AIツール比較](#aiツール比較)
 - [推奨構成](#推奨構成)
 - [AIツール別設定概要](#aiツール別設定概要)
@@ -18,18 +19,18 @@
 
 ### 主要AIツールの特徴比較（5 CLI）
 
-| 特徴 | Claude Code | Codex CLI | GitHub Copilot | Gemini CLI | Cursor |
-|---|---|---|---|---|---|
-| **Git統合度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **カスタム設定** | CLAUDE.md, .claude/ | codex.md, AGENTS.md | .vscode/settings.json | settings.json | .cursorrules |
-| **CLI非インタラクティブ** | `claude -p` | `codex exec` | `copilot -p` | `gemini -p` | `cursor-agent --print` |
-| **安全性制御** | `--allowed-tools`（ツール制限） | `--sandbox read-only` | `--allow-tool`/`--deny-tool` | `--sandbox` | N/A |
-| **PR自動化** | ネイティブサポート | ネイティブサポート | VS Code Tasks必要 | 手動スクリプト実行 | 手動スクリプト実行 |
-| **ドキュメント参照** | 自動読み込み | 自動読み込み | 手動指定 | 自動読み込み | contextFiles設定 |
-| **無料版の充実度** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ❌ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **コスト** | 無料/Pro $20 | トークン課金 | $10/月 | 無料枠大 | 無料/Pro $20 |
-| **コストティア** | Premium | Standard | Flat-rate | Free-tier | Flat-rate |
-| **推奨レビュー用途** | 型設計・アーキテクチャ | コードレビュー・エラー検出 | テスト・コメント分析 | セキュリティスキャン | コード簡素化 |
+| 特徴                      | Claude Code                     | Codex CLI                  | GitHub Copilot               | Gemini CLI           | Cursor                 |
+| ------------------------- | ------------------------------- | -------------------------- | ---------------------------- | -------------------- | ---------------------- |
+| **Git統合度**             | ⭐⭐⭐⭐⭐                      | ⭐⭐⭐⭐                   | ⭐⭐⭐                       | ⭐⭐⭐               | ⭐⭐⭐⭐               |
+| **カスタム設定**          | CLAUDE.md, .claude/             | codex.md, AGENTS.md        | .vscode/settings.json        | settings.json        | .cursorrules           |
+| **CLI非インタラクティブ** | `claude -p`                     | `codex exec`               | `copilot -p`                 | `gemini -p`          | `cursor-agent --print` |
+| **安全性制御**            | `--allowed-tools`（ツール制限） | `--sandbox read-only`      | `--allow-tool`/`--deny-tool` | `--sandbox`          | N/A                    |
+| **PR自動化**              | ネイティブサポート              | ネイティブサポート         | VS Code Tasks必要            | 手動スクリプト実行   | 手動スクリプト実行     |
+| **ドキュメント参照**      | 自動読み込み                    | 自動読み込み               | 手動指定                     | 自動読み込み         | contextFiles設定       |
+| **無料版の充実度**        | ⭐⭐⭐⭐                        | ⭐⭐⭐                     | ❌                           | ⭐⭐⭐⭐⭐           | ⭐⭐⭐⭐               |
+| **コスト**                | 無料/Pro $20                    | トークン課金               | $10/月                       | 無料枠大             | 無料/Pro $20           |
+| **コストティア**          | Premium                         | Standard                   | Flat-rate                    | Free-tier            | Flat-rate              |
+| **推奨レビュー用途**      | 型設計・アーキテクチャ          | コードレビュー・エラー検出 | テスト・コメント分析         | セキュリティスキャン | コード簡素化           |
 
 ### AI消費分散（Multi-CLI Orchestration）
 
@@ -45,6 +46,7 @@
 ```
 
 **分散戦略の使い分け**:
+
 - `balanced`: コストと品質のバランス（デフォルト）
 - `minimize_cost`: Copilot/Gemini/Cursorを優先（予算制約時）
 - `maximize_quality`: Claude/Codexに多く割当（リリース前）
@@ -52,6 +54,7 @@
 ### AI自動化の主要機能
 
 AIツールは以下を自動的に実行:
+
 - PR上の最新コメントをモニタリング
 - 指摘内容の意図を解析
 - 修正箇所と修正方針を提案
@@ -72,6 +75,7 @@ AIツールは以下を自動的に実行:
 ### 最もコスパが良い構成
 
 **Claude Code（無料版）+ 手動スクリプト**
+
 - 追加コスト: $0
 - 機能性: ⭐⭐⭐⭐（十分実用的）
 
@@ -95,12 +99,14 @@ Claude Codeは標準でGitワークフローをサポートしています。
 このプロジェクトでは「AI仕様駆動Git Workflow」を採用しています。
 
 ### 必須動作
+
 1. **コミット時**: 必ず `docs/MASTER.md` の仕様に準拠
 2. **PR作成時**: 構造化されたPR本文を生成
 3. **レビュー対応時**: 自動的に修正提案を行う
 4. **マージ後**: 次のタスクを提案
 
 ### 参照ドキュメント
+
 - Git Workflow詳細: docs/05-operations/DEPLOYMENT.md (セクション1)
 - コーディング規約: docs/MASTER.md
 - 自動化スクリプト: scripts/ai-workflow.sh
@@ -289,11 +295,11 @@ Claude Codeセッション開始時に以下のような警告が表示されま
 
 ### 無料版での制限事項と対応策
 
-| 制限 | 対応策 |
-|---|---|
+| 制限                       | 対応策                                     |
+| -------------------------- | ------------------------------------------ |
 | GitHub Actions実行時間制限 | ローカルスクリプト（ai-workflow.sh）を使用 |
-| AI応答回数制限（無料版） | 重要なタスクに絞って使用 |
-| 高度な自動化機能 | 手動スクリプト実行で補完 |
+| AI応答回数制限（無料版）   | 重要なタスクに絞って使用                   |
+| 高度な自動化機能           | 手動スクリプト実行で補完                   |
 
 ### 最小構成セットアップ手順（5分）
 
@@ -321,31 +327,32 @@ npx husky init
 
 ### 機能別コスト
 
-| 機能 | 無料プラン | 有料プラン | コストティア | 推奨 |
-|---|---|---|---|---|
-| **Claude Code** | 基本機能利用可 | Pro: $20/月 | Premium（トークン課金） | 型設計・アーキテクチャ |
-| **Codex CLI** | — | トークン課金 | Standard（トークン課金） | コードレビュー・エラー検出 |
-| **GitHub Copilot** | ❌ | $10/月（個人） | Flat-rate（月額固定） | テスト・コメント分析 |
-| **Gemini CLI** | 大きな無料枠 | 従量課金 | Free-tier（無料枠大） | セキュリティスキャン |
-| **Cursor** | 基本機能利用可 | Pro: $20/月 | Flat-rate（月額固定） | コード簡素化 |
-| **GitHub Actions** | 2,000分/月（Private） | 超過分課金 | — | Huskyで代替 |
-| **GitHub CLI** | ✅ 完全無料 | - | — | 必須 |
-| **Git Hooks** | ✅ 完全無料 | - | — | 必須 |
+| 機能               | 無料プラン            | 有料プラン     | コストティア             | 推奨                       |
+| ------------------ | --------------------- | -------------- | ------------------------ | -------------------------- |
+| **Claude Code**    | 基本機能利用可        | Pro: $20/月    | Premium（トークン課金）  | 型設計・アーキテクチャ     |
+| **Codex CLI**      | —                     | トークン課金   | Standard（トークン課金） | コードレビュー・エラー検出 |
+| **GitHub Copilot** | ❌                    | $10/月（個人） | Flat-rate（月額固定）    | テスト・コメント分析       |
+| **Gemini CLI**     | 大きな無料枠          | 従量課金       | Free-tier（無料枠大）    | セキュリティスキャン       |
+| **Cursor**         | 基本機能利用可        | Pro: $20/月    | Flat-rate（月額固定）    | コード簡素化               |
+| **GitHub Actions** | 2,000分/月（Private） | 超過分課金     | —                        | Huskyで代替                |
+| **GitHub CLI**     | ✅ 完全無料           | -              | —                        | 必須                       |
+| **Git Hooks**      | ✅ 完全無料           | -              | —                        | 必須                       |
 
 ### Multi-CLI レビューのコスト最適化
 
-| 戦略 | 月額目安 | 使用CLI | 適用場面 |
-|------|---------|---------|---------|
-| **完全無料** | $0 | Gemini（無料枠） | 個人開発・学習 |
-| **固定料金のみ** | $10-$30 | Copilot + Cursor | 予算固定の開発 |
-| **バランス** | $30-$50 | 全5 CLI | 通常のチーム開発 |
-| **品質最大化** | $50+ | Claude中心 + 全CLI | リリース前の品質保証 |
+| 戦略             | 月額目安 | 使用CLI            | 適用場面             |
+| ---------------- | -------- | ------------------ | -------------------- |
+| **完全無料**     | $0       | Gemini（無料枠）   | 個人開発・学習       |
+| **固定料金のみ** | $10-$30  | Copilot + Cursor   | 予算固定の開発       |
+| **バランス**     | $30-$50  | 全5 CLI            | 通常のチーム開発     |
+| **品質最大化**   | $50+     | Claude中心 + 全CLI | リリース前の品質保証 |
 
 詳細: [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md)
 
 ### GitHub Actionsの利用制限
 
 GitHub Actionsの無料枠：
+
 - **パブリックリポジトリ**: 無制限（無料）
 - **プライベートリポジトリ**:
   - Free/Pro: 2,000分/月まで無料
@@ -405,17 +412,27 @@ fi
 
 ```javascript
 module.exports = {
-  extends: ['@commitlint/config-conventional'],
+  extends: ["@commitlint/config-conventional"],
   rules: {
-    'type-enum': [
+    "type-enum": [
       2,
-      'always',
-      ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'hotfix', 'release']
+      "always",
+      [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "test",
+        "chore",
+        "hotfix",
+        "release",
+      ],
     ],
-    'subject-case': [2, 'never', ['upper-case']],
-    'header-max-length': [2, 'always', 100],
-    'body-max-line-length': [0, 'always', Infinity]
-  }
+    "subject-case": [2, "never", ["upper-case"]],
+    "header-max-length": [2, "always", 100],
+    "body-max-line-length": [0, "always", Infinity],
+  },
 };
 ```
 

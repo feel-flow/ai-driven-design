@@ -27,12 +27,12 @@ ACE (Agentic Context Engineering) サイクルは、レビュー完了後・マ�
 
 ### 対象データ
 
-| データソース | 取得方法 | 主な知見 |
-|------------|---------|---------|
-| PR diff | `gh pr diff ${PR_NUMBER}` | コード変更のパターン、設計判断 |
-| Issue 内容 | `gh issue view ${ISSUE_NUM}` | 元々の課題、要件 |
-| レビューコメント | `gh api repos/OWNER/REPO/pulls/${PR_NUMBER}/comments` | 指摘事項、改善点 |
-| CI/CD ログ | GitHub Actions の結果 | ビルド・テストの教訓 |
+| データソース     | 取得方法                                              | 主な知見                       |
+| ---------------- | ----------------------------------------------------- | ------------------------------ |
+| PR diff          | `gh pr diff ${PR_NUMBER}`                             | コード変更のパターン、設計判断 |
+| Issue 内容       | `gh issue view ${ISSUE_NUM}`                          | 元々の課題、要件               |
+| レビューコメント | `gh api repos/OWNER/REPO/pulls/${PR_NUMBER}/comments` | 指摘事項、改善点               |
+| CI/CD ログ       | GitHub Actions の結果                                 | ビルド・テストの教訓           |
 
 ### AIプロンプトテンプレート
 
@@ -116,12 +116,12 @@ ACE (Agentic Context Engineering) サイクルは、レビュー完了後・マ�
 
 ### 照合結果と対応アクション
 
-| 照合結果 | アクション | 例 |
-|----------|----------|-----|
-| **重複** | 既存エントリの Helpful +1 | 「ACE-003 と同じ内容 → Helpful を 2 → 3 に更新」 |
-| **矛盾** | 既存を deprecated → 新エントリ作成 | 「ACE-005 の推奨が古い → deprecated、ACE-012 として新規追記」 |
-| **新規** | Phase 3 へ進む | 「既存に該当なし → PLAYBOOK.md に追記」 |
-| **低価値** | 記録しない | 「再現性低・影響度低 → スキップ」 |
+| 照合結果   | アクション                         | 例                                                            |
+| ---------- | ---------------------------------- | ------------------------------------------------------------- |
+| **重複**   | 既存エントリの Helpful +1          | 「ACE-003 と同じ内容 → Helpful を 2 → 3 に更新」              |
+| **矛盾**   | 既存を deprecated → 新エントリ作成 | 「ACE-005 の推奨が古い → deprecated、ACE-012 として新規追記」 |
+| **新規**   | Phase 3 へ進む                     | 「既存に該当なし → PLAYBOOK.md に追記」                       |
+| **低価値** | 記録しない                         | 「再現性低・影響度低 → スキップ」                             |
 
 ---
 
@@ -144,14 +144,14 @@ ACE (Agentic Context Engineering) サイクルは、レビュー完了後・マ�
 ```markdown
 ### ACE-006: [タイトル]
 
-| フィールド | 値 |
-|-----------|---|
-| Category | [カテゴリ] |
-| Origin | PR #${PR_NUMBER} |
-| Date | YYYY-MM-DD |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値               |
+| ---------- | ---------------- |
+| Category   | [カテゴリ]       |
+| Origin     | PR #${PR_NUMBER} |
+| Date       | YYYY-MM-DD       |
+| Helpful    | 0                |
+| Harmful    | 0                |
+| Status     | active           |
 
 **Insight**: [知見の本質]
 
@@ -163,9 +163,9 @@ ACE (Agentic Context Engineering) サイクルは、レビュー完了後・マ�
 #### 3. Frontmatter の更新
 
 ```yaml
-version: "1.X.0"     # マイナーバージョンをインクリメント
+version: "1.X.0" # マイナーバージョンをインクリメント
 updated: "YYYY-MM-DD"
-ace_entry_count: N    # 全エントリ数（deprecated含む）
+ace_entry_count: N # 全エントリ数（deprecated含む）
 ```
 
 #### 4. コミット
@@ -214,13 +214,13 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 
 ### 使い分け表
 
-| 観点 | ACE Playbook | GitHub Discussions |
-|------|-------------|-------------------|
-| **いつ使う** | 毎回のマージ前（レビュー完了後） | 重要な知見のみ（選択的） |
-| **何を書く** | 構造化された短い知見 | 詳細な解説・コード例・議論 |
-| **誰が読む** | AIツール（+ 人間） | チームメンバー（人間） |
-| **更新頻度** | 高（マージごと） | 低（重要な知見のみ） |
-| **フォーマット** | テーブル + 短文（固定形式） | 自由記述 |
+| 観点             | ACE Playbook                     | GitHub Discussions         |
+| ---------------- | -------------------------------- | -------------------------- |
+| **いつ使う**     | 毎回のマージ前（レビュー完了後） | 重要な知見のみ（選択的）   |
+| **何を書く**     | 構造化された短い知見             | 詳細な解説・コード例・議論 |
+| **誰が読む**     | AIツール（+ 人間）               | チームメンバー（人間）     |
+| **更新頻度**     | 高（マージごと）                 | 低（重要な知見のみ）       |
+| **フォーマット** | テーブル + 短文（固定形式）      | 自由記述                   |
 
 ### 推奨フロー（レビュー完了後・マージ前）
 
@@ -254,6 +254,7 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 
 **原因**: PR の変更が軽微（typo修正、依存関係更新等）
 **対応**: 全ての PR で ACE サイクルを実行する必要はない。以下に該当する場合はスキップ可能：
+
 - typo 修正のみ
 - 依存関係のバージョン更新のみ
 - ドキュメント修正のみ（内容変更なし）
@@ -277,6 +278,7 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 
 **形式**: `knowledge: ACE-XXX [category] [summary]`
 **例**:
+
 - `knowledge: ACE-001 [coding] TypeScript strict mode の例外パターン`
 - `knowledge: ACE-002,ACE-003 [testing,security] モック分離、JWT検証`
 - `knowledge: ACE-004 [performance] helpful+1 (既存エントリ更新)`
@@ -299,4 +301,5 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 ### [1.0.0] - YYYY-MM-DD
 
 #### 追加
+
 - 初版作成：ACE サイクル（Generate → Reflect → Curate）の運用手順を文書化

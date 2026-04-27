@@ -16,17 +16,18 @@
 
 ## File Structure
 
-| ファイル | 種別 | 責務 |
-| --- | --- | --- |
+| ファイル                                           | 種別 | 責務                                                                       |
+| -------------------------------------------------- | ---- | -------------------------------------------------------------------------- |
 | `docs-template/03-implementation/DECISION_TREE.md` | 新規 | Decision Tree 本体、チェックリスト、プロジェクト固有化手順、参考実装リンク |
-| `docs-template/03-implementation/PATTERNS.md` | 変更 | 新セクション「11. 配置判断（Decision Tree）」を Changelog 前に挿入 |
-| `docs-template/MASTER.md` | 変更 | 「コード生成ルール > 必須事項」に 7 番目「配置判断」を追加 |
+| `docs-template/03-implementation/PATTERNS.md`      | 変更 | 新セクション「11. 配置判断（Decision Tree）」を Changelog 前に挿入         |
+| `docs-template/MASTER.md`                          | 変更 | 「コード生成ルール > 必須事項」に 7 番目「配置判断」を追加                 |
 
 ---
 
 ## Task 1: DECISION_TREE.md の新規作成
 
 **Files:**
+
 - Create: `docs-template/03-implementation/DECISION_TREE.md`
 
 - [ ] **Step 1: 作成前のファイル不在を確認（baseline 確認）**
@@ -121,16 +122,16 @@ Q6. 横断的関心事？（Cross-cutting）
 > Q1〜Q6 の各分岐の回答と、下表の「追加種別」は **1:1 対応** させる。
 > Q1〜Q6 を書き換えた場合は本表も同じ分類で更新する。
 
-| 追加種別 (Q番号) | 実装先 | テスト追加先 | 必須ドキュメント更新 |
-| --- | --- | --- | --- |
-| 外部 API クライアント (Q1) | `infrastructure/clients/` | `tests/infrastructure/` | ARCHITECTURE.md |
-| DB アクセス (Q1) | `infrastructure/repositories/` | `tests/infrastructure/` | ARCHITECTURE.md |
-| REST ルート (Q2) | `interfaces/controllers/` | `tests/interfaces/` | ARCHITECTURE.md |
-| ユースケース (Q3) | `application/use-cases/` | `tests/application/` | ARCHITECTURE.md |
-| DB スキーマ (Q4) | `migrations/` | `tests/migrations/` | ARCHITECTURE.md, DOMAIN.md |
-| エンティティ (Q5) | `domain/entities/` | `tests/domain/` | DOMAIN.md |
-| 値オブジェクト (Q5) | `domain/value-objects/` | `tests/domain/` | DOMAIN.md |
-| 認証ミドルウェア (Q6) | `shared/auth/` | `tests/shared/` | ARCHITECTURE.md |
+| 追加種別 (Q番号)           | 実装先                         | テスト追加先            | 必須ドキュメント更新       |
+| -------------------------- | ------------------------------ | ----------------------- | -------------------------- |
+| 外部 API クライアント (Q1) | `infrastructure/clients/`      | `tests/infrastructure/` | ARCHITECTURE.md            |
+| DB アクセス (Q1)           | `infrastructure/repositories/` | `tests/infrastructure/` | ARCHITECTURE.md            |
+| REST ルート (Q2)           | `interfaces/controllers/`      | `tests/interfaces/`     | ARCHITECTURE.md            |
+| ユースケース (Q3)          | `application/use-cases/`       | `tests/application/`    | ARCHITECTURE.md            |
+| DB スキーマ (Q4)           | `migrations/`                  | `tests/migrations/`     | ARCHITECTURE.md, DOMAIN.md |
+| エンティティ (Q5)          | `domain/entities/`             | `tests/domain/`         | DOMAIN.md                  |
+| 値オブジェクト (Q5)        | `domain/value-objects/`        | `tests/domain/`         | DOMAIN.md                  |
+| 認証ミドルウェア (Q6)      | `shared/auth/`                 | `tests/shared/`         | ARCHITECTURE.md            |
 
 > 📝 注: 「雛形」列は Layer 2（templates/ 導入）Issue で追加予定。
 
@@ -210,6 +211,7 @@ Expected: lint-staged hook (markdownlint-cli2) が通り、コミットが成功
 ## Task 2: PATTERNS.md に「11. 配置判断」セクションを追加
 
 **Files:**
+
 - Modify: `docs-template/03-implementation/PATTERNS.md`（現状 586 行、Changelog は 580 行目から）
 
 - [ ] **Step 1: 挿入位置の確認**
@@ -269,7 +271,7 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 ## Changelog
 ````
 
-注意: `old_string` / `new_string` の先頭「}」「```」は直前のセクション 10（マジックナンバー禁止の最後の code block 閉じ）の一部。**PATTERNS.md:575-580 を事前に Read して `}\n\`\`\`\n\n## Changelog` が一意に存在することを確認してから Edit する**。
+注意: `old_string` / `new_string` の先頭「}」「```」は直前のセクション 10（マジックナンバー禁止の最後の code block 閉じ）の一部。**PATTERNS.md:575-580 を事前に Read して `}\n\`\`\`\n\n## Changelog` が一意に存在することを確認してから Edit する\*\*。
 
 - [ ] **Step 3: 変更結果の確認**
 
@@ -315,6 +317,7 @@ Expected: コミット成功。
 ## Task 3: MASTER.md の「必須事項」に 7 番目を追加
 
 **Files:**
+
 - Modify: `docs-template/MASTER.md`（現状 `### 必須事項` は 212 行目付近、6 番目「マジックナンバー禁止」は 218 行目）
 
 - [ ] **Step 1: 挿入位置の確認**
@@ -399,6 +402,7 @@ Expected: `Summary: 0 error(s)`
 
 Run: `node scripts/validate-docs.mjs docs-template`
 Expected:
+
 - 全 7 コア文書が検出される（MASTER.md、PROJECT.md、ARCHITECTURE.md、DOMAIN.md、PATTERNS.md、TESTING.md、DEPLOYMENT.md）
 - exit code 0
 - エラーなし
@@ -409,6 +413,7 @@ Expected:
 
 Run: `npm run check`（これは `npm --prefix mcp run check` を実行 = `npm run build && node dist/index.js --check`）
 Expected:
+
 - TypeScript ビルド成功
 - MCP サーバーが `docs-template/` を再帰スキャン
 - exit code 0、警告なし
@@ -429,6 +434,7 @@ Expected: 最低 5 コミット（spec 初版・spec セルフレビュー修正
 
 Run: `git diff --stat develop..feature/#368-decision-tree -- docs-template/`
 Expected:
+
 - `docs-template/03-implementation/DECISION_TREE.md | XXX ++++++++++++` (新規、約 100-150 行)
 - `docs-template/03-implementation/PATTERNS.md     | XX ++++++++++++` (30 行追加)
 - `docs-template/MASTER.md                          | 1 +` (1 行追加)
@@ -469,6 +475,7 @@ Expected: GPT 系モデルから別観点のレビューが得られる。
 - [ ] **Step 3: レビュー指摘への対応**
 
 PR Review Response Policy に従う:
+
 - Critical Issues → 必ず修正
 - Warnings → 必ず修正
 - Suggestions → 実装が妥当なものは対応
