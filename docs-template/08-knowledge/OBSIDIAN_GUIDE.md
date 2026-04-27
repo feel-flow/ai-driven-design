@@ -272,11 +272,13 @@ npm run obsidian:sync -- orphaned
 ### 4. 意味のあるリンクテキスト
 
 ❌ 悪い例:
+
 ```markdown
 詳細は[こちら](ARCHITECTURE.md)を参照
 ```
 
 ✅ 良い例:
+
 ```markdown
 詳細は[アーキテクチャ設計](ARCHITECTURE.md)を参照
 ```
