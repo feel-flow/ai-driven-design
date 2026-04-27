@@ -93,7 +93,8 @@ AIはデフォルトでは「コードを書いて終わり」の振る舞いに
 
 - **CLAUDE.md**: Claude Codeはマルチターン対話が得意。Taskツールの活用指示も記載するとよい
 - **AGENTS.md**: 全エージェント共通のため、ツール固有の指示は省略し汎用的に記載
-- **copilot-instructions.md / .cursorrules**: コード補完が主用途のため、このセクションは省略してもよい
+- **copilot-instructions.md**: コード補完が主用途のため、このセクションは省略してもよい
+- **.cursorrules**: 補完用途に加えComposer/AgentでGit操作も発生するため、最低限の作業スタイルとGit Workflowを含める
 
 ---
 
@@ -422,12 +423,15 @@ GitHub Copilotはコード補完とPRレビューが主用途です。作業ス�
 
 ### .cursorrules
 
-Cursorはエディタ内でのコード補完とチャットが主用途です。CLAUDE.mdに近い記載が可能ですが、マルチターン対話の深さはやや劣るため、ルールを簡潔にします。
+Cursorはエディタ内でのコード補完とチャットが主用途ですが、Composer/Agent実行時はGit操作まで自律的に行うため、Git Workflowとセルフレビュー要件も必ず含めます。
 
 - [x] MASTER.md必須参照ルール
 - [x] 情報確認プロトコル
 - [x] Key Constraints テーブル
 - [x] 命名規則テーブル
+- [x] **Git Workflow**（Issue/Branch/PR）
+- [x] **セルフレビューチェックリスト**
+- [x] **スコープ外問題の取り扱い**
 - [x] コード生成ルール
 - [x] 参照ドキュメント一覧
 

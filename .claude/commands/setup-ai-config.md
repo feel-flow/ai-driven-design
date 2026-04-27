@@ -83,6 +83,18 @@ AskUserQuestion を使用して、どのツール向けの設定を生成する�
 ## Architecture
 [ARCHITECTURE.md からの要約]
 
+## Git Workflow (Mandatory)
+[docs/05-operations/deployment/git-workflow.md から要約]
+- Issue → Branch → Implement → Self-Review → PR → Merge
+- Branch naming and commit message format
+- PR requirements (self-review/test/issue link)
+
+## Self-Review Checklist
+[docs/05-operations/deployment/self-review.md から要約]
+
+## Out-of-Scope Issues
+- Create issue immediately and continue current task
+
 ## Important Rules
 - Always read docs/MASTER.md first for project context
 - Follow the coding standards in docs/03-implementation/PATTERNS.md

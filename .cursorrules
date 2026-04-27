@@ -65,6 +65,47 @@ This is an AI-driven development project starting with a core 7-document structu
 2. **Phase 2: Extension** - Additional features
 3. **Phase 3: Optimization** - Performance and scalability
 
+## Git Workflow (Mandatory)
+
+Always start from an Issue and follow the full flow:
+
+1. **Create Issue** - `gh issue create --title "..." --body "..."`
+2. **Create Branch** - `git checkout -b feature/#{issue-number}-{description}` (from `develop`)
+3. **Implement** - Follow `docs-template/MASTER.md` constraints
+4. **Self-Review** - Run checklist before PR
+5. **Run Tests** - lint / type-check / test must pass
+6. **Commit** - `<type>: #<issue> <subject>`
+7. **Create PR** - `gh pr create --base develop`
+8. **Merge & Cleanup** - Squash merge, return to `develop`, delete feature branch
+
+### Branch Naming
+- `feature/#{issue}-{description}` for features
+- `fix/#{issue}-{description}` for bug fixes
+- `chore/#{issue}-{description}` for maintenance
+
+### Commit Message Format
+`<type>: #<issue> <subject>`
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### PR Requirements
+- Include self-review results
+- Include test results
+- Link issue with `Closes #<issue-number>`
+
+## Self-Review Checklist (Before PR)
+1. DRY: no duplicate logic/imports/magic numbers
+2. Code Quality: strict typing, error handling, naming, no debug logs
+3. Imports: sorted and no unused imports
+4. Tests: added/updated and all pass
+5. Automation: lint/build/hooks pass
+
+## Out-of-Scope Issues
+If you find an out-of-scope problem while working:
+1. Create a GitHub Issue immediately
+2. Do not expand scope in current task
+3. Continue current task and reference the new issue in PR when needed
+
 ## Code Generation Rules
 
 ### Before Generating Code
