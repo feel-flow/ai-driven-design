@@ -66,4 +66,4 @@ Claude Codeセッション開始時に自動的に実行され、以下のよう
 
 ### post-merge.ace.sample.sh（参考）
 
-ACE autonomous 化のテンプレートとして、`docs-template/.claude/hooks/post-merge.ace.sample.sh` を用意しています（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。`ACE_SUBAGENT_ENABLED=1` のときだけ `scripts/ace/run-subagent.sh` をバックグラウンド起動する例です。詳細は [ace-autonomous.md](../../docs-template/05-operations/deployment/ace-autonomous.md) を参照してください。
+ACE autonomous 化のテンプレートとして、`docs-template/.claude/hooks/post-merge.ace.sample.sh` を用意しています（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。`ACE_SUBAGENT_ENABLED=1` のときだけ `scripts/ace/run-subagent.sh` をバックグラウンド起動する例です。サンプルは存在すれば **`.ace-capture/hook-env.sh`** を `source` し、`ACE_GARDEN_WALL_PATHS` 等を hook に渡します。詳細は [ace-autonomous.md](../../docs-template/05-operations/deployment/ace-autonomous.md) を参照してください。

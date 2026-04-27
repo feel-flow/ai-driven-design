@@ -2,6 +2,10 @@
 # ACE autonomous キャプチャ — worktree 上で subagent を起動するテンプレート（Issue #367）
 # 使用法: リポジトリルートから scripts/ace/run-subagent.sh（コピー先に合わせて調整）
 # 前提: ACE_GARDEN_WALL_PATHS が設定されていること（未設定なら即終了）
+#
+# ロックの腐敗: 異常終了で instance.lock が残った場合は手動で
+#   rmdir .ace-capture/instance.lock
+# を実行してから再試行する（中にファイルが無い空ディレクトリであること）。
 
 set -euo pipefail
 

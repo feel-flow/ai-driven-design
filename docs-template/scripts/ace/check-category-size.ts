@@ -10,7 +10,8 @@ const EXIT_THRESHOLD_EXCEEDED = 1;
 const EXIT_USAGE_ERROR = 2;
 
 const DEFAULT_MAX_ENTRIES_PER_CATEGORY = 130;
-const ACE_ENTRY_HEADER_PATTERN = /^### ACE-\d{3}:/m;
+/** PLAYBOOK の ID 規則（ACE-001 形式）。3 桁以上の連番にも対応する。 */
+const ACE_ENTRY_HEADER_PATTERN = /^### ACE-\d{3,}:/m;
 const CATEGORY_TABLE_LINE_PATTERN = /^\|\s*Category\s*\|\s*([^|]+)\|/im;
 
 export type CategoryHistogram = Readonly<Record<string, number>>;
@@ -54,7 +55,7 @@ export function analyzePlaybookMarkdown(content: string): AnalyzeResult {
   if (segments.length === 0) {
     return {
       kind: "error",
-      message: "ACE エントリ見出し（### ACE-NNN:）が見つかりません。",
+      message: "ACE エントリ見出し（### ACE-数字:）が見つかりません。",
     };
   }
   const histogram: Record<string, number> = {};
@@ -83,8 +84,12 @@ function parseMaxPerCategory(): number {
   if (raw === undefined || raw.trim() === "") {
     return DEFAULT_MAX_ENTRIES_PER_CATEGORY;
   }
-  const parsed = Number.parseInt(raw, 10);
+  const trimmed = raw.trim();
+  const parsed = Number.parseInt(trimmed, 10);
   if (!Number.isFinite(parsed) || parsed < 1) {
+    console.warn(
+      `ace-check: ACE_MAX_ENTRIES_PER_CATEGORY="${trimmed}" は無効のため、既定値 ${String(DEFAULT_MAX_ENTRIES_PER_CATEGORY)} を使います。`,
+    );
     return DEFAULT_MAX_ENTRIES_PER_CATEGORY;
   }
   return parsed;

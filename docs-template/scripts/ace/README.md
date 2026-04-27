@@ -28,4 +28,8 @@ Node 20+ を前提とします。TypeScript をそのまま実行する例:
 npx --yes tsx scripts/ace/check-category-size.ts docs/08-knowledge/PLAYBOOK.md
 ```
 
-環境変数 `ACE_MAX_ENTRIES_PER_CATEGORY`（省略時は `130`）で閾値を変更できます。
+環境変数 `ACE_MAX_ENTRIES_PER_CATEGORY`（省略時は `130`）で閾値を変更できます。値が **非数値または 1 未満**のときは既定値 `130` にフォールバックし、標準エラーに警告を出します。
+
+### post-merge 用の環境変数ファイル
+
+Git GUI 等では hook に環境変数が渡らないことがあります。`.ace-capture/hook-env.sh` に `export ACE_GARDEN_WALL_PATHS=...` を書き、`post-merge.ace.sample.sh` が自動で `source` する流れを推奨します（詳細は [ace-autonomous.md](../../05-operations/deployment/ace-autonomous.md)）。

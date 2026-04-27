@@ -40,6 +40,17 @@ post-merge hook（任意）
 - **garden wall**: 変更を許可するパスを **環境変数 `ACE_GARDEN_WALL_PATHS`**（カンマ区切り）でホワイトリスト化し、自動マージ時の blast radius を限定します（プロジェクトごとに必ず設定）。
 - **Git の使い分け**: リポジトリルートや ref の解決には `git rev-parse` 等の **スクリプト向けコマンド** を使い、worktree のライフサイクルは `git worktree` に任せます（低レベル API での再実装は非推奨）。
 
+### Git hook と環境変数
+
+GUI の Git クライアントや一部の CI では、マージ実行時に **`ACE_GARDEN_WALL_PATHS` が空のまま** `post-merge` が動き、`run-subagent.sh` が exit 2 になることがあります。対策として次を推奨します。
+
+1. リポジトリに **`.ace-capture/hook-env.sh`**（git 管理するかしないかはチーム方針で決定）を置き、`export ACE_GARDEN_WALL_PATHS=...` など必要な変数を記述する。
+2. `post-merge.ace.sample.sh` と同様に、hook の先頭で `source "${REPO_ROOT}/.ace-capture/hook-env.sh"` を実行する（サンプルは既にこの source を含む）。
+
+### 排他ロックの腐敗（mkdir ロック）
+
+異常終了で `.ace-capture/instance.lock` が残ると、以降の実行が常にスキップされます。手動で **`rmdir .ace-capture/instance.lock`**（空ディレクトリであることを確認）して解除してください。長期運用では mtime に基づく stale 解除を独自に足す選択肢もあります。
+
 ## 4 ガード（自動マージ前の最低限）
 
 1. **Path whitelist**: `ACE_GARDEN_WALL_PATHS` 外への変更がないこと（PR diff で検証）。
@@ -57,6 +68,7 @@ post-merge hook（任意）
 | `ACE_SUBAGENT_AUTO_MERGE` | ガード通過後に squash マージまで自動で行うか | `0`（無効） |
 | `ACE_GARDEN_WALL_PATHS` | 編集を許可するパス（カンマ区切り） | プロジェクト固有（必須で設定） |
 | `ACE_PLAYBOOK_PATH` | `check-category-size.ts` が読む Playbook ファイル | 例: `docs/08-knowledge/PLAYBOOK.md` |
+| `ACE_MAX_ENTRIES_PER_CATEGORY` | カテゴリあたりの最大エントリ件数 | 省略時は `130`。**非数値や 0 以下は無効**として既定値にフォールバックし、stderr に警告を出す |
 
 ## Shadow 運用（段階導入）
 
@@ -84,6 +96,12 @@ docs-only の自動 PR で、構造検証（例: `ace:verify`）が CI で保証
 - 実装元（別プロダクト）: FeelFlow ID Platform 等での運用検証後、[CASE_STUDIES.md](../../../docs/CASE_STUDIES.md) にメトリクスを追記する（プレースホルダー済み）
 
 ## Changelog
+
+### [1.0.1] - 2026-04-27
+
+#### 変更
+
+- PR レビュー反映: hook 用 `hook-env.sh`、`ACE_MAX_ENTRIES_PER_CATEGORY` 無効時の警告、ロック腐敗の手順、エントリ ID 正規表現を 3 桁以上に拡張
 
 ### [1.0.0] - 2026-04-27
 

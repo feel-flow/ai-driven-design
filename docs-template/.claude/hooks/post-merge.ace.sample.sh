@@ -15,6 +15,15 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 readonly REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# Git GUI や CI の merge では環境変数が空のことがある。リポジトリ内の
+# .ace-capture/hook-env.sh に export ACE_GARDEN_WALL_PATHS=... 等を書き、ここで source する。
+readonly HOOK_ENV_FILE="${REPO_ROOT}/.ace-capture/hook-env.sh"
+if [[ -f "$HOOK_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$HOOK_ENV_FILE"
+fi
+
 readonly RUNNER="${REPO_ROOT}/scripts/ace/run-subagent.sh"
 
 if [[ ! -x "$RUNNER" ]]; then
