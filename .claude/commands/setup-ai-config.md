@@ -140,6 +140,13 @@ bash scripts/setup-multi-review.sh
 生成したファイルの一覧と、各ファイルの要約を表示してください。
 Multi-CLI Review Agent のセットアップ結果も含めて報告してください。
 
+### 8. （任意）ACE autonomous テンプレートの案内
+
+ユーザーが **ACE ナレッジキャプチャの autonomous 化**（post-merge → subagent → worktree）に関心を示した場合、または Multi-CLI / Git 運用の文脈で自動化を聞かれた場合のみ、AskUserQuestion で希望を確認する。
+
+- **オプション例**: 「案内する」/「スキップ」
+- **案内する**を選んだ場合: `docs-template/05-operations/deployment/ace-autonomous.md`、`docs-template/scripts/ace/`、`.claude/agents/ace-capture.md` テンプレのコピー先、環境変数（`ACE_SUBAGENT_ENABLED` / `ACE_SUBAGENT_AUTO_MERGE` / `ACE_GARDEN_WALL_PATHS`）の **明示 opt-in** を説明する。
+
 ## 重要ルール
 
 - 既存ファイルがある場合は上書き前に必ず確認すること

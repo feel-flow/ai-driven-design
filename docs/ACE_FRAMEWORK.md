@@ -10,6 +10,7 @@ tags: [ace, knowledge-management, playbook, ai-driven, context-engineering]
 references:
   - docs-template/08-knowledge/PLAYBOOK.md
   - docs-template/05-operations/deployment/ace-cycle.md
+  - docs-template/05-operations/deployment/ace-autonomous.md
   - docs-template/05-operations/deployment/knowledge-management.md
   - docs/ACE_SETUP.md
 changeImpact: high
@@ -21,6 +22,7 @@ changeImpact: high
 > - [Playbook テンプレート](../docs-template/08-knowledge/PLAYBOOK.md) - ACE Playbook のテンプレートファイル
 > - [ACE サイクル運用手順](../docs-template/05-operations/deployment/ace-cycle.md) - Generate → Reflect → Curate の具体手順
 > - [ナレッジ管理](../docs-template/05-operations/deployment/knowledge-management.md) - GitHub Discussions ベースのナレッジ管理
+> - [ACE autonomous](../docs-template/05-operations/deployment/ace-autonomous.md) - マージ後キャプチャの subagent + worktree（任意）
 
 ## 目次
 

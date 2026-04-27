@@ -23,6 +23,7 @@ updated: "YYYY-MM-DD"
 | [agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md) | 削除事故防止ハーネス設計 | ⭐⭐⭐⭐ - |
 | [knowledge-management.md](./deployment/knowledge-management.md) | ナレッジ体系化（マージ前） | ⭐⭐⭐⭐ 3rd |
 | [ace-cycle.md](./deployment/ace-cycle.md) | ACEサイクル（Playbook増分更新） | ⭐⭐⭐⭐ 3.5th |
+| [ace-autonomous.md](./deployment/ace-autonomous.md) | ACE autonomous（subagent + worktree、任意） | ⭐⭐⭐ 3.6th |
 | [ai-tools-integration.md](./deployment/ai-tools-integration.md) | AIツール統合設定 | ⭐⭐⭐ - |
 | [ci-cd.md](./deployment/ci-cd.md) | CI/CDパイプライン | ⭐⭐⭐ 4th |
 | [infrastructure.md](./deployment/infrastructure.md) | インフラ構成 | ⭐⭐⭐ - |

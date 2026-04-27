@@ -11,6 +11,7 @@
     "build:mcp": "npm --prefix mcp run build",
     "build:spec-index": "node scripts/build-spec-index.mjs",
     "test": "npm --prefix mcp test",
+    "ace:check-playbook-categories": "npx --yes tsx docs-template/scripts/ace/check-category-size.ts docs-template/08-knowledge/PLAYBOOK.md",
     "setup:labels": "bash scripts/setup-github-labels.sh",
     "obsidian:sync": "node scripts/obsidian-sync.mjs",
     "obsidian:setup": "bash scripts/setup-obsidian-hook.sh",

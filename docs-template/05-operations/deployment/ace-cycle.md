@@ -17,6 +17,8 @@ ACE (Agentic Context Engineering) サイクルは、レビュー完了後・マ�
 
 **チーム開発（参考）**: PLAYBOOK.mdのコンフリクトリスクがあるため、ACE更新は別ブランチ/別PRで対応することも検討
 
+**autonomous（任意）**: マージ後に subagent と専用 worktree でキャプチャを非同期化するパターン。導入は [ace-autonomous.md](./ace-autonomous.md) と `docs-template/scripts/ace/` のテンプレートを参照（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。
+
 **所要時間**: 5〜15分（AIツール支援あり）
 
 ---
@@ -286,6 +288,7 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 - **概念説明**: [ACE フレームワーク](../../../docs/ACE_FRAMEWORK.md) - ACE の理論的背景
 - **Playbook テンプレート**: [PLAYBOOK.md](../../08-knowledge/PLAYBOOK.md) - エントリの追記先
 - **ナレッジ管理**: [knowledge-management.md](./knowledge-management.md) - GitHub Discussions ベースの管理
+- **autonomous 化**: [ace-autonomous.md](./ace-autonomous.md) - subagent + worktree（任意）
 - **Git ワークフロー**: [git-workflow.md](./git-workflow.md) - ワークフロー全体の中での位置づけ
 - **親ドキュメント**: [DEPLOYMENT.md](../DEPLOYMENT.md) - 運用ガイド索引
 

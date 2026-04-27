@@ -56,6 +56,13 @@ npm install && npm run setup
 
 大規模な `node_modules` や `git worktree` を併用する開発環境では、macOS のファイルディスクリプタ上限設定も推奨です。詳細は [docs/MAXFILES_SETUP_GUIDE.md](./docs/MAXFILES_SETUP_GUIDE.md) を参照してください。
 
+### ACE ナレッジキャプチャの autonomous 化（任意）
+
+PR マージ後の `/ace-curate` 手動実行を、**別プロセスの subagent + git worktree** に任せる推奨パターンがあります（feature flag でデフォルト無効）。テンプレートと運用手順は次を参照してください。
+
+- [ace-autonomous.md](./docs-template/05-operations/deployment/ace-autonomous.md)（概要・4 ガード・shadow 運用）
+- [docs-template/scripts/ace/README.md](./docs-template/scripts/ace/README.md)（配置ファイル一覧）
+
 ### 利用可能なコマンド
 
 | コマンド | 説明 |
