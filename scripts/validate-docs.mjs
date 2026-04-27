@@ -4,12 +4,12 @@
  * AI仕様駆動開発のコア7文書の存在を検証するスクリプト
  *
  * Usage: node scripts/validate-docs.mjs [docs-dir]
- *   docs-dir: 検証対象のdocsディレクトリ（デフォルト: ./docs）
+ *   docs-dir: 検証対象のdocsディレクトリ（デフォルト: ./docs-template）
  */
 import fs from 'fs';
 import path from 'path';
 
-const DOCS_DIR = process.argv[2] || 'docs';
+const DOCS_DIR = process.argv[2] || 'docs-template';
 const MINIMUM_LINES = 10;
 
 // コア7文書の定義（最小構成 — フォルダ名の揺れに対応）
