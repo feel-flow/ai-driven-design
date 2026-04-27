@@ -1,10 +1,10 @@
 ---
 title: "PATTERNS"
-version: "1.0.0"
+version: "1.1.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "YYYY-MM-DD"
+updated: "2026-04-27"
 ---
 
 # PATTERNS.md - 実装パターンガイド

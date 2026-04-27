@@ -25,7 +25,7 @@ Layer 1 の Q1〜Q6 は「配置判断」、Layer 3 は「依存方向の検証�
 | Decision Tree 分岐 | 典型ディレクトリ | 推奨レイヤー名（lint 設定で使用） | 依存許可の原則 |
 | --- | --- | --- | --- |
 | Q1 外部システム通信 | `infrastructure/*` | `adapters` | `application` / `domain` に依存可。逆方向は禁止 |
-| Q2 リクエスト入口 | `interfaces/*` | `interface` | `application` 呼び出しのみ許可 |
+| Q2 リクエスト入口 | `interfaces/*` | `interfaces` | `application` 呼び出しのみ許可 |
 | Q3 オーケストレーション | `application/*` | `application` | `domain` とポート（抽象）に依存可 |
 | Q4 永続化・状態保持 | `infrastructure/*` | `adapters` | Q1 と同様。実装詳細は内向き禁止 |
 | Q5 ドメインモデル | `domain/*` | `domain` | 内部完結（他レイヤー参照禁止） |
@@ -40,7 +40,7 @@ Layer 1 の Q1〜Q6 は「配置判断」、Layer 3 は「依存方向の検証�
 | Python | `import-linter` | `ruff` + custom rule | 契約ベースで依存方向を定義しやすい。`ignore_imports` が明示的 |
 | TypeScript / JavaScript | `dependency-cruiser` | `eslint-plugin-boundaries` | 依存グラフ可視化とルール化を両立。モノレポでも扱いやすい |
 | Go | `depguard`（golangci-lint） | `go-cleanarch` | CI への統合が容易。パッケージ境界の禁止ルールを定義可能 |
-| Rust | `cargo-deny` + custom check | `cargo-deps` + script | crate 単位の依存制御と可視化を併用。違反検出をスクリプト化しやすい |
+| Rust | `cargo-deps` + custom clippy lint | `cargo-deny` + script | 依存グラフ可視化と境界違反検知を分離して実装しやすい |
 
 選定時は以下を比較する:
 
@@ -87,11 +87,14 @@ ignore_imports =
 }
 ```
 
-> 既知違反は `forbidden` を消すのではなく、`allowed` 例外や別ルールで管理し、コメントで追跡する。
+> 導入初期は `warn` でもよいが、CI で確実に止める段階では `error` に昇格する。
+> 既知違反は `forbidden` を消すのではなく、`allowed` 例外（TS）や `ignore_imports`（Python）で管理し、コメントで追跡する。
 
 ## 5. CI / pre-commit への組み込み例
 
-## 5.1 GitHub Actions 例（言語別ジョブ）
+> 以下はサンプル。ブランチ名、ランタイムバージョン、パッケージマネージャは各プロジェクト標準に置き換えること。
+
+### 5.1 GitHub Actions 例（言語別ジョブ）
 
 ```yaml
 name: dependency-direction-lint
@@ -125,7 +128,7 @@ jobs:
       - run: npx depcruise --config .dependency-cruiser.cjs src
 ```
 
-## 5.2 pre-commit 例
+### 5.2 pre-commit 例
 
 ```yaml
 repos:
