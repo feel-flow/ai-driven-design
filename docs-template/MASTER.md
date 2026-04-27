@@ -1,10 +1,11 @@
 ---
 title: "MASTER"
-version: "1.0.0"
+version: "1.1.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "YYYY-MM-DD"
+updated: "2026-04-27"
+changeImpact: "MEDIUM"
 ---
 
 # AI駆動開発マスタードキュメント
@@ -517,6 +518,7 @@ metrics:
 ### 開発プロセスガイド
 
 - [06-reference/DEVELOPMENT_PREPARATION.md](./06-reference/DEVELOPMENT_PREPARATION.md) - 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）
+- [00-planning/POC_WORKFLOW.md](./00-planning/POC_WORKFLOW.md) - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
 - [06-reference/DECISION_MATRIX.md](./06-reference/DECISION_MATRIX.md) - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
 - [06-reference/COPILOT-AGENTS.md](./06-reference/COPILOT-AGENTS.md) - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
 
@@ -687,6 +689,12 @@ Changelog エントリには以下のカテゴリを使用する（[Keep a Chang
 - [ ] 定数の配置が層責務に沿っている（Domain/Application/Infrastructure）
 
 ## Changelog
+
+### [1.1.0] - 2026-04-27
+
+#### 追加
+
+- PoCワークフロー・結果記録テンプレート・仕様マッピングガイドへの参照を追加
 
 ### [1.0.0] - YYYY-MM-DD
 
