@@ -1,5 +1,5 @@
 ---
-title: "PoC workflow"
+title: "PoC ワークフロー"
 version: "1.0.0"
 status: "draft"
 owner: "@your-github-handle"
