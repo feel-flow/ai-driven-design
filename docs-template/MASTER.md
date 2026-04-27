@@ -446,6 +446,8 @@ metrics:
 - [02-design/DOMAIN.md](./02-design/DOMAIN.md) - ビジネスロジック
 - [03-implementation/PATTERNS.md](./03-implementation/PATTERNS.md) - 実装パターン
 - [04-quality/TESTING.md](./04-quality/TESTING.md) - テスト戦略
+- [04-quality/GUARDRAILS_THREE_LAYERS.md](./04-quality/GUARDRAILS_THREE_LAYERS.md) - ガードレール3層（仕様・自動チェック・人間レビュー）
+- [04-quality/SECURITY_REVIEW_CHECKLIST.md](./04-quality/SECURITY_REVIEW_CHECKLIST.md) - セキュリティレビューチェックリスト（PR用）
 - [05-operations/DEPLOYMENT.md](./05-operations/DEPLOYMENT.md) - デプロイ戦略
 
 > コア7文書はプロジェクトの最小構成です。成長に応じて各フォルダ内に文書を追加してください。全文書が揃わなくてもAIと対話しながら段階的に仕様を策定できます。
