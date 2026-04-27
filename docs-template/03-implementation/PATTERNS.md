@@ -1,10 +1,10 @@
 ---
 title: "PATTERNS"
-version: "1.0.0"
+version: "1.1.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "YYYY-MM-DD"
+updated: "2026-04-27"
 ---
 
 # PATTERNS.md - 実装パターンガイド
@@ -607,7 +607,23 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 新規ファイルの雛形（SKELETON テンプレ）は [templates/README.md](./templates/README.md) に集約する。言語非依存の運用ルールと、TypeScript 等のコピー元パスを必ず確認すること。
 
+## 12. 依存方向 lint（Layer 3）
+
+Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言語別 lint ツールで自動検証する。
+
+- 目的: 境界違反の import を CI / pre-commit で機械的に検知する
+- 注意: Layer 3 は **言語依存**（Python/TypeScript/Go/Rust など）
+- 運用: `ignore_imports` などを使って既知負債を可視化し、削除ではなく追跡する
+
+詳細は [DEPENDENCY_LINT.md](./DEPENDENCY_LINT.md) を参照。
+
 ## Changelog
+
+### [1.1.0] - 2026-04-27
+
+#### 追加
+
+- Layer 3（依存方向 lint）ガイドへの委譲リンクを追加
 
 ### [1.0.0] - YYYY-MM-DD
 
