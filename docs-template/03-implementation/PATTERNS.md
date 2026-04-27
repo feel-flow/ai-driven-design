@@ -605,6 +605,8 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 詳細な分岐内容とチェックリストは [DECISION_TREE.md](./DECISION_TREE.md) を参照。
 
+新規ファイルの雛形（SKELETON テンプレ）は [templates/README.md](./templates/README.md) に集約する。言語非依存の運用ルールと、TypeScript 等のコピー元パスを必ず確認すること。
+
 ## Changelog
 
 ### [1.0.0] - YYYY-MM-DD

@@ -1,0 +1,13 @@
+-- SKELETON — do not execute directly as production migration without review.
+-- Copy to: migrations/（DECISION_TREE Q4 — DB スキーマ変更）
+--
+-- TODO: テーブル名・カラム型・インデックス方針を DOMAIN.md / ARCHITECTURE.md と整合。
+-- 既知の注意:
+--   - 大規模テーブルでは LOCK 時間が長引く。段階的リリースや expand/contract を検討。
+--   - ロールバックは「新 forward migration」で戻す方針を推奨（DOWN の複雑化を避ける）。
+
+-- Example (replace entirely):
+-- CREATE TABLE example (
+--   id UUID PRIMARY KEY,
+--   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+-- );
