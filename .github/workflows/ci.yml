@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        # markdownlint-cli2 0.20+ の依存（string-width）が RegExp `v` フラグを使用するため Node 20 以上が必要
+        node-version: [20, 22, 24]
 
     steps:
       - uses: actions/checkout@v4
