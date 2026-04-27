@@ -67,6 +67,8 @@ GitHub Discussions は **人間が読むためのナラティブ（物語的記�
 
 詳細: [ace-cycle.md](./ace-cycle.md)
 
+マージ後のキャプチャを **人手から切り離す** 場合は、[ace-autonomous.md](./ace-autonomous.md) の autonomous パターン（feature flag・garden wall・shadow 運用）を参照してください。
+
 ---
 
 ## ナレッジ分類体系

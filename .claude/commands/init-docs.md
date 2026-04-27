@@ -73,6 +73,14 @@ MASTER.md は特に重要です。以下を必ず反映してください:
 
 作成したファイル一覧を表示し、次のステップとして `/validate-docs` の実行を推奨してください。
 
+### 6. （任意）ACE autonomous テンプレートの案内
+
+ユーザーが **マージ後の ACE を subagent + worktree で自動化**したい場合のみ、AskUserQuestion で希望を確認する。
+
+- **オプション例**: 「はい（テンプレートの場所を案内）」/「いいえ（スキップ）」
+- **はい**の場合: `docs-template/05-operations/deployment/ace-autonomous.md` と `docs-template/scripts/ace/` をコピー先の目安とともに説明する。feature flag（`ACE_SUBAGENT_ENABLED` 等）は **デフォルト無効** で開始することを必ず伝える。
+- **いいえ**の場合: 既存の手動 `/ace-curate` 運用で問題ない旨を一言添える。
+
 ## 重要ルール
 
 - テンプレートの構造と必須セクションは変更しないこと

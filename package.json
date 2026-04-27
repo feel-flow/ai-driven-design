@@ -10,7 +10,9 @@
     "check": "npm --prefix mcp run check",
     "build:mcp": "npm --prefix mcp run build",
     "build:spec-index": "node scripts/build-spec-index.mjs",
-    "test": "npm --prefix mcp test",
+    "test": "npm --prefix mcp test && npm run test:ace-scripts",
+    "test:ace-scripts": "vitest run",
+    "ace:check-playbook-categories": "npx --yes tsx docs-template/scripts/ace/check-category-size.ts docs-template/08-knowledge/PLAYBOOK.md",
     "setup:labels": "bash scripts/setup-github-labels.sh",
     "obsidian:sync": "node scripts/obsidian-sync.mjs",
     "obsidian:setup": "bash scripts/setup-obsidian-hook.sh",
@@ -18,7 +20,8 @@
   },
   "devDependencies": {
     "husky": "^9.1.0",
-    "markdownlint-cli2": "^0.20.0"
+    "markdownlint-cli2": "^0.20.0",
+    "vitest": "^4.1.5"
   },
   "engines": {
     "node": ">=20.0.0"

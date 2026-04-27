@@ -38,6 +38,9 @@ jobs:
       - name: Run MCP server tests
         run: npm --prefix mcp test
 
+      - name: Run ACE script unit tests
+        run: npm run test:ace-scripts
+
       - name: Validate docs structure
         run: npm run validate -- docs-template
 
