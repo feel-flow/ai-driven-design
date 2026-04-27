@@ -83,6 +83,18 @@ AskUserQuestion を使用して、どのツール向けの設定を生成する�
 ## Architecture
 [ARCHITECTURE.md からの要約]
 
+## Git Workflow (Mandatory)
+[docs/05-operations/deployment/git-workflow.md から要約]
+- Issue 起票から着手し、ブランチ → 実装 → セルフレビュー → PR → マージの順で進める
+- ブランチ命名規約とコミットメッセージ形式を守る
+- PR にはセルフレビュー結果・テスト結果・Issue リンク（例: `Closes #123`）を含める
+
+## Self-Review Checklist
+[docs/05-operations/deployment/self-review.md から要約]
+
+## Out-of-Scope Issues
+- スコープ外の問題は即座に Issue を起票し、現行タスクは継続する（スコープ拡大はしない）
+
 ## Important Rules
 - Always read docs/MASTER.md first for project context
 - Follow the coding standards in docs/03-implementation/PATTERNS.md

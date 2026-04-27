@@ -1,7 +1,7 @@
 # Cursor Rules for AI Spec-Driven Development
 
 ## 🚨 MANDATORY: Read MASTER.md First
-Before generating any code, you MUST read and understand `docs/MASTER.md`.
+Before generating any code, you MUST read and understand `docs-template/MASTER.md`.
 
 ## Project Context
 This is an AI-driven development project starting with a core 7-document structure optimized for AI tools, extensible as the project grows. The project emphasizes "less is more" - beginning with fewer, highly-focused documents that AI can effectively parse, then adding documents as needed.
@@ -65,13 +65,56 @@ This is an AI-driven development project starting with a core 7-document structu
 2. **Phase 2: Extension** - Additional features
 3. **Phase 3: Optimization** - Performance and scalability
 
+## Git Workflow (Mandatory)
+
+運用の詳細は `docs/AI_GIT_WORKFLOW.md`（本リポジトリの手順）。テンプレ側の展開例は `docs-template/05-operations/deployment/git-workflow.md` を参照。
+
+Always start from an Issue and follow the full flow:
+
+1. **Create Issue** - `gh issue create --title "..." --body "..."`
+2. **Create Branch** - `git checkout -b feature/#{issue-number}-{description}` (from `develop`)
+3. **Implement** - Follow `docs-template/MASTER.md` constraints
+4. **Self-Review** - Run checklist before PR
+5. **Run Tests** - lint / type-check / test must pass
+6. **Commit** - `<type>: #<issue> <subject>`
+7. **Create PR** - `gh pr create --base develop`
+8. **Merge & Cleanup** - Squash merge, return to `develop`, delete feature branch
+
+### Branch Naming
+- `feature/#{issue}-{description}` for features
+- `fix/#{issue}-{description}` for bug fixes
+- `chore/#{issue}-{description}` for maintenance
+
+### Commit Message Format
+`<type>: #<issue> <subject>`
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### PR Requirements
+- Include self-review results
+- Include test results
+- Link issue with `Closes #<issue-number>`
+
+## Self-Review Checklist (Before PR)
+1. DRY: no duplicate logic/imports/magic numbers
+2. Code Quality: strict typing, error handling, naming, no debug logs
+3. Imports: sorted and no unused imports
+4. Tests: added/updated and all pass
+5. Automation: lint/build/hooks pass
+
+## Out-of-Scope Issues
+If you find an out-of-scope problem while working:
+1. Create a GitHub Issue immediately
+2. Do not expand scope in current task
+3. Continue current task and reference the new issue in PR when needed
+
 ## Code Generation Rules
 
 ### Before Generating Code
-1. Read `docs/MASTER.md` for project context
-2. Check `docs/03-implementation/PATTERNS.md` for implementation patterns
-3. Verify `docs/02-design/ARCHITECTURE.md` for technical decisions
-4. Review `docs/02-design/DOMAIN.md` for business logic
+1. Read `docs-template/MASTER.md` for project context
+2. Check `docs-template/03-implementation/PATTERNS.md` for implementation patterns
+3. Verify `docs-template/02-design/ARCHITECTURE.md` for technical decisions
+4. Review `docs-template/02-design/DOMAIN.md` for business logic
 
 ### During Code Generation
 1. Follow the coding rules from MASTER.md
@@ -117,14 +160,15 @@ When generating code, always include this constraint:
 ```
 
 ## Document References
-- `docs/MASTER.md` - Project overview and rules
-- `docs/01-context/PROJECT.md` - Business requirements
-- `docs/02-design/ARCHITECTURE.md` - Technical architecture
-- `docs/02-design/DOMAIN.md` - Business logic
-- `docs/03-implementation/PATTERNS.md` - Implementation patterns
-- `docs/04-quality/TESTING.md` - Testing strategies
-- `docs/05-operations/DEPLOYMENT.md` - Deployment procedures
-- `docs/08-knowledge/` - Knowledge base and best practices
+- `docs-template/MASTER.md` - Project overview and rules
+- `docs-template/01-context/PROJECT.md` - Business requirements
+- `docs-template/02-design/ARCHITECTURE.md` - Technical architecture
+- `docs-template/02-design/DOMAIN.md` - Business logic
+- `docs-template/03-implementation/PATTERNS.md` - Implementation patterns
+- `docs-template/04-quality/TESTING.md` - Testing strategies
+- `docs-template/05-operations/DEPLOYMENT.md` - Deployment procedures
+- `docs-template/08-knowledge/` - Knowledge base and best practices
+- `docs/AI_GIT_WORKFLOW.md` - Issue-first Git workflow for this repository
 
 ## Code Review Checklist
 - [ ] MASTER.md rules followed
@@ -137,4 +181,4 @@ When generating code, always include this constraint:
 - [ ] Naming conventions followed
 - [ ] Constants properly organized by layer
 
-Remember: Always reference MASTER.md for project-specific requirements and constraints.
+Remember: Always reference `docs-template/MASTER.md` for project-specific requirements and constraints.
