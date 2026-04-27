@@ -441,6 +441,9 @@ metrics:
 - [GETTING_STARTED.md](./GETTING_STARTED.md) - Quickstart（既存プロジェクトへの導入・AI駆動・読み順・プロンプト）
 
 ### コア7文書（起点）
+
+本リポジトリのテンプレートでは、中央の **MASTER.md** と以下6文書をコア7と位置づける。
+
 - [01-context/PROJECT.md](./01-context/PROJECT.md) - ビジョンと要件
 - [02-design/ARCHITECTURE.md](./02-design/ARCHITECTURE.md) - システム設計
 - [02-design/DOMAIN.md](./02-design/DOMAIN.md) - ビジネスロジック
@@ -449,6 +452,13 @@ metrics:
 - [05-operations/DEPLOYMENT.md](./05-operations/DEPLOYMENT.md) - デプロイ戦略
 
 > コア7文書はプロジェクトの最小構成です。成長に応じて各フォルダ内に文書を追加してください。全文書が揃わなくてもAIと対話しながら段階的に仕様を策定できます。
+
+### 品質・セキュリティ（推奨拡張）
+
+コア7以外に、次を参照すると品質ゲートとレビュー観点が揃いやすい。
+
+- [04-quality/GUARDRAILS_THREE_LAYERS.md](./04-quality/GUARDRAILS_THREE_LAYERS.md) - ガードレール3層（仕様・自動チェック・人間レビュー）
+- [04-quality/SECURITY_REVIEW_CHECKLIST.md](./04-quality/SECURITY_REVIEW_CHECKLIST.md) - セキュリティレビューチェックリスト（PR用）
 
 ### ナレッジベース
 - [08-knowledge/LESSONS_LEARNED.md](./08-knowledge/LESSONS_LEARNED.md) - 開発過程で得た知見・解決策
@@ -634,3 +644,7 @@ Changelog エントリには以下のカテゴリを使用する（[Keep a Chang
 #### 追加
 
 - 初版作成
+
+#### 変更
+
+- 「関連ドキュメント」のコア7列挙を MASTER+6文書に限定し、品質・セキュリティ拡張を別見出しへ分離
