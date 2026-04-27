@@ -10,6 +10,48 @@ AI開発ツールに最適化されたGit Flowベースのワークフローで�
 
 > **運用原則**: 本ワークフローは [ワークフロー運用原則](./workflow-principles.md)（ノンストップフロー・スコープ外Issue化・曖昧仕様確認タイミング）に従って運用します。
 
+## 日々の開発フロー（AIにタスクを渡す前）
+
+Issue起点の作業に入る前、書籍第10章「日々の開発フロー」で推奨される**着手前の確認**と、タスクに応じた**参照文書**、**レビュー学習のルール化**を揃えます。ここに書かれた内容を満たしてから「ステップ1: Issue作成」以降（または既存Issueへの実装着手）に進みます。
+
+### AIに渡す前の3確認ポイント
+
+1. **仕様の粒度**  
+   受け入れ基準が、検証可能な表現で具体的に書けているか。曖昧なままなら、Issue 本文・コメントで切り分け、必要に応じて [DOMAIN.md](../../02-design/DOMAIN.md) や [PROJECT.md](../../01-context/PROJECT.md) を更新する。
+
+2. **設計の粒度**  
+   採用アーキテクチャ・禁止事項・データの流れなど、実装者（人間・AI）と共有できる制約が [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md) / [MASTER.md](../../MASTER.md) レベルで示されているか。分岐点が複数あれば **ADR（設計判断）が必要**かを判定し、必要なら [DECISIONS.md](../../06-reference/DECISIONS.md) へ記録してから手を付ける。
+
+3. **テストの粒度**  
+   テストは仕様の「証明」ではなく、受け入れ基準の「確認手段」に留まっているか。テストだけを読むと仕様が補完されてしまっていないか、仕様文書（Issue・DOMAIN 等）と [TESTING.md](../../04-quality/TESTING.md) の役割が混線していないかを見直す。
+
+### タスク種別×参照文書
+
+コア7文書を前提に、タスクの種類ごとに「最初に開く文書」の優先度を揃えます。パスはテンプレート内の本リポジトリ相対表記（プロジェクト展開時は自プロジェクトの `docs/` 配下に置き換え）です。
+
+| タスク種別 | 必須参照 | 推奨参照 | 通常不要 |
+|------------|----------|----------|----------|
+| 新機能 | [MASTER.md](../../MASTER.md), [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [DOMAIN.md](../../02-design/DOMAIN.md) | [PATTERNS.md](../../03-implementation/PATTERNS.md), [TESTING.md](../../04-quality/TESTING.md) | [DEPLOYMENT.md](../DEPLOYMENT.md) |
+| バグ修正 | 該当する [GitHub Issue](https://docs.github.com/ja/issues) またはバグチケット（再現手順・期待値）, [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md) 全体（修正箇所に紐づく節のみを読む方が効率的） |
+| リファクタリング | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md), [PATTERNS.md](../../03-implementation/PATTERNS.md) | [TESTING.md](../../04-quality/TESTING.md) | [DOMAIN.md](../../02-design/DOMAIN.md)（挙動を変えない作業の場合） |
+| インフラ | [MASTER.md](../../MASTER.md), [DEPLOYMENT.md](../DEPLOYMENT.md) | [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md) | [DOMAIN.md](../../02-design/DOMAIN.md)（業務ルール非関連の範囲） |
+| ドキュメント | [MASTER.md](../../MASTER.md)（構造・表記のSSOT） | 今回更新する対象文書のみ | 上記に該当するもの（タスク外の全文書を読まなくてよい） |
+
+> **表の読み方**: 「必須」は実装前に目を通すこと。「通常不要」は、タスクがその領域に手を入れない限り、最初から全文を読まなくてよいという意味合いです。
+
+### レビュー指摘から PATTERNS.md へのルール化
+
+同じ指摘・同テーマの学びが繰り返されたとき、段階的に文書化の深さを上げます。閾値は目安（チームで [PATTERNS.md](../../03-implementation/PATTERNS.md) の方針に合わせて調整可）。
+
+1. **1回目**  
+   レビュー指摘内容と対応方針を、該当 **Issue / PR コメント**にメモとして残す（次の実装者が検索できる形で）。
+
+2. **2回目**  
+   同種の学びが再発したら、[LESSONS_LEARNED.md](../../08-knowledge/LESSONS_LEARNED.md) に**再現条件・正しい扱い・例**を追記する（ナラティブな教訓として保持）。
+
+3. **3回目**  
+   同じ系統の指摘が3回目に到達したら、再発防止の**ルール**として [PATTERNS.md](../../03-implementation/PATTERNS.md) に追記する。ここまで来たら **Lint ルール、テンプレート、チェックリストへの組み込み**（＝可能な限りの自動化）を検討するタイミングとする。
+
 ## ブランチ戦略
 
 ### ブランチ構造（Git Flow準拠）
