@@ -104,7 +104,6 @@ MASTER.mdには以下の重要な情報が含まれています：
 【必須確認事項】
 
 1. [項目名]: [何が不明か]
-
    - 例: データベース種別
    - 理由: PostgreSQLとMongoDBで設計が大きく異なるため
    - 推奨: PostgreSQL（リレーショナルデータの場合）/ MongoDB（ドキュメント指向の場合）
@@ -361,7 +360,6 @@ Always reference MASTER.md for project-specific requirements.
 ### ❌ よくある間違い
 
 1. **MASTER.mdを参照せずにコード生成**
-
    - 結果: プロジェクトの技術スタックと異なる実装
    - 回避: 必ずMASTER.mdを最初に読み込む
 

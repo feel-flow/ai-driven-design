@@ -329,13 +329,11 @@ cp ../ai-spec-driven-development/docs-template/MASTER.md \
 VS Codeで `docs/MASTER.md` を開いて、以下を記入：
 
 1. **プロジェクト識別情報**
-
    - プロジェクト名: [あなたのプロジェクト名]
    - バージョン: 0.1.0
    - 最終更新日: [今日の日付]
 
 2. **プロジェクト概要**
-
    - 何を作るか: [STEP 2のQ1]
    - なぜ作るか: [STEP 2のQ2]
    - 誰のためか: [STEP 2のQ3]
@@ -503,12 +501,10 @@ AIが教えてくれた方法で、「Hello World」が表示されることを�
 ### レベルアップしたら
 
 1. **GETTING_STARTED_NEW_PROJECT.md**
-
    - より詳細なプロジェクト立ち上げ手順
    - Phase 0-4の段階的アプローチ
 
 2. **MASTER.md**
-
    - プロジェクト全体のルール
    - コーディング規約
 

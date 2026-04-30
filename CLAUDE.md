@@ -57,7 +57,6 @@ I need clarification on the following before proceeding:
 [Required Confirmations]
 
 1. Database Type
-
    - Why needed: PostgreSQL and MongoDB require fundamentally different designs
    - Options:
      - PostgreSQL (recommended for relational data)

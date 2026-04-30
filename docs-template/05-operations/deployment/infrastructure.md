@@ -122,19 +122,16 @@ config/
 **設定カテゴリ**:
 
 1. **アプリケーション設定**
-
    - `PORT`: サーバーポート（デフォルト: 3000）
    - `NODE_ENV`: 実行環境（development/staging/production）
    - `APP_NAME`: アプリケーション識別名
 
 2. **データベース設定**
-
    - `DB_HOST`, `DB_PORT`: 接続情報
    - `DB_NAME`, `DB_USER`, `DB_PASSWORD`: 認証情報
    - 本番環境では必須検証
 
 3. **キャッシュ設定**
-
    - `REDIS_HOST`, `REDIS_PORT`: Redis接続情報
 
 4. **AWS設定**

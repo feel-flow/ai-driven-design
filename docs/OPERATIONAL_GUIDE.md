@@ -322,29 +322,24 @@ changeImpact: low | medium | high # 変更の影響度
 文書更新時の手順:
 
 1. **差分解析**:
-
    - 追加/変更/削除された行数を計測
    - 変更されたセクションの種別を特定
 
 2. **impact レベル決定**:
-
    - `low`: 誤字修正、整形、コメント追加
    - `medium`: 新セクション追加、非破壊的な機能追加
    - `high`: 既存概念の再定義、削除、破壊的変更
 
 3. **version bump**:
-
    - `low` → patch 更新 (1.0.0 → 1.0.1)
    - `medium` → minor 更新 (1.0.0 → 1.1.0)
    - `high` → major 更新 (1.0.0 → 2.0.0)
 
 4. **CHANGELOG 更新** (`high` のみ必須):
-
    - `docs: <FileName> <summary>` の形式で記載
    - 例: `docs: ARCHITECTURE.md Migrated to microservices architecture`
 
 5. **リンク整合性チェック**:
-
    - 参照先ファイルの存在確認
    - アンカーリンクの有効性確認
 
