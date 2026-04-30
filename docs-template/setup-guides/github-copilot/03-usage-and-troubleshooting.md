@@ -86,7 +86,6 @@ interface User {
 ### 4-2: Copilot Chatのテスト
 
 1. **Copilot Chatを開く**
-
    - macOS: `Cmd + I`
    - Windows/Linux: `Ctrl + I`
 
@@ -254,12 +253,10 @@ git push
 **手順**:
 
 1. **GitHubアカウント連携を確認**
-
    - VS Code左下のアカウントアイコンをクリック
    - 「Sign in to GitHub」が表示される場合は再ログイン
 
 2. **サブスクリプションを確認**
-
    - <https://github.com/settings/copilot>
    - アクティブになっているか確認
 
@@ -275,7 +272,6 @@ git push
 **手順**:
 
 1. **`.github/copilot-instructions.md` の内容を確認**
-
    - パスが正しいか（`docs-template/MASTER.md`）
    - MASTER.mdへの参照が明記されているか
 
@@ -296,12 +292,10 @@ git push
 **対処法**:
 
 1. **コメントをより具体的に書く**
-
    - 関数名、引数、戻り値、処理内容を明記
    - 制約条件を明記
 
 2. **Copilot Chatを使用**
-
    - より詳細な指示が可能
    - プロジェクトコンテキストを参照可能
 
@@ -324,17 +318,14 @@ git push
 ## さらに効率を上げるために
 
 1. **PATTERNS.mdを充実させる**
-
    - プロジェクト固有のパターンを追加
    - Copilotがより良いコードを生成できるようになる
 
 2. **TESTING.mdを参照させる**
-
    - テスト生成時のルールを明確化
    - `.github/copilot-instructions.md`にテスト要件を追記
 
 3. **定期的にcopilot-instructions.mdを更新**
-
    - プロジェクトの進化に合わせて更新
    - AIプロンプトで更新作業を自動化
 

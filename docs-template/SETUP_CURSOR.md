@@ -32,7 +32,6 @@ Cursor は、AIネイティブなコードエディタで、以下の特徴が�
    ```
 
 2. **インストール**
-
    - macOS: DMGファイルをダウンロードして Applications フォルダに移動
    - Windows: インストーラーを実行
    - Linux: AppImage をダウンロードして実行
@@ -58,13 +57,11 @@ Cursor は、AIネイティブなコードエディタで、以下の特徴が�
 ### ステップ3: AI機能の有効化（5分）
 
 1. **アカウント作成**
-
    - Cursor を起動
    - Sign Up ボタンをクリック
    - メールアドレスまたはGitHubアカウントで登録
 
 2. **プラン選択**
-
    - **Free**: 基本的なAI機能（制限あり）
    - **Pro** ($20/月): 推奨
      - 無制限のAI補完
@@ -244,7 +241,6 @@ When information is missing, DO NOT make assumptions. Always ask for confirmatio
 [Required Information]
 
 1. Database Type
-
    - Reason: Design differs significantly between PostgreSQL and MongoDB
    - Options: PostgreSQL (relational) / MongoDB (document-oriented)
    - Please specify: Which one do you want to use?
@@ -698,17 +694,14 @@ git push origin main
 Cursor のセットアップは以下の4ステップ：
 
 1. **Cursor インストール**（10分）
-
    - <https://cursor.sh> からダウンロード
    - Pro プラン推奨（月額 $20）
 
 2. **.cursorrules 作成**（25分）
-
    - テンプレートをコピー
    - プロジェクト固有のルールを追加
 
 3. **ワークスペース設定**（10分）
-
    - .vscode/settings.json 作成
    - AI機能を有効化
 

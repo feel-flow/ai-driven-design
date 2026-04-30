@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+mcp/node_modules/
+
+# Build outputs
+dist/
+mcp/dist/
+build/
+coverage/
+
+# Generated content (managed by tooling)
+CHANGELOG.md
+
+# Review artifacts
+.review-results/
+
+# Editor state
+.vscode/

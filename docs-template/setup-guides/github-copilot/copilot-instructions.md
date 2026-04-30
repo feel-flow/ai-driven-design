@@ -292,11 +292,9 @@ Before generating any code suggestions, you MUST read and understand `docs-templ
 ### MASTER.mdからコピーすべき内容
 
 1. **Project Context**
-
    - `docs-template/MASTER.md` の「プロジェクト概要」セクション
 
 2. **Architecture Patterns**
-
    - `docs-template/MASTER.md` の「アーキテクチャパターン」セクション
 
 3. **コード生成ルール**

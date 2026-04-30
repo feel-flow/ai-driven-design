@@ -86,7 +86,6 @@ mkdir -p .vscode
 #### テスト手順
 
 1. **新しいファイルを作成**
-
    - 例: `test.ts` または `test.js`
 
 2. **コメントを書く**
@@ -96,7 +95,6 @@ mkdir -p .vscode
    ```
 
 3. **Enterキーを押す**
-
    - Copilotが自動的にコードを提案するはず
 
 4. **`Tab`キーで受け入れ**
@@ -123,7 +121,6 @@ interface User {
 #### テスト手順
 
 1. **Copilot Chatを開く**
-
    - macOS: `Cmd + I`
    - Windows/Linux: `Ctrl + I`
 

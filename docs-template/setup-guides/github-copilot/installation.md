@@ -11,17 +11,14 @@
 ### サブスクリプションの購入
 
 1. **GitHub Copilotのページにアクセス**
-
    - <https://github.com/features/copilot>
 
 2. **「Start a free trial」または「Subscribe」をクリック**
-
    - 個人プラン: $10/月
    - ビジネスプラン: $19/ユーザー/月
    - 初月無料トライアルあり
 
 3. **GitHubアカウントでログイン**
-
    - まだアカウントがない場合は、新規作成が必要
 
 4. **支払い情報を入力**
@@ -45,16 +42,13 @@
 1. **VS Codeを開く**
 
 2. **拡張機能マーケットプレイスを開く**
-
    - macOS: `Cmd + Shift + X`
    - Windows/Linux: `Ctrl + Shift + X`
 
 3. **「GitHub Copilot」を検索**
 
 4. **以下の拡張機能をインストール**:
-
    - **GitHub Copilot** （必須）
-
      - ID: `GitHub.copilot`
      - コード補完機能を提供
 
@@ -79,15 +73,12 @@
 ### アカウント連携の手順
 
 1. **VS Code左下の「Sign in to GitHub」をクリック**
-
    - または、Copilotアイコンから「Sign in」を選択
 
 2. **ブラウザが開くので、GitHubアカウントでログイン**
-
    - GitHub Copilotのサブスクリプションがあるアカウントでログイン
 
 3. **VS Codeへのアクセスを許可**
-
    - 「Authorize Visual Studio Code」をクリック
 
 4. **確認**:
@@ -110,7 +101,6 @@ JetBrains製品（IntelliJ IDEA、PyCharm、WebStormなど）を使用する場�
 ### 手順
 
 1. **プラグインマーケットプレイスを開く**
-
    - macOS: `Cmd + ,` → Plugins
    - Windows/Linux: `Ctrl + Alt + S` → Plugins
 

@@ -11,21 +11,17 @@ This guide covers STEP 1 (Installation) and STEP 2 (copilot-instructions.md setu
 ### 1-1: GitHub Copilot Subscription
 
 1. **Access GitHub Copilot page**
-
    - <https://github.com/features/copilot>
 
 2. **Subscribe or start free trial**
-
    - Individual: $10/month
    - Business: $19/user/month
    - Free trial available (first month)
 
 3. **Login with GitHub account**
-
    - Create account if needed
 
 4. **Enter payment information**
-
    - Required even for trial
    - Can cancel before trial ends
 
@@ -38,16 +34,13 @@ This guide covers STEP 1 (Installation) and STEP 2 (copilot-instructions.md setu
 1. **Open VS Code**
 
 2. **Open Extensions Marketplace**
-
    - macOS: `Cmd + Shift + X`
    - Windows/Linux: `Ctrl + Shift + X`
 
 3. **Search for "GitHub Copilot"**
 
 4. **Install the following extensions**:
-
    - **GitHub Copilot** (required)
-
      - ID: `GitHub.copilot`
      - Provides code completion
 
@@ -60,16 +53,13 @@ This guide covers STEP 1 (Installation) and STEP 2 (copilot-instructions.md setu
 ### 1-3: GitHub Account Connection
 
 1. **Click "Sign in to GitHub" in VS Code**
-
    - Located in bottom-left corner
    - Or click Copilot icon and select "Sign in"
 
 2. **Authenticate in browser**
-
    - Login with GitHub account that has Copilot subscription
 
 3. **Authorize VS Code**
-
    - Click "Authorize Visual Studio Code"
 
 4. **Verify connection**
@@ -326,11 +316,9 @@ Before generating code suggestions, read and understand `docs-template/MASTER.md
 ### Content to Copy from MASTER.md
 
 1. **Project Context**
-
    - From `docs-template/MASTER.md` "Project Overview" section
 
 2. **Architecture Patterns**
-
    - From `docs-template/MASTER.md` "Architecture Patterns" section
 
 3. **Code Generation Rules**
