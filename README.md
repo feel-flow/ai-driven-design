@@ -71,7 +71,7 @@ PR マージ後の `/ace-curate` 手動実行を、**別プロセスの subagent
 | `npm run validate`                   | コア7文書の存在と構造の検証                                                                  |
 | `npm run check`                      | MCP サーバーの動作確認                                                                       |
 | `npm run build:mcp`                  | MCP サーバーのビルド                                                                         |
-| `npm run quality:local`              | PR 前の品質ゲート（旧 `CI` ワークフローと同順。`npm ci` および `mcp ci` は未含）               |
+| `npm run quality:local`              | PR 前の品質ゲート（旧 `CI` ワークフローと同順。`npm ci` および `mcp ci` は未含）             |
 | `npm run lint:md`                    | markdownlint（従来 CI と同条件のパス指定）                                                   |
 | `npm run setup:labels`               | GitHub ラベルの自動セットアップ                                                              |
 | `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ                                                        |
