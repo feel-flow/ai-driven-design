@@ -523,33 +523,7 @@ metrics:
 
 ## ドキュメント構造ガイド（AIツール向け）
 
-### 大規模ドキュメントの階層化
-
-**原則**: ドキュメントが800行を超える場合、以下の構造を採用
-
-**構造**:
-
-```
-親ドキュメント（索引）     # 200-500行
-├── サブディレクトリ/
-│   ├── トピック1.md      # 300-800行
-│   ├── トピック2.md      # 300-800行
-│   └── トピック3.md      # 300-800行
-```
-
-**例**: DEPLOYMENT.md（2379行 → 分割済み）
-
-```
-DEPLOYMENT.md（222行 - 索引）
-├── deployment/
-│   ├── git-workflow.md            # AI駆動Git Workflow
-│   ├── self-review.md             # セルフレビュー詳細
-│   ├── knowledge-management.md    # ナレッジ体系化
-│   ├── ai-tools-integration.md    # AIツール統合
-│   ├── ci-cd.md                   # CI/CDパイプライン
-│   ├── infrastructure.md          # インフラ・ロールバック
-│   └── monitoring.md              # モニタリング・運用
-```
+> **詳細ガイドは [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md) を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
 
 ### AIツールの読み込み戦略
 
@@ -564,21 +538,16 @@ DEPLOYMENT.md（222行 - 索引）
 AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 ```
 
-### ファイルサイズの目安
+### ファイルサイズの閾値（書籍 第14章準拠）
 
-| ファイルタイプ                  | 推奨行数 | 上限 | 超えた場合   |
-| ------------------------------- | -------- | ---- | ------------ |
-| 索引ファイル                    | 200-300  | 500  | -            |
-| コアドキュメント（MASTER.md等） | 300-500  | 800  | 階層化分割   |
-| 詳細ドキュメント                | 300-800  | 1200 | トピック分割 |
+| 行数      | 判断           |
+| --------- | -------------- |
+| 〜 500 行 | 適正           |
+| 500 行超  | 分割を検討     |
+| 800 行超  | 分割を推奨     |
+| 1200 行超 | **分割を必須** |
 
-### 分割タイミング
-
-書籍 第14章「ドキュメント増加の管理戦略」準拠。詳細手順は [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md)（およびその子ガイド `organizational-rollout/document-splitting.md`）を参照。
-
-- **500行超**: 分割を検討開始
-- **800行超**: 分割を強く推奨
-- **1200行超**: 分割必須
+> 親（索引）+ 子（詳細）への分割手順・分割しない判断・実例は [organizational-rollout/document-splitting.md](./05-operations/organizational-rollout/document-splitting.md) を SSOT とする。
 
 ### 簡潔化の原則
 
@@ -597,23 +566,21 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ## 月次ドキュメント参照チェック
 
-毎月1日に以下を確認してください。詳細は第14章「ドキュメント増加の管理戦略」を参照。
+毎月1日に以下4項目を確認する。手順・自動化スクリプト・レポートテンプレートは [organizational-rollout/health-check.md](./05-operations/organizational-rollout/health-check.md) を参照。
 
-### チェックリスト
+1. **MASTER.md からの参照確認** — 新規文書が索引から到達可能か
+2. **ファイルサイズ確認** — 上記閾値（500/800/1200）超過の検出
+3. **鮮度確認** — 6 ヶ月以上更新なしの文書を分類（保持／修正／アーカイブ）
+4. **孤立文書の確認** — どこからも参照されていない文書の検出
 
-- [ ] **MASTER.mdからの参照確認**: 新規文書がMASTER.mdから参照されているか
-- [ ] **リンク切れ確認**: 参照リンクが有効か
-- [ ] **ファイルサイズ確認**: 800行を超えた文書はないか
-- [ ] **鮮度確認**: 6ヶ月以上更新されていない文書の内容は現状と合っているか
-- [ ] **孤立文書確認**: どこからも参照されていない文書はないか
+### アーカイブ対象（要約）
 
-### アーカイブ対象
+以下に該当する文書は `archive/` への退避を **検討**。判定フロー・手順・リダイレクト管理ルールは [organizational-rollout/archive-strategy.md](./05-operations/organizational-rollout/archive-strategy.md) を参照。
 
-以下の条件に該当する文書は `archive/` ディレクトリへ移動を検討：
-
-- 6ヶ月間参照されていない
-- 技術的に陳腐化（廃止されたライブラリのADR等）
+- 6 ヶ月参照なし
+- 技術的に陳腐化
 - 別文書に統合された
+- PoC・実験用途で完了
 
 ## 文書運用ルール
 
