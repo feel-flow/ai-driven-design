@@ -4,7 +4,7 @@ title: AIツール設定ファイルのベストプラクティス
 version: 1.0.0
 status: active
 created: 2026-02-08
-updated: 2026-02-08
+updated: 2026-05-06
 owner: feel-flow
 phase: mvp
 tags: [ai, configuration, best-practices, claude-code, copilot, cursor]

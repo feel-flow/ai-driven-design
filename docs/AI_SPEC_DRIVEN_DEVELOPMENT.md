@@ -4,7 +4,7 @@ title: AI Spec Driven Development - 概念と実践
 version: 2.0.0
 status: active
 created: 2025-10-17
-updated: 2025-11-07
+updated: 2026-05-06
 owner: feel-flow
 phase: mvp
 tags: [ai, documentation, development, best-practices]
