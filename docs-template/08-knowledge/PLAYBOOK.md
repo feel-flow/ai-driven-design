@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.6.0"
+version: "1.7.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-04-30"
+updated: "2026-05-06"
 owner: "@fffokazaki"
-ace_entry_count: 11
+ace_entry_count: 14
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -389,7 +389,91 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-012: PR マージ・push 前は必ず `git status` でブランチを確認する（develop 直 push 事故防止）
+
+| フィールド | 値                             |
+| ---------- | ------------------------------ |
+| Category   | process                        |
+| Origin     | PR #391 / PR #393 / Issue #295 |
+| Date       | 2026-05-06                     |
+| Helpful    | 0                              |
+| Harmful    | 0                              |
+| Status     | active                         |
+
+**Insight**: バックグラウンドでブランチが切り替わる事象は外部プロセス（他作業者の `gh pr merge`、IDE 拡張、自動化フック等）で発生しうる。**自分のターン内で `git checkout` していないことは、現在のブランチが想定通りである保証にならない**。`git push` の直前には必ず `git branch --show-current` または `git status` の出力を確認する。同様に Issue 着手時は、同 Issue 用の他ブランチや未追跡ファイルが既に存在しないか `git branch | grep <issue-num>` および `git status -uall` で確認する習慣を入れる。
+
+**Context**: Issue #295 の作業中、PR #391 がユーザーまたは他プロセスにより突然マージされ、ローカル HEAD が feature branch から develop に自動切り替わった。この切り替わりに気づかず `git push` した結果、レビュー対応コミット（ba391fa）が develop に直接乗り、`Never commit directly to develop` ルールに違反。`git revert ba391fa` + 新 PR #393 で正規化が必要となった。さらに同 Issue の作業着手時にも、別ブランチ `feature/#295-organization-rollout-guide` と未追跡ファイル `06-reference/ORGANIZATION_ROLLOUT.md` が既に存在することに気づかず、無自覚に重複作業を作りかけた。
+
+**Action**: AI エージェントが Git 操作を行う際:
+
+1. **Issue 着手前の確認**: `git branch | grep <issue-number>`、`git status -uall` で同 Issue の他ブランチ・未追跡ファイル・進行中の作業がないかチェック。並列作業の発見時はユーザーに統合方針を相談する。
+2. **`git push` の直前**: `git branch --show-current` を必ず実行し、想定ブランチと一致するか確認。一致しない場合は push を中止して原因調査。
+3. **PR 操作前の状態確認**: `gh pr view <PR>` で他者によるマージ・close を事前確認。マージ済みなら作業内容を新ブランチに分離。
+4. **develop / main に直 push してしまった場合**: `git revert <SHA>` で revert commit を作成 → push して履歴を取り消し、同内容を新ブランチに cherry-pick して正規 PR で再投入する。`git reset --hard` + force push は他協働者に影響するため避ける。
+5. **PR ready / merge 操作前**: 直前にもう一度 `git status` でローカルが想定状態か確認。push 済 commit と PR head が一致しているかも `gh pr view <PR> --json headRefOid` で照合する。
+
+---
+
+### ACE-013: 並列 reviewer の指摘は古い snapshot 由来の誤検知を含む — 実態 grep で双方向検証する
+
+| フィールド | 値                             |
+| ---------- | ------------------------------ |
+| Category   | process                        |
+| Origin     | PR #391 / PR #393 / Issue #295 |
+| Date       | 2026-05-06                     |
+| Helpful    | 0                              |
+| Harmful    | 0                              |
+| Status     | active                         |
+
+**Insight**: Toolkit / Copilot / Gemini Code Assist 等の並列レビューでは、**reviewer が PR の特定 commit（多くは初回 push 時点）を見ている都合で、すでに修正済みの内容を Critical として再指摘するノイズ**が混入する。逆に reviewer が実態を正しく見抜いて指摘した場合、**こちらが「修正済み」と思い込んで grep 確認を怠ると本物の Critical を見逃す**。指摘を受け取った瞬間に `grep -n` で実態確認し、**両方向**（false positive / true positive）を切り分ける。これを怠ると、誤検知に基づいて再修正してファイルを破壊するか、本物のバグを残してマージしてしまう。
+
+**Context**: PR #391 で 1500 行残存（C1 / C2）と bash 「上記出力」プレースホルダ（S1）を Toolkit / Copilot / Gemini が並列 Critical として指摘したが、`grep -n "1500" ...md` で確認したところすでに修正済みだった（reviewer 側の snapshot が古かった）。スキップ判断で正解。逆に PR #393 では archive-strategy.md に追記した「`archive/README.md` は提供されていない、初回作成する」記述に対し、Toolkit が「実態は PR #391 で雛形として既に追加済み」と Critical 指摘。`ls docs-template/archive/` で確認したところ事実だったため、即修正した。**両ケースとも、grep / ls による実態確認なしで判断していたら誤った PR 状態でマージされていた**。
+
+**Action**: PR レビューを受け取った AI エージェントは:
+
+1. **指摘の真偽は常に grep で検証**: Critical / Important / Suggestion の区別なく、指摘箇所を `grep -n "<キーワード>" <file>` で検索。検出されなければ false positive、検出されれば true positive。
+2. **false positive の対応**: 修正をスキップし、PR コメントに「該当箇所は commit XXXX で修正済み（reviewer の snapshot が古い可能性）」と返す。**勝手にスキップせず明示する**ことで、後続 reviewer が同じ指摘を繰り返すのを防ぐ。
+3. **true positive の対応**: 通常通り fix commit。PR 本文に「実態確認の結果、X は確かに〜」と記録する。
+4. **複数 reviewer が同じ箇所を指摘した場合**: snapshot 時刻を `gh pr view --json reviews --jq '.reviews[].submittedAt'` で確認。すべて同時刻に近いなら共通の古い snapshot 由来、ばらついているなら真正のバグの可能性が高い。
+5. **逆方向の罠も警戒**: 「Toolkit が指摘していないから OK」と思い込まず、自分の追記内容（特にテンプレート実態に関する主張）は `ls` / `cat` で実物を確認してから書く。**書きながら一度実物を見る**を習慣にする。
+
+---
+
+### ACE-014: 索引文書は SSOT を子に集約し、自身は誘導と 1 行サマリのみ — 数値の重複は持たない
+
+| フィールド | 値                             |
+| ---------- | ------------------------------ |
+| Category   | architecture                   |
+| Origin     | PR #391 / PR #393 / Issue #295 |
+| Related    | ACE-005（補強）                |
+| Date       | 2026-05-06                     |
+| Helpful    | 0                              |
+| Harmful    | 0                              |
+| Status     | active                         |
+
+**Insight**: ACE-005 で「索引と実体を分離する委譲パターン」を導入したが、**索引側に「概要だから」と数値表をミラー掲載すると DRY 違反となり、子の閾値変更時に索引が同期漏れる事故が起きる**。索引には「子へのリンク + キーワードレベルの 1 行サマリ」のみを置く。閾値などの具体値は表ではなくテキスト中に「**500 / 800 / 1200 行** の三段階（検討 / 推奨 / 必須）」のように 1 行で要約する。これにより、子で閾値を変えても索引側は「リンク先で SSOT を確認すればよい」状態を保てる。
+
+**Context**: PR #391 で `ORGANIZATIONAL_ROLLOUT.md`（索引）に 4 子ガイドへのリンクと並べて「文書分割の閾値」表（500/800/1200 を 3 行）を併記した。これが子文書 `document-splitting.md` の閾値表と完全に重複し、Toolkit / Gemini Code Assist が「索引が SSOT」「子が SSOT」「MASTER.md は子が SSOT として参照」の三重宣言になっていると指摘。PR #393 で索引の閾値表・アーカイブ判定表・月次ヘルスチェック項目セクションを削除し、サマリ表 1 つに集約（「**500 / 800 / 1200 行** の三段階（検討 / 推奨 / 必須）」など 1 行ずつ）。さらに索引運用ルールに「子の数値・手順を索引にコピペしない（DRY 違反）」を明記して、SSOT を子側に一本化した。
+
+**Action**: 索引 + 子の構造を採用する際:
+
+1. **索引冒頭に SSOT マッピング表を置く**: 各カテゴリ（閾値 / 判定基準 / 項目リスト等）について「正本はどの子ガイドか」「索引は誘導のみか SSOT か」を表で宣言。読者は「数値の正本」を 1 ホップで見つけられる。
+2. **索引には数値表を置かない**: 表を作る場合は「サマリ」列のみ（具体値は 1 行のキーワードに留める）にする。「行数 / 判断 / 詳細リンク」のような 3 列以上の表は子に委譲。
+3. **索引の運用ルールに「子の内容をコピペしない」を明記**: 将来の作業者（人 / AI）が「親にも書きたい」誘惑を抑止する保険文。
+4. **数値変更時のチェックリスト**: 子の閾値を変えたら `grep -rn "<旧数値>" docs-template/ docs/` で他文書の散らばりを確認 → 索引のサマリ行のキーワードが依然正確か（「500/800/1200」を「200/400/800」に変えたら索引も）を確認。
+5. **書籍 / 仕様書からの引用は子側で「準拠出典」として明記**: 「書籍 第14章準拠」「RFC ZZZZ 準拠」を子の SSOT 行に書き、索引には「（詳細は子）」のリンクのみ。一次出典が書かれていない索引数値は孤立しやすく、別 SSOT が割り込みやすい。
+
+---
+
 ## Changelog
+
+### [1.7.0] - 2026-05-06
+
+#### 追加
+
+- ACE-012: PR マージ・push 前は必ず `git status` でブランチを確認する（develop 直 push 事故防止）
+- ACE-013: 並列 reviewer の指摘は古い snapshot 由来の誤検知を含む — 実態 grep で双方向検証する
+- ACE-014: 索引文書は SSOT を子に集約し、自身は誘導と 1 行サマリのみ — 数値の重複は持たない（ACE-005 を補強）
 
 ### [1.6.0] - 2026-04-30
 
