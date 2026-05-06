@@ -57,22 +57,19 @@ updated: "2026-05-06"
 
 ### 実例（本リポジトリ）
 
-`docs-template/05-operations/DEPLOYMENT.md` は元々 2,000 行超の単一文書だったが、現在は **索引 + サブ文書群** に分割済み（最新の構成は `docs-template/05-operations/DEPLOYMENT.md` および `deployment/` ディレクトリを参照）。
+`docs-template/05-operations/DEPLOYMENT.md` は元々 2,379 行あったが、以下のように分割済み:
 
 ```text
-DEPLOYMENT.md（索引、300 行未満を維持）
-└── deployment/
-    ├── git-workflow.md            # AI 駆動 Git Workflow
-    ├── self-review.md             # セルフレビュー詳細
-    ├── knowledge-management.md    # ナレッジ体系化
-    ├── ai-tools-integration.md    # AI ツール統合
-    ├── ci-cd.md                   # CI/CD パイプライン
-    ├── infrastructure.md          # インフラ・ロールバック
-    ├── monitoring.md              # モニタリング・運用
-    └── ...（他複数）
+DEPLOYMENT.md（索引、300 行未満）
+├── deployment/
+│   ├── git-workflow.md            # AI 駆動 Git Workflow
+│   ├── self-review.md             # セルフレビュー詳細
+│   ├── knowledge-management.md    # ナレッジ体系化
+│   ├── ai-tools-integration.md    # AI ツール統合
+│   ├── ci-cd.md                   # CI/CD パイプライン
+│   ├── infrastructure.md          # インフラ・ロールバック
+│   └── monitoring.md              # モニタリング・運用
 ```
-
-> 上記は構造例。具体ファイル数・各サイズは継続的に変動するため、最新は `ls docs-template/05-operations/deployment/` で確認してください。
 
 ## 分割の標準手順（チェックリスト）
 
@@ -104,7 +101,7 @@ DEPLOYMENT.md（索引、300 行未満を維持）
 ### Step 5: 検証
 
 - [ ] `npm run lint:md` でリンク切れ・heading 構造を確認。
-- [ ] `npm run validate` でコア 7 文書の存在チェックを通す（任意ディレクトリを検証する場合のみ `-- &lt;dir&gt;` で渡す）。
+- [ ] `npm run validate -- docs-template` でコア 7 文書の存在チェックを通す。
 - [ ] AI ツールに「○○について教えて」と問い、親→子の経路で正しい回答が得られるか確認。
 
 ## 分割しないほうが良いケース
@@ -137,4 +134,3 @@ DEPLOYMENT.md（索引、300 行未満を維持）
 - [phased-rollout.md](./phased-rollout.md) — Phase 3 で文書を増やす際の優先順位
 - [archive-strategy.md](./archive-strategy.md) — 分割の代わりにアーカイブが妥当なケース
 - [health-check.md](./health-check.md) — 月次でファイルサイズを点検する手順
-- [../ORGANIZATIONAL_ROLLOUT.md](../ORGANIZATIONAL_ROLLOUT.md) — 組織展開ガイドの索引（親）

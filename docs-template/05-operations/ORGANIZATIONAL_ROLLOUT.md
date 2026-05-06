@@ -9,11 +9,11 @@ updated: "2026-05-06"
 
 # ORGANIZATIONAL_ROLLOUT.md - 組織展開ガイド
 
-> **📏 ドキュメント最適化**: このファイルは索引です。300 行以内を維持してください（[document-splitting.md](./organizational-rollout/document-splitting.md) の親文書ガイドラインに準拠）。
+> **📏 ドキュメント最適化**: このファイルは索引です（200〜300 行を目標）。詳細は `organizational-rollout/` 配下の各ファイルを参照してください。
 
 ## 📖 この索引の対象範囲
 
-書籍 第14章「ドキュメント増加の管理戦略」および第15章「チーム標準化」を中心に、AI 仕様駆動開発フレームワークを **既存組織・チームに展開するための 4 つの運用ガイド** を扱います。第16章「ロードマップとナレッジ蓄積」のうちナレッジ管理の継続運用は、既存の [deployment/knowledge-management.md](./deployment/knowledge-management.md) に集約されています。
+書籍 第15章「チーム標準化」・第16章「ロードマップとナレッジ蓄積」で示されている、AI 仕様駆動開発フレームワークを **既存組織・チームに展開するための 4 つの運用ガイド** を扱います。
 
 | ガイド                                                                  | 対象                                                | 推奨読み順     |
 | ----------------------------------------------------------------------- | --------------------------------------------------- | -------------- |
@@ -40,18 +40,9 @@ updated: "2026-05-06"
    └── 孤立検出 → リンク追加 or アーカイブ
 ```
 
-> **合計目安**: Phase 1〜4 で約 9 週間（2 ヶ月強）。チーム規模・既存ドキュメント量によって 1.5〜2 倍まで揺れる前提で計画してください（詳細: [phased-rollout.md](./organizational-rollout/phased-rollout.md)）。
-
 ## 🎯 主要数値（書籍 第14章準拠）
 
-各ガイドで参照する閾値の **概要のみ** を本索引に掲載します。**閾値の正本（SSOT）は子ガイド** に置きます。本表は SSOT のミラーであり、最新値・例外条件・判定フローは各リンク先を参照してください。
-
-| 数値カテゴリ           | SSOT（子ガイド）                                                                                 | 本索引の役割                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| 文書分割の閾値         | [document-splitting.md](./organizational-rollout/document-splitting.md)                          | 概要表のミラー                       |
-| アーカイブ判定         | [archive-strategy.md](./organizational-rollout/archive-strategy.md)                              | 概要表のミラー                       |
-| 月次ヘルスチェック項目 | [health-check.md](./organizational-rollout/health-check.md)                                      | 4 項目リスト                         |
-| 段階導入のフェーズ定義 | [phased-rollout.md](./organizational-rollout/phased-rollout.md)（このカテゴリのみ本索引が SSOT） | フェーズ表のミラー（運用は子で定義） |
+各ガイドで参照する閾値を、ここで一元管理します。**新規文書および分割判断は本値を SSOT** とし、他文書（MASTER.md 等）に異なる値の記述があれば順次同期してください。
 
 ### 文書分割の閾値
 
@@ -91,8 +82,8 @@ updated: "2026-05-06"
 
 ## 🔗 関連ドキュメント
 
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - **個別プロジェクトの運用フロー**（PR・CI/CD・モニタリング）。本ガイドは **組織横断のドキュメント運用** を扱い、住み分けは「コード・デプロイの運用＝DEPLOYMENT、ドキュメントの運用＝ORGANIZATIONAL_ROLLOUT」。
-- [GETTING_STARTED_NEW_PROJECT.md](../GETTING_STARTED_NEW_PROJECT.md) - 新規プロジェクト立ち上げ時のガイド（**注**: 同名の Phase 0〜4 を扱うが、本ガイドの組織展開 Phase 1〜4 とは別概念）。
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - 運用全体の索引（PR・CI/CD・モニタリング等）
+- [GETTING_STARTED_NEW_PROJECT.md](../GETTING_STARTED_NEW_PROJECT.md) - 新規プロジェクト立ち上げ時のガイド
 - [MASTER.md](../MASTER.md) - プロジェクト中央索引（本ガイドの上位）
 - [DECISION_MATRIX.md](../06-reference/DECISION_MATRIX.md) - どの文書に書くかの判断マトリクス
 
