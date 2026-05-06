@@ -199,9 +199,9 @@ npm run quality:local
 5. Self-Review ─ 5観点チェック＋Review Toolkit（/pre-commit-check）
 6. PR          ─ develop ベースでPR作成
 7. Review      ─ @review-router＋レビュー対応（修正ループ）
-8. ACE         ─ ナレッジ体系化（マージ前に実行。/ace-curate）
-9. Merge       ─ Squash merge → ブランチ削除
-10. Cleanup    ─ develop pull → git fetch --prune
+8. Merge       ─ Squash merge → ブランチ削除
+9. Cleanup     ─ develop pull → git fetch --prune
+10. ACE        ─ ナレッジ体系化（マージ後に develop で実行。/ace-curate）
 ```
 
 **重要ルール**:
@@ -209,7 +209,7 @@ npm run quality:local
 - 全作業はIssueから開始する
 - ブランチ命名: `feature/#<issue-number>-<description>`
 - マージ先: develop（Squash merge）
-- ACEはマージ前（レビュー完了後）にfeature branchで実行する
+- ACEはマージ後・cleanup後に develop で実行する（個人開発: 直接commit可。チーム開発: `chore/ace-from-pr-<num>` ブランチで小PR推奨）
 - 詳細: [docs/AI_GIT_WORKFLOW.md](docs/AI_GIT_WORKFLOW.md)
 
 ### Working with This Repository

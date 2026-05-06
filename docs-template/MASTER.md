@@ -334,7 +334,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 
 本プロジェクトでは、Git FlowをベースとしたAI開発ツール最適化ワークフローを採用しています。
 
-**基本フロー**: Issue → Branch → Commit → **Self-Review** → PR → Review → Merge → **Knowledge (ACE + Discussions)** → Cleanup → Next Task
+**基本フロー**: Issue → Branch → Commit → **Self-Review** → PR → Review → Merge → Cleanup → **Knowledge (ACE + Discussions)** → Next Task
 
 詳細は [DEPLOYMENT.md](./05-operations/DEPLOYMENT.md#1-ai仕様駆動git-workflow) を参照してください。
 

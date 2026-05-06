@@ -39,7 +39,7 @@ updated: "YYYY-MM-DD"
 ### AI駆動開発の基本フロー
 
 ```
-Issue → Branch → Implement → Test → Self-Review → PR → Review → ACE → Merge → Cleanup → Next Task
+Issue → Branch → Implement → Test → Self-Review → PR → Review → Merge → Cleanup → ACE → Next Task
 ```
 
 **詳細**: [deployment/git-workflow.md](./deployment/git-workflow.md)
@@ -67,7 +67,7 @@ gh discussion create --category "..." --title "..." --body-file knowledge.md
 
 ### 概要
 
-Git Flowベースで、**テスト・セルフレビュー（PR前）** と **ACEナレッジ体系化（マージ前）** を組み込んだワークフロー。
+Git Flowベースで、**テスト・セルフレビュー（PR前）** と **ACEナレッジ体系化（マージ後・cleanup後）** を組み込んだワークフロー。
 
 ### 主要ステップ
 

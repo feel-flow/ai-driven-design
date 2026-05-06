@@ -1,23 +1,23 @@
 # ACE サイクル運用手順（Generate → Reflect → Curate）
 
-> **Parent**: [DEPLOYMENT.md](../DEPLOYMENT.md) | **Workflow Step**: 8
+> **Parent**: [DEPLOYMENT.md](../DEPLOYMENT.md) | **Workflow Step**: 10
 > **関連**: [knowledge-management.md](./knowledge-management.md) | [PLAYBOOK.md](../../08-knowledge/PLAYBOOK.md) | [ACE フレームワーク概念](../../../docs/ACE_FRAMEWORK.md)
 
 ## 概要
 
-ACE (Agentic Context Engineering) サイクルは、レビュー完了後・マージ前にAIツールと協力して知見を抽出・評価・記録する運用手順です。
+ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後に AIツールと協力して知見を抽出・評価・記録する運用手順です。
 
 **目的**: 開発で得た知見を構造化し、AIツールが次回タスクで自動参照できる Playbook エントリとして永続化する
 
-**実行タイミング**: レビュー完了後・マージ前（feature branchで実行）
+**実行タイミング**: マージ後・cleanup 後（develop ブランチで実行）
 
 ### 運用パターン
 
-**個人開発（推奨）**: レビュー完了後、feature branchでACEを実行 → PLAYBOOK.md更新もPRに含める → まとめてマージ
+**個人開発（簡易）**: マージ後 cleanup を済ませた develop で `/ace-curate <PR番号>` を実行し、PLAYBOOK.md 追記を直接 develop に commit + push する。PLAYBOOK.md は append-only でコンフリクトリスクが低く、ACE 1 サイクル分の小さい変更を毎回 PR 化するオーバーヘッドは過剰。
 
-**チーム開発（参考）**: PLAYBOOK.mdのコンフリクトリスクがあるため、ACE更新は別ブランチ/別PRで対応することも検討
+**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<num>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
 
-**autonomous（任意）**: マージ後に subagent と専用 worktree でキャプチャを非同期化するパターン。導入は [ace-autonomous.md](./ace-autonomous.md) と `docs-template/scripts/ace/` のテンプレートを参照（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。
+**autonomous（任意）**: subagent と専用 worktree で ACE キャプチャを非同期化するパターン。導入は [ace-autonomous.md](./ace-autonomous.md) と `docs-template/scripts/ace/` のテンプレートを参照（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。
 
 **所要時間**: 5〜15分（AIツール支援あり）
 
@@ -182,7 +182,7 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 
 ## 手動実行チェックリスト
 
-レビュー完了後・マージ前に以下のチェックリストで ACE サイクルを実行：
+マージ後・cleanup 後に以下のチェックリストで ACE サイクルを実行：
 
 ```
 ## ACE サイクル チェックリスト（PR #___ / Issue #___）
@@ -214,15 +214,15 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 
 ### 使い分け表
 
-| 観点             | ACE Playbook                     | GitHub Discussions         |
-| ---------------- | -------------------------------- | -------------------------- |
-| **いつ使う**     | 毎回のマージ前（レビュー完了後） | 重要な知見のみ（選択的）   |
-| **何を書く**     | 構造化された短い知見             | 詳細な解説・コード例・議論 |
-| **誰が読む**     | AIツール（+ 人間）               | チームメンバー（人間）     |
-| **更新頻度**     | 高（マージごと）                 | 低（重要な知見のみ）       |
-| **フォーマット** | テーブル + 短文（固定形式）      | 自由記述                   |
+| 観点             | ACE Playbook                | GitHub Discussions         |
+| ---------------- | --------------------------- | -------------------------- |
+| **いつ使う**     | 毎回のマージ後・cleanup 後  | 重要な知見のみ（選択的）   |
+| **何を書く**     | 構造化された短い知見        | 詳細な解説・コード例・議論 |
+| **誰が読む**     | AIツール（+ 人間）          | チームメンバー（人間）     |
+| **更新頻度**     | 高（マージごと）            | 低（重要な知見のみ）       |
+| **フォーマット** | テーブル + 短文（固定形式） | 自由記述                   |
 
-### 推奨フロー（レビュー完了後・マージ前）
+### 推奨フロー（マージ後・cleanup 後）
 
 ```
 1. ACE サイクルを実行 → Playbook にエントリ追記

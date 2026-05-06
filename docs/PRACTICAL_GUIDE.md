@@ -717,7 +717,7 @@ copilot
 AI仕様駆動開発の Git Workflow に以下のステップとして統合されています：
 
 ```text
-Issue → Branch → Implement → Test → Self-Review → PR → @review-router → Review → ACE → Merge → Cleanup
+Issue → Branch → Implement → Test → Self-Review → PR → @review-router → Review → Merge → Cleanup → ACE
 ```
 
 詳細は [git-workflow.md](../docs-template/05-operations/deployment/git-workflow.md) のステップ7を参照してください。
