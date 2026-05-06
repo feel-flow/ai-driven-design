@@ -519,6 +519,7 @@ metrics:
 - [00-planning/POC_WORKFLOW.md](./00-planning/POC_WORKFLOW.md) - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
 - [06-reference/DECISION_MATRIX.md](./06-reference/DECISION_MATRIX.md) - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
 - [06-reference/COPILOT-AGENTS.md](./06-reference/COPILOT-AGENTS.md) - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
+- [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md) - 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）
 
 ## ドキュメント構造ガイド（AIツール向け）
 
@@ -573,9 +574,11 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ### 分割タイミング
 
-- **800行超**: 分割を検討開始
-- **1200行超**: 分割を強く推奨
-- **1500行超**: 分割必須
+書籍 第14章「ドキュメント増加の管理戦略」準拠。詳細手順は [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md)（およびその子ガイド `organizational-rollout/document-splitting.md`）を参照。
+
+- **500行超**: 分割を検討開始
+- **800行超**: 分割を強く推奨
+- **1200行超**: 分割必須
 
 ### 簡潔化の原則
 
