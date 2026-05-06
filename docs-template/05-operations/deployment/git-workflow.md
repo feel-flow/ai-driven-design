@@ -6,7 +6,7 @@
 
 AI開発ツールに最適化されたGit Flowベースのワークフローです。Issue作成からマージ、ナレッジ体系化までをAIツールと協働で効率的に進めます。
 
-**コアサイクル（10ステップ）**: Issue → Branch → Implement → Test → Self-Review → PR → Review → ACE → Merge → Cleanup
+**コアサイクル（10ステップ）**: Issue → Branch → Implement → Test → Self-Review → PR → Review → Merge → Cleanup → ACE
 
 > **運用原則**: 本ワークフローは [ワークフロー運用原則](./workflow-principles.md)（ノンストップフロー・スコープ外Issue化・曖昧仕様確認タイミング）に従って運用します。
 
@@ -558,11 +558,51 @@ mutation($body: String!) {
 - [ ] 修正理由を説明
 - [ ] 再レビュー依頼のコマンドを含める
 
-### ステップ8: ACE ナレッジ体系化（マージ前）【重要】
+### ステップ8: マージ（Merge）
+
+**原則**: Squash mergeでコミット履歴を整理
+
+```bash
+# レビュー承認後、Squash mergeでマージ
+gh pr merge ${PR_NUMBER} \
+  --squash \
+  --delete-branch \
+  --body "All checks passed. Merging to develop."
+```
+
+**マージの原則**:
+
+- Squash merge推奨（履歴を整理）
+- `--delete-branch` でリモートブランチを自動削除
+
+### ステップ9: クリーンアップ（Cleanup）
+
+**原則**: ブランチは速やかに削除し、developを最新に更新
+
+```bash
+# developブランチに戻る
+git checkout develop
+git pull origin develop
+
+# ローカルブランチ削除（リモートは自動削除済み）
+git branch -d "feature/${ISSUE_NUM}-user-auth"
+
+# リモートで削除済みの追跡ブランチをローカルから一括削除
+git fetch --prune
+```
+
+**ポイント**:
+
+- ブランチは必ず削除（リモート・ローカル両方）
+- developを最新に更新してから次の作業へ
+
+### ステップ10: ACE ナレッジ体系化（マージ後）【重要】
 
 **目的**: 開発プロセスで得た知見を体系的に整理し、チーム全体で共有可能な資産として蓄積する
 
-**実行タイミング**: レビュー完了後・マージ前（feature branchで実行）
+**実行タイミング**: マージ後・cleanup 後（develop ブランチで実行）
+
+> **書籍ギャップとの関係**: 当初は「ステップ 8: ACE（マージ前、feature branch で実行）」としていたが、PR レビュー指摘の修正サイクルが完了してから知見が確定するパターンが多く、マージ後 develop で実行する方が自然なフローになる（PR #395 ・PR #396 で順序見直し）。
 
 #### ナレッジ体系化の対象
 
@@ -727,47 +767,11 @@ GitHub Discussions への記録に加え、ACE Playbook への構造化記録を
 
 #### 運用パターン
 
-**個人開発（推奨）**: レビュー完了後、feature branchでACEを実行 → PLAYBOOK.md更新もPRに含める → まとめてマージ
+**個人開発（簡易）**: マージ後 cleanup を済ませた develop で `/ace-curate <PR番号>` を実行し、PLAYBOOK.md 追記を直接 develop に commit + push する。PLAYBOOK.md は append-only で構造化されているためコンフリクトリスクが低く、ACE 1 サイクル分の小さい変更を毎回 PR 化するオーバーヘッドは過剰。
 
-**チーム開発（参考）**: PLAYBOOK.mdのコンフリクトリスクがあるため、ACE更新は別ブランチ/別PRで対応することも検討
+**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
 
-### ステップ9: マージ（Merge）
-
-**原則**: Squash mergeでコミット履歴を整理
-
-```bash
-# レビュー承認後、Squash mergeでマージ
-gh pr merge ${PR_NUMBER} \
-  --squash \
-  --delete-branch \
-  --body "All checks passed. Merging to develop."
-```
-
-**マージの原則**:
-
-- Squash merge推奨（履歴を整理）
-- `--delete-branch` でリモートブランチを自動削除
-
-### ステップ10: クリーンアップ（Cleanup）
-
-**原則**: ブランチは速やかに削除し、developを最新に更新
-
-```bash
-# developブランチに戻る
-git checkout develop
-git pull origin develop
-
-# ローカルブランチ削除（リモートは自動削除済み）
-git branch -d "feature/${ISSUE_NUM}-user-auth"
-
-# リモートで削除済みの追跡ブランチをローカルから一括削除
-git fetch --prune
-```
-
-**ポイント**:
-
-- ブランチは必ず削除（リモート・ローカル両方）
-- developを最新に更新してから次の作業へ
+> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[PLAYBOOK.md ACE-012](../../08-knowledge/PLAYBOOK.md)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
 
 ## タスク管理（Task Tracking）
 
@@ -814,7 +818,7 @@ git fetch --prune
 
 ### 5. ナレッジの継続的蓄積
 
-- マージ前にACEナレッジ体系化を実施
+- マージ後 cleanup を済ませた develop で ACE ナレッジ体系化を実施
 - GitHub Discussionsを積極的に活用
 - 定期的にナレッジを見直し・更新
 

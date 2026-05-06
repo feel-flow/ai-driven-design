@@ -21,7 +21,7 @@ updated: "YYYY-MM-DD"
 | [devin-pre-pr-review.md](./deployment/devin-pre-pr-review.md)                             | Devin Pre-PRレビューシステム（5エージェント並列） | ⭐⭐⭐⭐ 2.5th |
 | [automated-code-review.md](./deployment/automated-code-review.md)                         | 自動コードレビュー（Claude Code + Husky）         | ⭐⭐⭐⭐ -     |
 | [agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md) | 削除事故防止ハーネス設計                          | ⭐⭐⭐⭐ -     |
-| [knowledge-management.md](./deployment/knowledge-management.md)                           | ナレッジ体系化（マージ前）                        | ⭐⭐⭐⭐ 3rd   |
+| [knowledge-management.md](./deployment/knowledge-management.md)                           | ナレッジ体系化（マージ後・cleanup後）             | ⭐⭐⭐⭐ 3rd   |
 | [ace-cycle.md](./deployment/ace-cycle.md)                                                 | ACEサイクル（Playbook増分更新）                   | ⭐⭐⭐⭐ 3.5th |
 | [ace-autonomous.md](./deployment/ace-autonomous.md)                                       | ACE autonomous（subagent + worktree、任意）       | ⭐⭐⭐ 3.6th   |
 | [ai-tools-integration.md](./deployment/ai-tools-integration.md)                           | AIツール統合設定                                  | ⭐⭐⭐ -       |
@@ -39,7 +39,7 @@ updated: "YYYY-MM-DD"
 ### AI駆動開発の基本フロー
 
 ```
-Issue → Branch → Implement → Test → Self-Review → PR → Review → ACE → Merge → Cleanup → Next Task
+Issue → Branch → Implement → Test → Self-Review → PR → Review → Merge → Cleanup → ACE → Next Task
 ```
 
 **詳細**: [deployment/git-workflow.md](./deployment/git-workflow.md)
@@ -67,19 +67,20 @@ gh discussion create --category "..." --title "..." --body-file knowledge.md
 
 ### 概要
 
-Git Flowベースで、**テスト・セルフレビュー（PR前）** と **ACEナレッジ体系化（マージ前）** を組み込んだワークフロー。
+Git Flowベースで、**テスト・セルフレビュー（PR前）** と **ACEナレッジ体系化（マージ後・cleanup後）** を組み込んだワークフロー。
 
-### 主要ステップ
+### 主要ステップ（10 ステップ）
 
 1. **Issue作成** - 作業の起点
 2. **ブランチ作成** - `feature/{issue-num}-{name}`
 3. **実装・コミット** - AI駆動開発
-4. **セルフレビュー** ← [詳細](./deployment/self-review.md)
-5. **PR作成** - 構造化されたPR本文
-6. **レビュー対応** - **レビュワーへのコメント必須**（修正内容・理由・変更箇所を明記）← [詳細](./deployment/git-workflow.md)
-7. **マージ** - Squash推奨
-8. **ナレッジ体系化** ← [詳細](./deployment/knowledge-management.md) | [ACE Playbook](./deployment/ace-cycle.md)
-9. **クリーンアップ** - ブランチ削除、次タスク
+4. **テスト・検証** - `npm run quality:local` 等
+5. **セルフレビュー** ← [詳細](./deployment/self-review.md)
+6. **PR作成** - 構造化されたPR本文
+7. **レビュー対応** - **レビュワーへのコメント必須**（修正内容・理由・変更箇所を明記）← [詳細](./deployment/git-workflow.md)
+8. **マージ** - Squash推奨
+9. **クリーンアップ** - ブランチ削除、`git fetch --prune`
+10. **ナレッジ体系化** - マージ後・cleanup 後 ← [詳細](./deployment/knowledge-management.md) | [ACE Playbook](./deployment/ace-cycle.md)
 
 ### 詳細ドキュメント
 

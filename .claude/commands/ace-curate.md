@@ -1,13 +1,14 @@
 # /ace-curate — ACE サイクル実行（Playbook 増分更新）
 
-レビュー完了後・マージ前にPRから知見を抽出し、ACE Playbook に構造化エントリとして追記します。
+マージ後・cleanup 後に PR から知見を抽出し、ACE Playbook に構造化エントリとして追記します。
 
 ## 前提
 
 - git リポジトリで作業中であること
-- レビュー完了済みの PR が存在すること（直近のPRが対象）
+- マージ済み（cleanup 済み）の PR が存在すること（直近マージの PR が対象）
 - `docs-template/08-knowledge/PLAYBOOK.md` が存在すること
-- **実行タイミング**: レビュー完了後・マージ前（feature branchで実行）
+- 現在のブランチが `develop` であること（または ACE 専用 `chore/ace-from-pr-<PR番号>` ブランチ）
+- **実行タイミング**: マージ後・cleanup 後（develop ブランチで実行）
 
 ## 引数
 
@@ -17,11 +18,11 @@
 
 ### 1. 対象PRの特定
 
-引数でPR番号が指定されていない場合、現在のブランチに関連するPRを自動検出します:
+引数でPR番号が指定されていない場合、最近マージされた PR を自動検出します:
 
 ```bash
-# 現在のブランチのPRを取得（マージ前なのでopen状態）
-gh pr list --head $(git branch --show-current) --state open --limit 1 --json number,title,body,url
+# 直近マージされた merged 状態の PR を取得（マージ後なので state=merged）
+gh pr list --state merged --limit 1 --json number,title,body,url,mergedAt
 ```
 
 指定されている場合:
@@ -61,6 +62,7 @@ gh pr view $ARGUMENTS --json number,title,body,url,comments,reviews
 - 各知見候補と既存エントリの重複・矛盾を確認
 
 照合結果に応じたアクション:
+
 - **重複**: 既存エントリの `Helpful` カウンターを +1
 - **矛盾**: 既存エントリの Status を `deprecated` に変更 → 新エントリ作成
 - **新規**: Phase 3 へ進む
@@ -69,22 +71,24 @@ gh pr view $ARGUMENTS --json number,title,body,url,comments,reviews
 ### 4. Phase 3: Curate（増分更新）
 
 #### 4-a. エントリIDの採番
+
 PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を使用
 
 #### 4-b. PLAYBOOK.md への追記
+
 エントリ一覧セクションの末尾（`## Changelog` の直前）に新エントリを追記:
 
 ```markdown
 ### ACE-XXX: [タイトル]
 
-| フィールド | 値 |
-|-----------|---|
-| Category | [カテゴリ] |
-| Origin | PR #[PR番号] |
-| Date | [今日の日付] |
-| Helpful | 0 |
-| Harmful | 0 |
-| Status | active |
+| フィールド | 値           |
+| ---------- | ------------ |
+| Category   | [カテゴリ]   |
+| Origin     | PR #[PR番号] |
+| Date       | [今日の日付] |
+| Helpful    | 0            |
+| Harmful    | 0            |
+| Status     | active       |
 
 **Insight**: [知見の本質]
 
@@ -94,18 +98,35 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 ```
 
 #### 4-c. Frontmatter の更新
+
 - `version` のマイナーバージョンをインクリメント
 - `updated` を今日の日付に更新
 - `ace_entry_count` をインクリメント（新規エントリ追加時のみ。カウンター更新のみの場合は変更しない）
 
 ### 5. コミット
 
-変更をコミットします:
+変更をコミットします（develop ブランチで実行している前提）:
+
+**個人開発（簡易、コミッタ 1〜2 人）**: 直接 develop に commit + push する（ACE-012 の例外として許容、根拠は下記参照）。
 
 ```bash
 git add docs-template/08-knowledge/PLAYBOOK.md
 git commit -m "knowledge: ACE-XXX [category] [summary]"
+git push origin develop
 ```
+
+**チーム開発（推奨、コミッタ 3 人以上または ACE 内容のレビューを残したい）**: `chore/ace-from-pr-<PR番号>` ブランチを切って小さい PR を作成。
+
+```bash
+git checkout -b chore/ace-from-pr-<PR番号>
+git add docs-template/08-knowledge/PLAYBOOK.md
+git commit -m "knowledge: ACE-XXX [category] [summary]"
+git push -u origin chore/ace-from-pr-<PR番号>
+gh pr create --base develop --title "knowledge: ACE-XXX [category]" --body "PR #<PR番号> から知見抽出"
+# レビュー後 squash merge → /merge-cleanup
+```
+
+判断基準と ACE-012 例外の根拠は [git-workflow.md ステップ10 ACE](../../docs-template/05-operations/deployment/git-workflow.md) を参照。
 
 ### 6. 結果レポート
 

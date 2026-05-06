@@ -6,7 +6,7 @@ AI開発ツール（Claude Code、GitHub Copilot、Cursor）に最適化され�
 
 ## なぜAI駆動Git Workflowか
 
-従来のGit Workflowに **テスト・セルフレビュー（PR作成前）** と **ACEナレッジ体系化（マージ前）** を組み込むことで、AIツールの力を最大限に活用します。
+従来のGit Workflowに **テスト・セルフレビュー（PR作成前）** と **ACEナレッジ体系化（マージ後）** を組み込むことで、AIツールの力を最大限に活用します。
 
 **従来のワークフロー**:
 
@@ -17,7 +17,7 @@ Issue → Branch → Commit → PR → Review → Merge
 **AI駆動Git Workflow**:
 
 ```
-Issue → Branch → Implement → Test → Self-Review → PR → Review → ACE → Merge → Cleanup
+Issue → Branch → Implement → Test → Self-Review → PR → Review → Merge → Cleanup → ACE
 ```
 
 ### 3つの革新ポイント
@@ -41,9 +41,9 @@ graph LR
         D --> E[5. Self-Review]
         E --> F[6. PR]
         F --> G[7. Review]
-        G --> H[8. ACE]
-        H --> I[9. Merge]
-        I --> J[10. Cleanup]
+        G --> H[8. Merge]
+        H --> I[9. Cleanup]
+        I --> J[10. ACE]
     end
 ```
 
@@ -58,9 +58,9 @@ graph LR
 | 5   | **Self-Review** | 品質を事前確保             | 5 観点の自動チェック＋ Review Toolkit                               |
 | 6   | **PR作成**      | レビュー依頼               | PR 本文の自動生成                                                   |
 | 7   | **Review**      | レビュー対応（修正ループ） | Review Router ＋修正提案の自動生成                                  |
-| 8   | **ACE**         | ナレッジ体系化（マージ前） | 知見の自動抽出・ Playbook 更新                                      |
-| 9   | **Merge**       | Squash merge               | -                                                                   |
-| 10  | **Cleanup**     | ブランチ同期・削除         | 次タスクの提案                                                      |
+| 8   | **Merge**       | Squash merge               | -                                                                   |
+| 9   | **Cleanup**     | ブランチ同期・削除         | 次タスクの提案                                                      |
+| 10  | **ACE**         | ナレッジ体系化（マージ後） | 知見の自動抽出・ Playbook 更新（develop で実行）                    |
 
 ---
 
@@ -362,11 +362,36 @@ Closes #123"
 ご確認のほど、よろしくお願いいたします。
 ```
 
-### ステップ8: ACE（ナレッジ体系化）
+### ステップ8: Merge
+
+```bash
+# developブランチに切り替えてからマージ
+git checkout develop
+gh pr merge <PR番号> --squash --delete-branch
+```
+
+**注**: `feature`ブランチにはSquash mergeが適していますが、`release`や`hotfix`ブランチを`main`にマージする際は、コミット履歴を保持するために通常のmerge (`--merge`) を検討してください。
+
+### ステップ9: Cleanup
+
+PRのマージ後、ローカル環境を同期します。
+
+```bash
+git pull origin develop
+
+# リモートで削除済みの追跡ブランチをローカルから一括削除
+git fetch --prune
+```
+
+**注**: ステップ8で `gh pr merge --delete-branch` を実行したため、リモートのフィーチャーブランチは自動的に削除されています。ローカルのフィーチャーブランチは、マージ前に `develop` へ切り替えているため、手動で `git branch -d feature/123-user-auth` を実行するか、`gh` コマンドのインタラクティブなプロンプトに従って削除する必要があります。`git fetch --prune` は、他の開発者がマージして削除したブランチなど、リモートで削除済みの追跡ブランチをローカルから一括で削除するために役立ちます。
+
+### ステップ10: ACE（ナレッジ体系化）
 
 **目的**: 開発で得た知見をチーム資産として蓄積
 
-**実行タイミング**: レビュー完了後・マージ前（feature branchで実行）
+**実行タイミング**: マージ後・cleanup 後（develop ブランチで実行）
+
+> **書籍ギャップとの関係**: 当初は「ステップ 8: ACE（マージ前、feature branch で実行）」としていたが、PR レビュー指摘の修正サイクルが完了してから知見が確定するパターンが多く、マージ後 develop で実行する方が自然なフローになる（PR #395 ・PR #396 で順序見直し）。
 
 #### 記録対象
 
@@ -401,32 +426,13 @@ gh discussion create \
 
 #### 運用パターン
 
-**個人開発（推奨）**: レビュー完了後、feature branchでACEを実行 → PLAYBOOK.md更新もPRに含める → まとめてマージ
+**個人開発（簡易）**: マージ後 cleanup を済ませた develop で `/ace-curate <PR番号>` を実行し、PLAYBOOK.md 追記を直接 develop に commit + push する。PLAYBOOK.md は append-only で構造化されているためコンフリクトリスクが低く、ACE 1 サイクル分の小さい変更を毎回 PR 化するオーバーヘッドは過剰。
 
-**チーム開発（参考）**: PLAYBOOK.mdのコンフリクトリスクがあるため、ACE更新は別ブランチ/別PRで対応することも検討
+**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
 
-### ステップ9: Merge
-
-```bash
-# developブランチに切り替えてからマージ
-git checkout develop
-gh pr merge <PR番号> --squash --delete-branch
-```
-
-**注**: `feature`ブランチにはSquash mergeが適していますが、`release`や`hotfix`ブランチを`main`にマージする際は、コミット履歴を保持するために通常のmerge (`--merge`) を検討してください。
-
-### ステップ10: Cleanup
-
-PRのマージ後、ローカル環境を同期します。
-
-```bash
-git pull origin develop
-
-# リモートで削除済みの追跡ブランチをローカルから一括削除
-git fetch --prune
-```
-
-**注**: ステップ9で `gh pr merge --delete-branch` を実行したため、リモートのフィーチャーブランチは自動的に削除されています。ローカルのフィーチャーブランチは、マージ前に `develop` へ切り替えているため、手動で `git branch -d feature/123-user-auth` を実行するか、`gh` コマンドのインタラクティブなプロンプトに従って削除する必要があります。`git fetch --prune` は、他の開発者がマージして削除したブランチなど、リモートで削除済みの追跡ブランチをローカルから一括で削除するために役立ちます。
+> **どちらを選ぶか**: コミッタが 1〜2 人のリポジトリは「個人開発」、3 人以上または ACE 内容のレビューを残したいリポジトリは「チーム開発」を選ぶ。判断基準を README / CLAUDE.md に明記してチーム内で揃える。
+>
+> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[PLAYBOOK.md ACE-012](../docs-template/08-knowledge/PLAYBOOK.md)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
 
 ---
 
