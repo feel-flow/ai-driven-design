@@ -7,7 +7,7 @@
 - git リポジトリで作業中であること
 - マージ済み（cleanup 済み）の PR が存在すること（直近マージの PR が対象）
 - `docs-template/08-knowledge/PLAYBOOK.md` が存在すること
-- 現在のブランチが `develop` であること（または ACE 専用 `chore/ace-from-pr-<num>` ブランチ）
+- 現在のブランチが `develop` であること（または ACE 専用 `chore/ace-from-pr-<PR番号>` ブランチ）
 - **実行タイミング**: マージ後・cleanup 後（develop ブランチで実行）
 
 ## 引数
@@ -107,7 +107,7 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 
 変更をコミットします（develop ブランチで実行している前提）:
 
-**個人開発（簡易、コミッタ 1〜2 人）**: 直接 develop に commit + push する。
+**個人開発（簡易、コミッタ 1〜2 人）**: 直接 develop に commit + push する（ACE-012 の例外として許容、根拠は下記参照）。
 
 ```bash
 git add docs-template/08-knowledge/PLAYBOOK.md
@@ -126,7 +126,7 @@ gh pr create --base develop --title "knowledge: ACE-XXX [category]" --body "PR #
 # レビュー後 squash merge → /merge-cleanup
 ```
 
-判断基準は [git-workflow.md ステップ10 ACE](../../docs-template/05-operations/deployment/git-workflow.md) を参照。
+判断基準と ACE-012 例外の根拠は [git-workflow.md ステップ10 ACE](../../docs-template/05-operations/deployment/git-workflow.md) を参照。
 
 ### 6. 結果レポート
 

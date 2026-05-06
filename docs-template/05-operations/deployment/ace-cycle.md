@@ -15,7 +15,9 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 
 **個人開発（簡易）**: マージ後 cleanup を済ませた develop で `/ace-curate <PR番号>` を実行し、PLAYBOOK.md 追記を直接 develop に commit + push する。PLAYBOOK.md は append-only でコンフリクトリスクが低く、ACE 1 サイクル分の小さい変更を毎回 PR 化するオーバーヘッドは過剰。
 
-**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<num>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
+**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
+
+> **ACE-012 の例外**: 「個人開発（簡易）」パターンの直接 develop push は、通常の `Never commit directly to develop` 禁則（[PLAYBOOK.md ACE-012](../../08-knowledge/PLAYBOOK.md)）の**明示的な例外**として位置付ける。詳細な根拠は [git-workflow.md ステップ10 ACE](./git-workflow.md) 参照。
 
 **autonomous（任意）**: subagent と専用 worktree で ACE キャプチャを非同期化するパターン。導入は [ace-autonomous.md](./ace-autonomous.md) と `docs-template/scripts/ace/` のテンプレートを参照（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。
 

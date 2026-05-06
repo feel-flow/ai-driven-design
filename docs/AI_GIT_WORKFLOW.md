@@ -391,7 +391,7 @@ git fetch --prune
 
 **実行タイミング**: マージ後・cleanup 後（develop ブランチで実行）
 
-> **書籍ギャップとの関係**: 当初は「ステップ 8: ACE（マージ前、feature branch で実行）」としていたが、実運用では PR レビュー指摘の修正サイクルが完了してから知見が確定するパターンが多く、マージ後に develop で実行する方が自然なフローになる（PR #395 ・PR #396 で順序見直し）。
+> **書籍ギャップとの関係**: 当初は「ステップ 8: ACE（マージ前、feature branch で実行）」としていたが、PR レビュー指摘の修正サイクルが完了してから知見が確定するパターンが多く、マージ後 develop で実行する方が自然なフローになる（PR #395 ・PR #396 で順序見直し）。
 
 #### 記録対象
 
@@ -428,9 +428,11 @@ gh discussion create \
 
 **個人開発（簡易）**: マージ後 cleanup を済ませた develop で `/ace-curate <PR番号>` を実行し、PLAYBOOK.md 追記を直接 develop に commit + push する。PLAYBOOK.md は append-only で構造化されているためコンフリクトリスクが低く、ACE 1 サイクル分の小さい変更を毎回 PR 化するオーバーヘッドは過剰。
 
-**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<num>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
+**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
 
 > **どちらを選ぶか**: コミッタが 1〜2 人のリポジトリは「個人開発」、3 人以上または ACE 内容のレビューを残したいリポジトリは「チーム開発」を選ぶ。判断基準を README / CLAUDE.md に明記してチーム内で揃える。
+>
+> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[PLAYBOOK.md ACE-012](../docs-template/08-knowledge/PLAYBOOK.md)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
 
 ---
 
