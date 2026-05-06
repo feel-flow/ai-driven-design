@@ -72,7 +72,7 @@ DEPLOYMENT.md（索引、300 行未満を維持）
     └── ...（他複数）
 ```
 
-> 上記は構造例。具体ファイル数・各サイズは継続的に変動するため、最新は `ls docs-template/05-operations/deployment/` で確認してください。
+> 上記は構造例。具体ファイル数・各サイズは継続的に変動するため、最新は `ls docs-template/05-operations/deployment/` または [GitHub の `deployment/` ディレクトリ](https://github.com/feel-flow/ai-spec-driven-development/tree/develop/docs-template/05-operations/deployment) で確認してください。
 
 ## 分割の標準手順（チェックリスト）
 
@@ -104,7 +104,7 @@ DEPLOYMENT.md（索引、300 行未満を維持）
 ### Step 5: 検証
 
 - [ ] `npm run lint:md` でリンク切れ・heading 構造を確認。
-- [ ] `npm run validate` でコア 7 文書の存在チェックを通す（任意ディレクトリを検証する場合のみ `-- &lt;dir&gt;` で渡す）。
+- [ ] `npm run validate` でコア 7 文書の存在チェックを通す（任意ディレクトリを検証する場合のみ `-- <dir>` で渡す）。
 - [ ] AI ツールに「○○について教えて」と問い、親→子の経路で正しい回答が得られるか確認。
 
 ## 分割しないほうが良いケース

@@ -40,44 +40,18 @@ updated: "2026-05-06"
    └── 孤立検出 → リンク追加 or アーカイブ
 ```
 
-> **合計目安**: Phase 1〜4 で約 9 週間（2 ヶ月強）。チーム規模・既存ドキュメント量によって 1.5〜2 倍まで揺れる前提で計画してください（詳細: [phased-rollout.md](./organizational-rollout/phased-rollout.md)）。
+> **合計目安**: Phase 1〜4 で **9〜11 週（約 2.5 ヶ月）**。Phase 1=1 週・Phase 2=2 週・Phase 3=4 週・Phase 4=4 週の合算で、チーム規模や既存ドキュメント量により 1.5〜2 倍まで揺れる前提で計画してください（詳細: [phased-rollout.md](./organizational-rollout/phased-rollout.md)）。
 
 ## 🎯 主要数値（書籍 第14章準拠）
 
-各ガイドで参照する閾値の **概要のみ** を本索引に掲載します。**閾値の正本（SSOT）は子ガイド** に置きます。本表は SSOT のミラーであり、最新値・例外条件・判定フローは各リンク先を参照してください。
+各カテゴリの **正本（SSOT）は子ガイド** に置きます。本索引は子ガイドへの誘導と 1 行サマリのみを掲載し、閾値の重複は持ちません。最新値・例外条件・判定フローは各リンク先を参照してください。
 
-| 数値カテゴリ           | SSOT（子ガイド）                                                                                 | 本索引の役割                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| 文書分割の閾値         | [document-splitting.md](./organizational-rollout/document-splitting.md)                          | 概要表のミラー                       |
-| アーカイブ判定         | [archive-strategy.md](./organizational-rollout/archive-strategy.md)                              | 概要表のミラー                       |
-| 月次ヘルスチェック項目 | [health-check.md](./organizational-rollout/health-check.md)                                      | 4 項目リスト                         |
-| 段階導入のフェーズ定義 | [phased-rollout.md](./organizational-rollout/phased-rollout.md)（このカテゴリのみ本索引が SSOT） | フェーズ表のミラー（運用は子で定義） |
-
-### 文書分割の閾値
-
-| 行数      | 判断           | 詳細リンク                                                              |
-| --------- | -------------- | ----------------------------------------------------------------------- |
-| 〜 500 行 | 適正           | -                                                                       |
-| 500 行超  | 分割を検討     | [document-splitting.md](./organizational-rollout/document-splitting.md) |
-| 800 行超  | 分割を推奨     | [document-splitting.md](./organizational-rollout/document-splitting.md) |
-| 1200 行超 | **分割を必須** | [document-splitting.md](./organizational-rollout/document-splitting.md) |
-
-### アーカイブ判定
-
-| 条件             | 詳細リンク                                                          |
-| ---------------- | ------------------------------------------------------------------- |
-| 6 ヶ月参照なし   | [archive-strategy.md](./organizational-rollout/archive-strategy.md) |
-| 技術的陳腐化     | [archive-strategy.md](./organizational-rollout/archive-strategy.md) |
-| 別文書に統合済み | [archive-strategy.md](./organizational-rollout/archive-strategy.md) |
-
-### 月次ヘルスチェック 4 項目
-
-1. MASTER.md からの参照確認
-2. ファイルサイズ確認（上記閾値）
-3. 鮮度確認（6 ヶ月以上更新なし）
-4. 孤立文書の確認
-
-詳細手順: [health-check.md](./organizational-rollout/health-check.md)
+| 数値カテゴリ           | SSOT（子ガイド）                                                                                 | サマリ                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| 文書分割の閾値         | [document-splitting.md](./organizational-rollout/document-splitting.md)                          | **500 / 800 / 1200 行** の三段階（検討 / 推奨 / 必須）              |
+| アーカイブ判定         | [archive-strategy.md](./organizational-rollout/archive-strategy.md)                              | 6 ヶ月参照なし・陳腐化・統合済み・PoC 完了 のいずれか               |
+| 月次ヘルスチェック項目 | [health-check.md](./organizational-rollout/health-check.md)                                      | 参照確認・サイズ確認・鮮度確認・孤立検出 の 4 項目（30〜60 分／月） |
+| 段階導入のフェーズ定義 | [phased-rollout.md](./organizational-rollout/phased-rollout.md)（このカテゴリのみ本索引が SSOT） | 定義の正本（Phase 1〜4 の運用詳細は子で定義）                       |
 
 ## ⚠️ 段階導入で **やってはいけない** こと
 

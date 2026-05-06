@@ -135,11 +135,11 @@ grep -rho '\[.*\]([^)]*\.md[^)]*)' docs-template docs \
   | grep -oE '[^()]+\.md' | sort -u > /tmp/linked-md.txt
 
 # 差分 = 孤立候補
-# 注: comm は両入力がソート済みであることを要求する。`sort | xargs basename` だと
-# basename 抽出後に並びが崩れるため、basename 化したあとで再度 `sort -u` する。
+# 注: comm は両入力がソート済みであることを要求する。
+# `sed 's|.*/||'` で basename 抽出（xargs より高速）し、`sort -u` で並びと重複を整える。
 comm -23 \
-  <(sort /tmp/all-md.txt | xargs -n1 basename | sort -u) \
-  <(sort /tmp/linked-md.txt | xargs -n1 basename | sort -u)
+  <(sed 's|.*/||' /tmp/all-md.txt | sort -u) \
+  <(sed 's|.*/||' /tmp/linked-md.txt | sort -u)
 ```
 
 > 上記は簡易判定（basename ベース）。同名異パスがある場合は誤検出するため、結果は目視確認する。`git log --diff-filter=A` で初回追加日を取り、1 週間以内の新規文書はノイズになりやすいため除外する。
