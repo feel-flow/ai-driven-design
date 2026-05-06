@@ -21,12 +21,12 @@ updated: "2026-05-06"
 
 書籍 第14章「ドキュメント増加の管理戦略」で定義された **4 項目** を毎月確認する。
 
-| #   | 項目                     | 検出対象                         | 自動化可否 |
-| --- | ------------------------ | -------------------------------- | ---------- |
-| 1   | MASTER.md からの参照確認 | 新規文書が中央索引から到達可能か | △ 半自動   |
-| 2   | ファイルサイズ確認       | 500 行超の文書                   | ○ 自動     |
-| 3   | 鮮度確認                 | 6 ヶ月以上更新なしの文書         | ○ 自動     |
-| 4   | 孤立文書の確認           | どこからも参照されていない文書   | ○ 自動     |
+| #   | 項目                     | 検出対象                         | 検出 | 判定        |
+| --- | ------------------------ | -------------------------------- | ---- | ----------- |
+| 1   | MASTER.md からの参照確認 | 新規文書が中央索引から到達可能か | ○    | △（要目視） |
+| 2   | ファイルサイズ確認       | 500 行超の文書                   | ○    | ○           |
+| 3   | 鮮度確認                 | 6 ヶ月以上更新なしの文書         | ○    | △（要分類） |
+| 4   | 孤立文書の確認           | どこからも参照されていない文書   | ○    | △（要目視） |
 
 ## 1. MASTER.md からの参照確認
 
@@ -88,6 +88,7 @@ find docs-template docs -name '*.md' -type f \
 
 ```bash
 # 6 ヶ月以上更新がない .md を抽出
+# date: macOS は `-v-6m`、GNU coreutils は `-d '6 months ago'`
 SIX_MO_AGO=$(date -v-6m +%Y-%m-%d 2>/dev/null || date -d '6 months ago' +%Y-%m-%d)
 find docs-template docs -name '*.md' -type f \
   ! -path '*/archive/*' \
@@ -134,9 +135,11 @@ grep -rho '\[.*\]([^)]*\.md[^)]*)' docs-template docs \
   | grep -oE '[^()]+\.md' | sort -u > /tmp/linked-md.txt
 
 # 差分 = 孤立候補
-comm -23 <(sort /tmp/all-md.txt | xargs -n1 basename) \
-         <(sort /tmp/linked-md.txt | xargs -n1 basename) \
-  | sort -u
+# 注: comm は両入力がソート済みであることを要求する。
+# `sed 's|.*/||'` で basename 抽出（xargs より高速）し、`sort -u` で並びと重複を整える。
+comm -23 \
+  <(sed 's|.*/||' /tmp/all-md.txt | sort -u) \
+  <(sed 's|.*/||' /tmp/linked-md.txt | sort -u)
 ```
 
 > 上記は簡易判定（basename ベース）。同名異パスがある場合は誤検出するため、結果は目視確認する。`git log --diff-filter=A` で初回追加日を取り、1 週間以内の新規文書はノイズになりやすいため除外する。
@@ -201,3 +204,4 @@ comm -23 <(sort /tmp/all-md.txt | xargs -n1 basename) \
 - [document-splitting.md](./document-splitting.md) — サイズ超過文書の分割手順
 - [archive-strategy.md](./archive-strategy.md) — 鮮度・孤立で検出された文書の退避手順
 - [phased-rollout.md](./phased-rollout.md) — 月次チェックを Phase 4 で運用に組み込む
+- [../ORGANIZATIONAL_ROLLOUT.md](../ORGANIZATIONAL_ROLLOUT.md) — 組織展開ガイドの索引（親）

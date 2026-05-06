@@ -9,11 +9,11 @@ updated: "2026-05-06"
 
 # ORGANIZATIONAL_ROLLOUT.md - 組織展開ガイド
 
-> **📏 ドキュメント最適化**: このファイルは索引です（200〜300 行を目標）。詳細は `organizational-rollout/` 配下の各ファイルを参照してください。
+> **📏 ドキュメント最適化**: このファイルは索引です。300 行以内を維持してください（[document-splitting.md](./organizational-rollout/document-splitting.md) の親文書ガイドラインに準拠）。
 
 ## 📖 この索引の対象範囲
 
-書籍 第15章「チーム標準化」・第16章「ロードマップとナレッジ蓄積」で示されている、AI 仕様駆動開発フレームワークを **既存組織・チームに展開するための 4 つの運用ガイド** を扱います。
+書籍 第14章「ドキュメント増加の管理戦略」および第15章「チーム標準化」を中心に、AI 仕様駆動開発フレームワークを **既存組織・チームに展開するための 4 つの運用ガイド** を扱います。第16章「ロードマップとナレッジ蓄積」のうちナレッジ管理の継続運用は、既存の [deployment/knowledge-management.md](./deployment/knowledge-management.md) に集約されています。
 
 | ガイド                                                                  | 対象                                                | 推奨読み順     |
 | ----------------------------------------------------------------------- | --------------------------------------------------- | -------------- |
@@ -40,35 +40,18 @@ updated: "2026-05-06"
    └── 孤立検出 → リンク追加 or アーカイブ
 ```
 
+> **合計目安**: Phase 1〜4 で **9〜11 週（約 2.5 ヶ月）**。Phase 1=1 週・Phase 2=2 週・Phase 3=4 週・Phase 4=4 週の合算で、チーム規模や既存ドキュメント量により 1.5〜2 倍まで揺れる前提で計画してください（詳細: [phased-rollout.md](./organizational-rollout/phased-rollout.md)）。
+
 ## 🎯 主要数値（書籍 第14章準拠）
 
-各ガイドで参照する閾値を、ここで一元管理します。**新規文書および分割判断は本値を SSOT** とし、他文書（MASTER.md 等）に異なる値の記述があれば順次同期してください。
+各カテゴリの **正本（SSOT）は子ガイド** に置きます。本索引は子ガイドへの誘導と 1 行サマリのみを掲載し、閾値の重複は持ちません。最新値・例外条件・判定フローは各リンク先を参照してください。
 
-### 文書分割の閾値
-
-| 行数      | 判断           | 詳細リンク                                                              |
-| --------- | -------------- | ----------------------------------------------------------------------- |
-| 〜 500 行 | 適正           | -                                                                       |
-| 500 行超  | 分割を検討     | [document-splitting.md](./organizational-rollout/document-splitting.md) |
-| 800 行超  | 分割を推奨     | [document-splitting.md](./organizational-rollout/document-splitting.md) |
-| 1200 行超 | **分割を必須** | [document-splitting.md](./organizational-rollout/document-splitting.md) |
-
-### アーカイブ判定
-
-| 条件             | 詳細リンク                                                          |
-| ---------------- | ------------------------------------------------------------------- |
-| 6 ヶ月参照なし   | [archive-strategy.md](./organizational-rollout/archive-strategy.md) |
-| 技術的陳腐化     | [archive-strategy.md](./organizational-rollout/archive-strategy.md) |
-| 別文書に統合済み | [archive-strategy.md](./organizational-rollout/archive-strategy.md) |
-
-### 月次ヘルスチェック 4 項目
-
-1. MASTER.md からの参照確認
-2. ファイルサイズ確認（上記閾値）
-3. 鮮度確認（6 ヶ月以上更新なし）
-4. 孤立文書の確認
-
-詳細手順: [health-check.md](./organizational-rollout/health-check.md)
+| 数値カテゴリ           | SSOT（子ガイド）                                                                                 | サマリ                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| 文書分割の閾値         | [document-splitting.md](./organizational-rollout/document-splitting.md)                          | **500 / 800 / 1200 行** の三段階（検討 / 推奨 / 必須）              |
+| アーカイブ判定         | [archive-strategy.md](./organizational-rollout/archive-strategy.md)                              | 6 ヶ月参照なし・陳腐化・統合済み・PoC 完了 のいずれか               |
+| 月次ヘルスチェック項目 | [health-check.md](./organizational-rollout/health-check.md)                                      | 参照確認・サイズ確認・鮮度確認・孤立検出 の 4 項目（30〜60 分／月） |
+| 段階導入のフェーズ定義 | [phased-rollout.md](./organizational-rollout/phased-rollout.md)（このカテゴリのみ本索引が SSOT） | 定義の正本（Phase 1〜4 の運用詳細は子で定義）                       |
 
 ## ⚠️ 段階導入で **やってはいけない** こと
 
@@ -82,8 +65,8 @@ updated: "2026-05-06"
 
 ## 🔗 関連ドキュメント
 
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - 運用全体の索引（PR・CI/CD・モニタリング等）
-- [GETTING_STARTED_NEW_PROJECT.md](../GETTING_STARTED_NEW_PROJECT.md) - 新規プロジェクト立ち上げ時のガイド
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - **個別プロジェクトの運用フロー**（PR・CI/CD・モニタリング）。本ガイドは **組織横断のドキュメント運用** を扱い、住み分けは「コード・デプロイの運用＝DEPLOYMENT、ドキュメントの運用＝ORGANIZATIONAL_ROLLOUT」。
+- [GETTING_STARTED_NEW_PROJECT.md](../GETTING_STARTED_NEW_PROJECT.md) - 新規プロジェクト立ち上げ時のガイド（**注**: 同名の Phase 0〜4 を扱うが、本ガイドの組織展開 Phase 1〜4 とは別概念）。
 - [MASTER.md](../MASTER.md) - プロジェクト中央索引（本ガイドの上位）
 - [DECISION_MATRIX.md](../06-reference/DECISION_MATRIX.md) - どの文書に書くかの判断マトリクス
 
