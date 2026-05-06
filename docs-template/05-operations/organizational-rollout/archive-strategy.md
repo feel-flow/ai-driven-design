@@ -63,6 +63,7 @@ docs-template/
 
 - **年単位サブディレクトリ** で整理すると検索性が上がる。
 - `archive/README.md` は索引として **必ず** 用意し、1 行 = 1 文書 + アーカイブ理由を併記する。
+- 本テンプレートの `docs-template/archive/` には `.gitkeep` のみ配置されており、`README.md` は提供されていない。**初回アーカイブ時に作成する**運用とし、雛形は本ガイドの「Step 4: 文書冒頭にバナーを挿入」を流用してよい。
 
 ### Step 2: `git mv` で履歴を保ったまま移動
 
@@ -154,3 +155,4 @@ MASTER.md の参照リンクを以下いずれかに置き換え:
 - [health-check.md](./health-check.md) — 月次で「6 ヶ月参照なし」を検出する手順
 - [document-splitting.md](./document-splitting.md) — 分割で済む場合とアーカイブで済む場合の判断
 - [phased-rollout.md](./phased-rollout.md) — Phase 4 完了後にアーカイブ運用を開始するタイミング
+- [../ORGANIZATIONAL_ROLLOUT.md](../ORGANIZATIONAL_ROLLOUT.md) — 組織展開ガイドの索引（親）

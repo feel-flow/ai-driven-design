@@ -107,7 +107,7 @@ updated: "2026-05-06"
 ### この Phase で **やらないこと**
 
 - 完璧主義に陥らない。**80% で次へ**。
-- ドキュメント分割（H2 参照）の閾値（500 行）に達した文書だけ次節を参照。
+- ドキュメント分割の閾値（500 行）に達した文書だけ [document-splitting.md](./document-splitting.md) を参照する。
 
 ## Phase 4: 自動チェック導入（1 ヶ月）
 
@@ -152,3 +152,4 @@ updated: "2026-05-06"
 - [document-splitting.md](./document-splitting.md) — Phase 3 で増えた文書の分割手順
 - [archive-strategy.md](./archive-strategy.md) — 古くなった文書の退避方針
 - [health-check.md](./health-check.md) — Phase 4 完了後に走らせる月次チェック
+- [../ORGANIZATIONAL_ROLLOUT.md](../ORGANIZATIONAL_ROLLOUT.md) — 組織展開ガイドの索引（親）
