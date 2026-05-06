@@ -60,7 +60,7 @@ updated: "2026-05-06"
 `docs-template/05-operations/DEPLOYMENT.md` は元々 2,379 行あったが、以下のように分割済み:
 
 ```text
-DEPLOYMENT.md（索引、222 行）
+DEPLOYMENT.md（索引、300 行未満）
 ├── deployment/
 │   ├── git-workflow.md            # AI 駆動 Git Workflow
 │   ├── self-review.md             # セルフレビュー詳細

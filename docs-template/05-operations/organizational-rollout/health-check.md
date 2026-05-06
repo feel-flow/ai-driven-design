@@ -38,15 +38,12 @@ updated: "2026-05-06"
 ### 手順
 
 ```bash
-# 直近 1 ヶ月に追加された .md ファイルを抽出
+# 直近 1 ヶ月に追加された .md ファイルを抽出し、MASTER.md からの参照を確認
 git log --since="1 month ago" --diff-filter=A --name-only \
   --pretty=format: -- 'docs-template/**/*.md' 'docs/**/*.md' \
-  | sort -u
-
-# 各ファイル名で MASTER.md を検索
-for f in $(上記出力); do
+  | sort -u | while read f; do
   basename=$(basename "$f")
-  grep -l "$basename" docs-template/MASTER.md || echo "MISSING: $f"
+  grep -q "$basename" docs-template/MASTER.md || echo "MISSING: $f"
 done
 ```
 
@@ -123,9 +120,14 @@ find docs-template docs -name '*.md' -type f \
 ### 手順
 
 ```bash
-# 全 .md ファイル
+# 全 .md ファイル（作成から 1 週間経過したものに絞る）
+ONE_WEEK_AGO=$(date -v-7d +%Y-%m-%d 2>/dev/null || date -d '7 days ago' +%Y-%m-%d)
 find docs-template docs -name '*.md' -type f \
-  ! -path '*/archive/*' > /tmp/all-md.txt
+  ! -path '*/archive/*' \
+  | while read f; do
+      added=$(git log --diff-filter=A --follow --format=%ad --date=short -- "$f" | tail -1)
+      [ -n "$added" ] && [ "$added" \< "$ONE_WEEK_AGO" ] && echo "$f"
+    done | sort > /tmp/all-md.txt
 
 # どこかからリンクされている .md
 grep -rho '\[.*\]([^)]*\.md[^)]*)' docs-template docs \
@@ -137,7 +139,7 @@ comm -23 <(sort /tmp/all-md.txt | xargs -n1 basename) \
   | sort -u
 ```
 
-> 上記は簡易判定（basename ベース）。同名異パスがある場合は誤検出するため、結果は目視確認する。
+> 上記は簡易判定（basename ベース）。同名異パスがある場合は誤検出するため、結果は目視確認する。`git log --diff-filter=A` で初回追加日を取り、1 週間以内の新規文書はノイズになりやすいため除外する。
 
 ### 判定
 
