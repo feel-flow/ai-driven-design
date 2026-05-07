@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Removed
+- **Obsidian 統合の完全排除**（2026-05-07、Issue #402）
+  - 削除: `docs-template/.obsidian/`（4 設定ファイル）、`docs-template/08-knowledge/OBSIDIAN_GUIDE.md`、`docs-template/08-knowledge/OBSIDIAN_EVALUATION.md`、`mcp/src/obsidian/`（5 ソース）、`scripts/obsidian-sync.mjs`、`scripts/setup-obsidian-hook.sh`
+  - 編集: `mcp/src/index.ts`（4 ツール `backlinks`/`validate_links`/`update_backlinks`/`orphaned_files` 削除）、`mcp/src/types.ts`（Obsidian 型定義削除）、`mcp/README.md`（Obsidian統合ツールセクション削除）、`package.json`（`obsidian:sync`/`obsidian:setup` scripts 削除）、`docs-template/MASTER.md`（OBSIDIAN_EVALUATION.md 参照削除）、`docs-template/05-operations/deployment/git-workflow.md`（Obsidian統合セクション削除）
+  - **撤退理由**: `obsidian-sync.mjs` の自己破壊バグ（`OBSIDIAN_GUIDE.md` を 379 → 26 行に破壊）、post-merge フックの暴走（Issue #401）、Obsidian アプリ側のゴミファイル生成、テンプレート配布趣旨（URL 参照だけでミニマルに使える）とのミスマッチ
+
 ### Changed
 - **書籍コンテンツを別リポジトリに分離**（2026-02-06）
   - `books/` ディレクトリおよび書籍関連ツール（校正スキル、イラスト生成、ビルドスクリプト等）を [feel-flow/ai-books](https://github.com/feel-flow/ai-books) に移動

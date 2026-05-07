@@ -17,20 +17,3 @@ export const SPEC_STATUS = [
   "deprecated"
 ] as const;
 export type SpecStatus = typeof SPEC_STATUS[number];
-
-/**
- * バックリンクセクションのヘッダー名
- * ユースケース: 各Markdownファイル末尾に自動生成されるセクション
- */
-export const BACKLINKS_SECTION_HEADER = '## Linked from' as const;
-
-/**
- * バックリンクセクションのテンプレート
- * ユースケース: backlinks更新時に使用する初期テンプレート
- */
-export const BACKLINKS_SECTION_TEMPLATE = `
-${BACKLINKS_SECTION_HEADER}
-
-<!-- このセクションは自動生成されます。手動で編集しないでください。 -->
-
-` as const;

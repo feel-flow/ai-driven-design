@@ -866,35 +866,3 @@ developの変更を定期的に取り込み（`git merge develop`）、PRコメ�
 5. **継続的改善**: フィードバックループを通じてプロセスを進化
 
 ワークフローは形式ではなく、チームの生産性向上と品質確保のための手段です。状況に応じて柔軟に調整してください。
-
-## Obsidian統合による自動ナレッジベース管理
-
-developブランチへのマージ時、Husky post-mergeフックがドキュメントのバックリンクを自動更新します。
-
-```bash
-# セットアップ（初回のみ）
-npm run obsidian:setup
-
-# 手動実行
-npm run obsidian:sync -- backlinks   # バックリンク更新
-npm run obsidian:sync -- validate    # リンク検証
-```
-
-### 有効性評価の運用（推奨）
-
-Issue #311 の運用完了条件として、導入後の有効性を2週間単位で評価します。
-
-```bash
-# 週次メトリクス測定
-npm run obsidian:sync -- validate
-npm run obsidian:sync -- report
-npm run obsidian:sync -- orphaned
-```
-
-運用ルール:
-
-1. 週次でメトリクスを記録（壊れたリンク率、孤立ファイル率、探索時間など）
-2. 2週間で `継続 / 改善 / 停止` を判定
-3. `改善` 判定の場合は新規Issueを起票して対応を分離
-
-詳細は [OBSIDIAN_GUIDE.md](../../08-knowledge/OBSIDIAN_GUIDE.md) と [OBSIDIAN_EVALUATION.md](../../08-knowledge/OBSIDIAN_EVALUATION.md) を参照してください。

@@ -4,7 +4,7 @@ version: "1.1.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "2026-04-27"
+updated: "2026-05-07"
 changeImpact: "MEDIUM"
 ---
 
@@ -512,7 +512,6 @@ metrics:
 - [08-knowledge/BEST_PRACTICES.md](./08-knowledge/BEST_PRACTICES.md) - ベストプラクティス集
 - [08-knowledge/FAQ.md](./08-knowledge/FAQ.md) - よくある質問と回答
 - [08-knowledge/PLAYBOOK.md](./08-knowledge/PLAYBOOK.md) - ACE Playbook（AIツール向け構造化知見）
-- [08-knowledge/OBSIDIAN_EVALUATION.md](./08-knowledge/OBSIDIAN_EVALUATION.md) - Obsidian運用の有効性評価基準と判定手順
 
 ### 開発プロセスガイド
 
