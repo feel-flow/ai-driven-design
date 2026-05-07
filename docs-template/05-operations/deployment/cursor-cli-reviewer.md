@@ -197,7 +197,7 @@ Error: Not authenticated
 ## 関連ドキュメント
 
 - [multi-cli-review-orchestration.md](./multi-cli-review-orchestration.md) — オーケストレーション運用ガイド
-- [REVIEW-AGENT-CREATION-GUIDE.md](../../06-reference/REVIEW-AGENT-CREATION-GUIDE.md) — 汎用レビューエージェント作成ガイド
+- [REVIEW_AGENT_CREATION_GUIDE.md](../../06-reference/REVIEW_AGENT_CREATION_GUIDE.md) — 汎用レビューエージェント作成ガイド
 - [ai-tools-integration.md](./ai-tools-integration.md) — AIツール統合・コスト比較
 - [gemini-cli-reviewer.md](./gemini-cli-reviewer.md) — Gemini CLI セットアップ
 - [SETUP_CURSOR.md](../../SETUP_CURSOR.md) — Cursor エディタ詳細設定

@@ -466,7 +466,7 @@ branches:
 
 - [DEPLOYMENT.md](../DEPLOYMENT.md) - デプロイメント戦略全体
 - [multi-cli-review-orchestration.md](./multi-cli-review-orchestration.md) - Multi-CLI レビューオーケストレーション
-- [REVIEW-AGENT-CREATION-GUIDE.md](../../06-reference/REVIEW-AGENT-CREATION-GUIDE.md) - 汎用レビューエージェント作成ガイド
+- [REVIEW_AGENT_CREATION_GUIDE.md](../../06-reference/REVIEW_AGENT_CREATION_GUIDE.md) - 汎用レビューエージェント作成ガイド
 - [SETUP_CLAUDE_CODE.md](../../SETUP_CLAUDE_CODE.md) - Claude Code詳細設定
 - [SETUP_GITHUB_COPILOT.md](../../SETUP_GITHUB_COPILOT.md) - GitHub Copilot詳細設定
 - [SETUP_CURSOR.md](../../SETUP_CURSOR.md) - Cursor詳細設定

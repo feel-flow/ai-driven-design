@@ -256,12 +256,14 @@ AIが生成したドキュメント・コードは、以下のタイミングで
   - 形式: `数字-英語小文字（ハイフン区切り）`
   - 例: `01-context`, `02-design`, `03-implementation`
 - **ファイル名**:
-  - メインドキュメント: `英語大文字.md`（AI識別性優先）
-  - 例: `MASTER.md`, `ARCHITECTURE.md`, `TESTING.md`
+  - メインドキュメント: `UPPER_SNAKE_CASE.md`（AI識別性優先・複数語はアンダースコア `_` 区切り）
+  - 例: `MASTER.md`, `ARCHITECTURE.md`, `LESSONS_LEARNED.md`, `DEVELOPMENT_PREPARATION.md`
+  - サブフォルダ内ファイル: `lowercase-with-hyphens.md`（例: `git-workflow.md`, `phased-rollout.md`）
+  - 詳細・適用条件・逸脱判断は [README.md](./README.md#-ファイル名命名規則) を SSOT とする
 - **禁止事項**:
   - ❌ 日本語ファイル名
   - ❌ スペースを含むファイル名
-  - ❌ アンダースコア区切り（ハイフンを使用）
+  - ❌ メインドキュメントでのハイフン区切り（複数語は `UPPER_SNAKE_CASE.md` を使用）
   - ❌ ファイル名への番号プレフィックス（ディレクトリのみ使用）
 
 - **例外**:
@@ -518,7 +520,7 @@ metrics:
 - [06-reference/DEVELOPMENT_PREPARATION.md](./06-reference/DEVELOPMENT_PREPARATION.md) - 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）
 - [00-planning/POC_WORKFLOW.md](./00-planning/POC_WORKFLOW.md) - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
 - [06-reference/DECISION_MATRIX.md](./06-reference/DECISION_MATRIX.md) - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
-- [06-reference/COPILOT-AGENTS.md](./06-reference/COPILOT-AGENTS.md) - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
+- [06-reference/COPILOT_AGENTS.md](./06-reference/COPILOT_AGENTS.md) - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
 - [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md) - 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）
 
 ## ドキュメント構造ガイド（AIツール向け）
@@ -537,6 +539,16 @@ metrics:
 ユーザー: 「セルフレビューの方法を教えて」
 AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 ```
+
+### ファイル名命名規則
+
+| 階層                                   | ルール                      | 例                                       |
+| -------------------------------------- | --------------------------- | ---------------------------------------- |
+| ルート直下 / 番号付きフォルダ直下の MD | `UPPER_SNAKE_CASE.md`       | `MASTER.md`, `DEPLOYMENT.md`             |
+| サブフォルダ名                         | `lowercase-with-hyphens/`   | `deployment/`, `organizational-rollout/` |
+| サブフォルダ内 MD                      | `lowercase-with-hyphens.md` | `git-workflow.md`, `phased-rollout.md`   |
+
+> **詳細・適用条件・逸脱判断**: [docs-template/README.md](./README.md#-ファイル名命名規則) を SSOT とする。
 
 ### ファイルサイズの閾値（書籍 第14章準拠）
 

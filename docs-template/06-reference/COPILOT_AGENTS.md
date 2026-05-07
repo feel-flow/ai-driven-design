@@ -742,10 +742,10 @@ PR作成後に `@review-router` を呼び出すだけで、変更内容を自動
 
 ## 関連ドキュメント
 
-- [REVIEW-AGENT-CREATION-GUIDE.md](./REVIEW-AGENT-CREATION-GUIDE.md) - 汎用レビューエージェント作成ガイド（ツール非依存のパースペクティブ定義・アダプターパターン）
+- [REVIEW_AGENT_CREATION_GUIDE.md](./REVIEW_AGENT_CREATION_GUIDE.md) - 汎用レビューエージェント作成ガイド（ツール非依存のパースペクティブ定義・アダプターパターン）
 - [multi-cli-review-orchestration.md](../05-operations/deployment/multi-cli-review-orchestration.md) - Multi-CLI レビューオーケストレーション（5 CLI統合運用）
 - [MASTER.md](../MASTER.md) - プロジェクト全体の設定
 - [PATTERNS.md](../03-implementation/PATTERNS.md) - 実装パターン
 - [TESTING.md](../04-quality/TESTING.md) - テスト戦略
 
-> **💡 Note**: 本ドキュメントのエージェントテンプレートはGitHub Copilot固有ですが、ツール非依存の汎用パターンについては [REVIEW-AGENT-CREATION-GUIDE.md](./REVIEW-AGENT-CREATION-GUIDE.md) を参照してください。同ガイドでは、本ドキュメントの6エージェントを含む7つの標準パースペクティブを5つのAI CLI（Claude Code、Codex、Copilot、Gemini、Cursor）で統一的に管理する方法を定義しています。
+> **💡 Note**: 本ドキュメントのエージェントテンプレートはGitHub Copilot固有ですが、ツール非依存の汎用パターンについては [REVIEW_AGENT_CREATION_GUIDE.md](./REVIEW_AGENT_CREATION_GUIDE.md) を参照してください。同ガイドでは、本ドキュメントの6エージェントを含む7つの標準パースペクティブを5つのAI CLI（Claude Code、Codex、Copilot、Gemini、Cursor）で統一的に管理する方法を定義しています。

@@ -439,9 +439,9 @@ Cross-Modelモードで異なるCLIが矛盾する結果を返した場合：
 
 ## 関連ドキュメント
 
-- [REVIEW-AGENT-CREATION-GUIDE.md](../../06-reference/REVIEW-AGENT-CREATION-GUIDE.md) — 汎用レビューエージェント作成ガイド
+- [REVIEW_AGENT_CREATION_GUIDE.md](../../06-reference/REVIEW_AGENT_CREATION_GUIDE.md) — 汎用レビューエージェント作成ガイド
 - [ai-tools-integration.md](./ai-tools-integration.md) — AIツール統合・コスト比較
 - [git-workflow.md](./git-workflow.md) — AI駆動Git Workflow
 - [gemini-cli-reviewer.md](./gemini-cli-reviewer.md) — Gemini CLI セットアップ
 - [cursor-cli-reviewer.md](./cursor-cli-reviewer.md) — Cursor CLI セットアップ
-- [COPILOT-AGENTS.md](../../06-reference/COPILOT-AGENTS.md) — Copilot エージェント定義
+- [COPILOT_AGENTS.md](../../06-reference/COPILOT_AGENTS.md) — Copilot エージェント定義
