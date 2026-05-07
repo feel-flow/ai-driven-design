@@ -542,13 +542,11 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ### ファイル名命名規則
 
-| 階層                                   | ルール                      | 例                                       |
-| -------------------------------------- | --------------------------- | ---------------------------------------- |
-| ルート直下 / 番号付きフォルダ直下の MD | `UPPER_SNAKE_CASE.md`       | `MASTER.md`, `DEPLOYMENT.md`             |
-| サブフォルダ名                         | `lowercase-with-hyphens/`   | `deployment/`, `organizational-rollout/` |
-| サブフォルダ内 MD                      | `lowercase-with-hyphens.md` | `git-workflow.md`, `phased-rollout.md`   |
+ファイル名命名規則の SSOT は [docs-template/README.md](./README.md#-ファイル名命名規則) です。短縮版:
 
-> **詳細・適用条件・逸脱判断**: [docs-template/README.md](./README.md#-ファイル名命名規則) を SSOT とする。
+- ルート直下 / 番号付きフォルダ直下の MD: `UPPER_SNAKE_CASE.md`（例: `MASTER.md`, `DEPLOYMENT.md`）
+- サブフォルダ名・サブフォルダ内 MD: `lowercase-with-hyphens(.md)`（例: `deployment/git-workflow.md`）
+- 例外（`README.md`, `CLAUDE.md` 等）・逸脱判断・新規追加チェックリストは SSOT を参照
 
 ### ファイルサイズの閾値（書籍 第14章準拠）
 
