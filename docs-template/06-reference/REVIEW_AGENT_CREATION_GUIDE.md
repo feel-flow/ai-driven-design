@@ -1,6 +1,6 @@
 # Review Agent Creation Guide
 
-> **Parent**: [COPILOT-AGENTS.md](./COPILOT-AGENTS.md) | [ai-tools-integration.md](../05-operations/deployment/ai-tools-integration.md)
+> **Parent**: [COPILOT_AGENTS.md](./COPILOT_AGENTS.md) | [ai-tools-integration.md](../05-operations/deployment/ai-tools-integration.md)
 
 ## 概要
 
@@ -520,7 +520,7 @@ bash scripts/multi-review.sh --mode cross-model --perspective code-review
 
 - [ ] `ai-tools-integration.md` の比較テーブルに追加
 - [ ] CLI固有のセットアップガイドを作成（`{cli}-reviewer.md`）
-- [ ] `COPILOT-AGENTS.md` の対応表を更新（該当する場合）
+- [ ] `COPILOT_AGENTS.md` の対応表を更新（該当する場合）
 
 ### Step 5: テスト
 
@@ -532,7 +532,7 @@ bash scripts/multi-review.sh --mode cross-model --perspective code-review
 
 ## 関連ドキュメント
 
-- [COPILOT-AGENTS.md](./COPILOT-AGENTS.md) — GitHub Copilot エージェント定義
+- [COPILOT_AGENTS.md](./COPILOT_AGENTS.md) — GitHub Copilot エージェント定義
 - [ai-tools-integration.md](../05-operations/deployment/ai-tools-integration.md) — AIツール統合ガイド
 - [multi-cli-review-orchestration.md](../05-operations/deployment/multi-cli-review-orchestration.md) — オーケストレーション運用ガイド
 - [gemini-cli-reviewer.md](../05-operations/deployment/gemini-cli-reviewer.md) — Gemini CLI セットアップ
