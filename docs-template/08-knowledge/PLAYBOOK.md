@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.9.0"
+version: "1.10.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-05-06"
+updated: "2026-05-07"
 owner: "@fffokazaki"
-ace_entry_count: 19
+ace_entry_count: 22
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -601,7 +601,93 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-020: 自動コンテンツ生成ツールは自身のマーカー文字列を本文に含むドキュメントを破壊する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #403 / Issue #402 |
+| Related    | -                    |
+| Date       | 2026-05-07           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: セクションヘッダーを目印にしてファイル末尾を書き換える自動生成ツール（backlinks 自動更新、TOC 自動生成、auto-changelog 等）は、**そのマーカー文字列を本文中に説明として書いているドキュメントを破壊する**。マーカーが「セクション開始位置」と「本文の説明文」の両方の意味で出現するため、ツールは説明文の途中をセクション開始と誤認し、それ以降を全削除する。`tsc` や `npm test` では検出できない（ファイルは valid な markdown のまま）。問題はランタイムにのみ顕在化し、被害は破壊されたファイルが PR に紛れ込んだ後に気づく。
+
+**Context**: 2026-02-12 commit `6ea43f8` (PR #311) で導入された `scripts/obsidian-sync.mjs` は各 markdown 末尾に `## Linked from` セクションを自動生成する設計だった。しかし `docs-template/08-knowledge/OBSIDIAN_GUIDE.md` 自身が「`## Linked from` セクションを自動生成する」と本文で説明しており、自動生成スクリプトはその文字列を section header と誤認して **OBSIDIAN_GUIDE.md を 379 行 → 26 行に破壊**（"各ドキュメント末尾に「" の途中で文章切断）。バグは 2026-05-07 の PR #400 マージ時に post-merge hook 経由で実行されて発覚し、Obsidian 統合全体の撤退判断（PR #403）の決定打となった。約 3 ヶ月間 silent に存在していた。
+
+**Action**: 自動コンテンツ生成ツールを設計する際:
+
+1. **マーカーは本文に出現しえない記法を選ぶ**: HTML コメント形式の sentinel（`<!-- BEGIN_BACKLINKS -->` ... `<!-- END_BACKLINKS -->`）など、説明文として地の文に書くのが不自然な形式を使う。`## Linked from` のような Markdown ヘッダーは本文の説明にも自然に登場するため不適。
+2. **mutation 範囲を明示する begin/end ペアを必須にする**: 単一マーカーから「ファイル末尾まで全部置換」型は再帰汚染と相性が悪い。begin/end の両方が揃わないファイルはスキップする。
+3. **自分自身の README/GUIDE を exclusion list に入れる**: ツールの動作を説明するドキュメントはそのツールの mutation 対象から外す。ツール側で `OBSIDIAN_GUIDE.md` のような既知ファイルを skip する allowlist/denylist を持つ。
+4. **mutating tool は最低限の snapshot test を必ず添える**: 「マーカーを本文中に含むファイル」の golden file を input にして、出力が破壊されないことを assert するテストを最低 1 件入れる。tsc を通っただけでは ship してはいけない。
+5. **post-merge / pre-commit など強制実行系に ship する前に dry-run モードを通す**: 自動化に組み込む前に、`--dry-run` で全対象ファイルへの想定変更を出力して目視レビューする。lint フックや husky に直接組み込んだ後はバグの被害が回復しにくい。
+
+---
+
+### ACE-021: テンプレ配布リポでは「リポ自身が使うインフラ」と「テンプレ利用者が受け取る成果物」を物理的に分離する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | architecture         |
+| Origin     | PR #403 / Issue #402 |
+| Related    | ACE-005              |
+| Date       | 2026-05-07           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 「リポジトリ自身が動くプロジェクトでもあり、かつ他者がコピーするテンプレートでもある」二重用途のリポでは、**配布対象ディレクトリ（例: `docs-template/`）にリポ自身の運用インフラを置くと、テンプレ利用者にもノイズが伝播する**。リポメンテナの利便（自分のドキュメント管理を Obsidian でやりたい等）と、テンプレ利用者の最小構成（URL 参照だけで使い始めたい）は本質的に競合する。物理的な分離（別ディレクトリ）でしか解決できず、`.gitignore` や条件分岐では足りない（テンプレを clone する人は `.gitignore` 込みで受け取る）。
+
+**Context**: 本リポは AI 仕様駆動開発の **テンプレートを配布する** ことが第一目的で、利用者は `docs-template/` をコピーして 7 文書ベースで使い始めることを想定している。しかし PR #311 で Obsidian 統合を `docs-template/.obsidian/`、`docs-template/08-knowledge/OBSIDIAN_GUIDE.md`、`docs-template/08-knowledge/OBSIDIAN_EVALUATION.md` 等に配置したことで、**テンプレ利用者にも Obsidian 前提のインフラが付随**するようになった。さらに自動 backlinks 生成が `docs-template/` 配下の全 .md に `## Linked from` セクションを付与する設計だったため、利用者がコピーした瞬間「Obsidian で開く前提のテンプレ」になる。利用者が Obsidian を使わない場合これらは全部ノイズで、AI に読ませた際のトークン消費にも直結する。PR #403 で全削除に至った最大の構造的理由がこれ。
+
+**Action**: 二重用途リポを設計する際:
+
+1. **「テンプレ利用者がコピーするか？」を各ディレクトリに対して明示する**: README に「`docs-template/` は配布対象、`docs/` はリポ解説、`scripts/` はリポ運用」のような **配布境界マップ** を 1 表で書く。新規ファイル追加時にどちらかを選ばせる強制力にする。
+2. **リポ自身の運用インフラは配布ディレクトリ外に置く**: Obsidian/Notion/Hugo など特定ツールに依存する設定・スクリプト・ドキュメントは `docs-template/` の外（リポルート直下や `.repo/`、`tools/` 等）に置く。配布対象に入れるのはツール非依存の素の Markdown だけにする。
+3. **配布物の Markdown には自動生成セクションを書き込まない**: backlinks/TOC/メタ情報は配布物本体の中ではなく、別ファイル（`backlinks.json` など）として生成し、それを使いたい利用者が opt-in で参照する形にする。利用者の本文を mutate しない。
+4. **PR レビュー時に「これは配布されるファイルか？」を必ず問う**: `docs-template/` 配下の変更は **テンプレ利用者の受け取りに影響する変更** である。コードレビューチェックリストに「テンプレ利用者は Obsidian/特定ツールがなくても使えるか？」を含める。
+5. **撤退コストの試算を導入時に行う**: 「もし採用しないことになったら何ファイル消すことになるか？」を導入 PR の段階で試算する（PR #403 では 13 ファイル削除 + 7 ファイル編集、+7/-1842 行）。撤退コストが大きすぎる導入は、配布境界外でまず試行するか、採用判断を先延ばしにする。
+
+---
+
+### ACE-022: 機能削除時は consumer だけでなく定数・型・ユーティリティも grep して取り残しを防ぐ
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #403 / Issue #402 |
+| Related    | ACE-018              |
+| Date       | 2026-05-07           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 機能を削除する PR では、**機能本体ディレクトリ削除 → consumer 編集 → ビルド OK** で完了したように見えるが、**TypeScript の `tsc` は未使用 export を warning しない**ため、その機能のためだけに作られた定数・型・ユーティリティが他モジュールに孤立して残る。`npm run build` も `npm run check` も pass するので CI では検出されない。手動 grep を「機能名 / 機能専用識別子」で実行しないと dead code として静かに残り続ける。
+
+**Context**: PR #403 で `mcp/src/obsidian/` 配下 5 ソース + `scripts/obsidian-sync.mjs` 等 13 ファイル削除 + 7 ファイル編集を実施。`git grep -i obsidian` で「Obsidian」文字列の取り残しはゼロを確認、`mcp build`/`mcp check`/`quality:local` も全 pass。しかし Toolkit code-reviewer が `mcp/src/constants.ts:21-36` の `BACKLINKS_SECTION_HEADER` と `BACKLINKS_SECTION_TEMPLATE` を **dead code として検出**。これらは削除済み `mcp/src/obsidian/backlinks.ts` でだけ使われていた定数で、ビルドは通るが「完全排除」を謳う PR タイトル・CHANGELOG と矛盾する状態だった。fix commit `8628140` で対応。レビューが無ければ silent regression として残った。
+
+**Action**: 機能削除 PR を作る際:
+
+1. **機能名でなく機能の語彙すべてで grep する**: 「Obsidian」だけでなく、その機能専用の識別子（`BACKLINKS_SECTION_*`、`buildBacklinksMap`、`validateAllLinks` など）も全部 grep キーワードに含める。`git grep -i "<feature_name>\|<feature_specific_constants>\|<feature_function_names>"` を 1 コマンドにする。
+2. **削除候補を「本体 / 設定 / 定数 / 型 / 関数 / テスト / ドキュメント」の 7 カテゴリで網羅する**: 機能本体ディレクトリだけ消して終わりにせず、Issue 本文の「削除対象」リストにこの 7 カテゴリを明示し、TodoWrite で 1 つずつ確認する。
+3. **「未使用 export 検出」ツールを CI に入れる**: `ts-prune`、`knip`、`unimported` など TypeScript 用の dead code 検出ツールを quality:local に組み込む。一度入れれば類似の取り残しを継続的に防げる。
+4. **削除 PR の self-review に「孤立 export チェック」を含める**: PR Review チェックリストに「削除した機能の専用 constants/types/utilities が他モジュールに残っていないか？ `git grep` で確認」項目を追加。Toolkit code-reviewer はこの種の検出が得意なので、必ず通す。
+5. **同じモジュール内に定数を置く設計を選ぶ**: 機能専用の定数は `mcp/src/<feature>/constants.ts` のように **機能ディレクトリ配下に閉じ込める**。削除時に親ディレクトリごと消せば取り残しが構造的に発生しなくなる。共通 constants ファイルへの追加は「本当に他機能でも使うか？」を着手前に問う。
+
+---
+
 ## Changelog
+
+### [1.10.0] - 2026-05-07
+
+#### 追加
+
+- ACE-020: 自動コンテンツ生成ツールは自身のマーカー文字列を本文に含むドキュメントを破壊する — `obsidian-sync.mjs` が `## Linked from` を section header と誤認し OBSIDIAN_GUIDE.md を 379→26 行に破壊した再帰汚染バグから抽出
+- ACE-021: テンプレ配布リポでは「リポ自身が使うインフラ」と「テンプレ利用者が受け取る成果物」を物理的に分離する — Obsidian インフラを `docs-template/` 配下に置いたことで配布物が Obsidian 前提になった構造的問題から抽出（ACE-005 を補強）
+- ACE-022: 機能削除時は consumer だけでなく定数・型・ユーティリティも grep して取り残しを防ぐ — PR #403 で `BACKLINKS_SECTION_*` 定数が dead code として残存、Toolkit code-reviewer が検出（ACE-018 を補強）
 
 ### [1.9.0] - 2026-05-06
 
