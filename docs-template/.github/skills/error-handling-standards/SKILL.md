@@ -245,7 +245,7 @@ logger.error("Failed to process user", error, {
 
 ## 8. AI生成コードのフォールバックアンチパターン
 
-> 包括的なフォールバック戦略（階層モデル・レイヤー別パターン含む）は [FALLBACK.md](../../03-implementation/FALLBACK.md) を参照。
+> 包括的なフォールバック戦略（階層モデル・レイヤー別パターン含む）は [FALLBACK.md](../../../03-implementation/FALLBACK.md) を参照。
 
 AI（Claude Code, Copilot, Cursor等）は `try-catch` + デフォルト値返却を自動挿入する傾向がある。
 このパターンは開発中のバグを隠蔽し、本番で初めて問題が発覚するリスクを生む。

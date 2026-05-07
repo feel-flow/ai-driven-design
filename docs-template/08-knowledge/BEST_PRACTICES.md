@@ -8,24 +8,24 @@
 
 ## クイックリファレンス
 
-| カテゴリ       | ファイル                                          | 主要トピック                                            | いつ使うか              |
-| -------------- | ------------------------------------------------- | ------------------------------------------------------- | ----------------------- |
-| TypeScript規約 | [typescript.md](best-practices/typescript.md)     | 型安全性、エラーハンドリング、ジェネリクス              | TypeScript実装時        |
-| データベース   | [database.md](best-practices/database.md)         | クエリ最適化、トランザクション、インデックス            | DB設計・実装時          |
-| API設計        | [api-design.md](best-practices/api-design.md)     | RESTful API、バリデーション、エラーレスポンス           | APIエンドポイント作成時 |
-| セキュリティ   | [security.md](best-practices/security.md)         | 認証・認可、暗号化、データ保護                          | セキュリティ実装時      |
-| テスト         | [testing.md](best-practices/testing.md)           | 単体テスト、統合テスト、AAAパターン                     | テスト作成時            |
-| パフォーマンス | [performance.md](best-practices/performance.md)   | キャッシュ、非同期処理、並行制御                        | 性能最適化時            |
-| ログ・監視     | [logging.md](best-practices/logging.md)           | 構造化ログ、エラー追跡、監視                            | ロギング実装時          |
-| アーキテクチャ | [architecture.md](best-practices/architecture.md) | レイヤー設計、依存性注入、SOLID原則                     | アーキテクチャ設計時    |
-| Git Workflow   | [git-workflow.md](best-practices/git-workflow.md) | ブランチ戦略、SessionStart Hook、PR運用                 | Git操作時               |
-| ACE Playbook   | [PLAYBOOK.md](./PLAYBOOK.md)                      | 構造化エントリ追記ルール、helpful/harmfulカウンター管理 | PR/Issueマージ後        |
+| カテゴリ       | ファイル                                                                            | 主要トピック                                            | いつ使うか              |
+| -------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------- | ----------------------- |
+| TypeScript規約 | [01-coding-standards.md](best-practices/01-coding-standards.md)                     | 型安全性、エラーハンドリング、ジェネリクス              | TypeScript実装時        |
+| データベース   | [01-coding-standards.md](best-practices/01-coding-standards.md)                     | クエリ最適化、トランザクション、インデックス            | DB設計・実装時          |
+| API設計        | [01-coding-standards.md](best-practices/01-coding-standards.md)                     | RESTful API、バリデーション、エラーレスポンス           | APIエンドポイント作成時 |
+| セキュリティ   | [02-security-and-testing.md](best-practices/02-security-and-testing.md)             | 認証・認可、暗号化、データ保護                          | セキュリティ実装時      |
+| テスト         | [02-security-and-testing.md](best-practices/02-security-and-testing.md)             | 単体テスト、統合テスト、AAAパターン                     | テスト作成時            |
+| パフォーマンス | [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) | キャッシュ、非同期処理、並行制御                        | 性能最適化時            |
+| ログ・監視     | [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) | 構造化ログ、エラー追跡、監視                            | ロギング実装時          |
+| アーキテクチャ | [01-coding-standards.md](best-practices/01-coding-standards.md)                     | レイヤー設計、依存性注入、SOLID原則                     | アーキテクチャ設計時    |
+| Git Workflow   | [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) | ブランチ戦略、SessionStart Hook、PR運用                 | Git操作時               |
+| ACE Playbook   | [PLAYBOOK.md](./PLAYBOOK.md)                                                        | 構造化エントリ追記ルール、helpful/harmfulカウンター管理 | PR/Issueマージ後        |
 
 ## 各カテゴリの概要
 
 ### 1. TypeScript規約
 
-**ファイル**: [best-practices/typescript.md](best-practices/typescript.md)
+**ファイル**: [best-practices/01-coding-standards.md](best-practices/01-coding-standards.md)
 
 **主要内容**:
 
@@ -38,7 +38,7 @@
 
 ### 2. データベース設計
 
-**ファイル**: [best-practices/database.md](best-practices/database.md)
+**ファイル**: [best-practices/01-coding-standards.md](best-practices/01-coding-standards.md)
 
 **主要内容**:
 
@@ -51,7 +51,7 @@
 
 ### 3. API設計
 
-**ファイル**: [best-practices/api-design.md](best-practices/api-design.md)
+**ファイル**: [best-practices/01-coding-standards.md](best-practices/01-coding-standards.md)
 
 **主要内容**:
 
@@ -64,7 +64,7 @@
 
 ### 4. セキュリティ
 
-**ファイル**: [best-practices/security.md](best-practices/security.md)
+**ファイル**: [best-practices/02-security-and-testing.md](best-practices/02-security-and-testing.md)
 
 **主要内容**:
 
@@ -77,7 +77,7 @@
 
 ### 5. テスト戦略
 
-**ファイル**: [best-practices/testing.md](best-practices/testing.md)
+**ファイル**: [best-practices/02-security-and-testing.md](best-practices/02-security-and-testing.md)
 
 **主要内容**:
 
@@ -90,7 +90,7 @@
 
 ### 6. パフォーマンス最適化
 
-**ファイル**: [best-practices/performance.md](best-practices/performance.md)
+**ファイル**: [best-practices/03-performance-and-operations.md](best-practices/03-performance-and-operations.md)
 
 **主要内容**:
 
@@ -103,7 +103,7 @@
 
 ### 7. ログ・監視
 
-**ファイル**: [best-practices/logging.md](best-practices/logging.md)
+**ファイル**: [best-practices/03-performance-and-operations.md](best-practices/03-performance-and-operations.md)
 
 **主要内容**:
 
@@ -116,7 +116,7 @@
 
 ### 8. アーキテクチャパターン
 
-**ファイル**: [best-practices/architecture.md](best-practices/architecture.md)
+**ファイル**: [best-practices/01-coding-standards.md](best-practices/01-coding-standards.md)
 
 **主要内容**:
 
@@ -129,7 +129,7 @@
 
 ### 9. Git Workflow
 
-**ファイル**: [best-practices/git-workflow.md](best-practices/git-workflow.md)
+**ファイル**: [best-practices/03-performance-and-operations.md](best-practices/03-performance-and-operations.md)
 
 **主要内容**:
 
@@ -157,37 +157,37 @@
 
 ### AI開発時の参照順序
 
-1. **実装開始前**: [architecture.md](best-practices/architecture.md) でプロジェクト構造を確認
-2. **コード実装**: [typescript.md](best-practices/typescript.md) で型安全性を確保
-3. **DB操作**: [database.md](best-practices/database.md) でクエリ最適化を適用
-4. **API作成**: [api-design.md](best-practices/api-design.md) でRESTful原則に従う
-5. **セキュリティ**: [security.md](best-practices/security.md) で認証・暗号化を実装
-6. **テスト**: [testing.md](best-practices/testing.md) でテストケースを作成
-7. **最適化**: [performance.md](best-practices/performance.md) でキャッシュ等を適用
-8. **監視**: [logging.md](best-practices/logging.md) で構造化ログを実装
+1. **実装開始前**: [01-coding-standards.md](best-practices/01-coding-standards.md) でプロジェクト構造を確認
+2. **コード実装**: [01-coding-standards.md](best-practices/01-coding-standards.md) で型安全性を確保
+3. **DB操作**: [01-coding-standards.md](best-practices/01-coding-standards.md) でクエリ最適化を適用
+4. **API作成**: [01-coding-standards.md](best-practices/01-coding-standards.md) でRESTful原則に従う
+5. **セキュリティ**: [02-security-and-testing.md](best-practices/02-security-and-testing.md) で認証・暗号化を実装
+6. **テスト**: [02-security-and-testing.md](best-practices/02-security-and-testing.md) でテストケースを作成
+7. **最適化**: [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) でキャッシュ等を適用
+8. **監視**: [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) で構造化ログを実装
 
 ### 特定の問題に対するガイド選択
 
 **問題**: N+1クエリが発生している
-→ [database.md](best-practices/database.md) 「クエリ最適化」セクション
+→ [01-coding-standards.md](best-practices/01-coding-standards.md) 「クエリ最適化」セクション
 
 **問題**: 型エラーが頻発する
-→ [typescript.md](best-practices/typescript.md) 「型安全性の確保」セクション
+→ [01-coding-standards.md](best-practices/01-coding-standards.md) 「型安全性の確保」セクション
 
 **問題**: 認証が脆弱
-→ [security.md](best-practices/security.md) 「認証・認可」セクション
+→ [02-security-and-testing.md](best-practices/02-security-and-testing.md) 「認証・認可」セクション
 
 **問題**: テストが不安定
-→ [testing.md](best-practices/testing.md) 「モックの適切な使用」セクション
+→ [02-security-and-testing.md](best-practices/02-security-and-testing.md) 「モックの適切な使用」セクション
 
 **問題**: レスポンスが遅い
-→ [performance.md](best-practices/performance.md) 「キャッシュ戦略」セクション
+→ [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) 「キャッシュ戦略」セクション
 
 **問題**: エラー原因が特定できない
-→ [logging.md](best-practices/logging.md) 「構造化ログ」セクション
+→ [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) 「構造化ログ」セクション
 
 **問題**: PRマージ後にブランチが混乱
-→ [git-workflow.md](best-practices/git-workflow.md) 「SessionStart Hook」セクション
+→ [03-performance-and-operations.md](best-practices/03-performance-and-operations.md) 「SessionStart Hook」セクション
 
 ## 推奨と禁止の原則
 
@@ -201,15 +201,9 @@
 
 ```
 docs-template/08-knowledge/best-practices/
-├── typescript.md          # TypeScript規約（型安全性、エラーハンドリング）
-├── database.md            # データベース設計（クエリ、トランザクション）
-├── api-design.md          # API設計（RESTful、バリデーション）
-├── security.md            # セキュリティ（認証、暗号化）
-├── testing.md             # テスト戦略（ユニット、統合）
-├── performance.md         # パフォーマンス（キャッシュ、非同期）
-├── logging.md             # ログ・監視（構造化ログ）
-├── architecture.md        # アーキテクチャパターン（レイヤー、DI）
-└── git-workflow.md        # Git Workflow（SessionStart Hook、ブランチ戦略）
+├── 01-coding-standards.md          # コーディング規約（型安全性、DB/API設計）
+├── 02-security-and-testing.md      # セキュリティ・テスト戦略
+└── 03-performance-and-operations.md # パフォーマンス・運用
 ```
 
 See also: [PLAYBOOK.md](./PLAYBOOK.md) — ACE Playbook（構造化知見、delta方式）
@@ -222,10 +216,10 @@ See also: [PLAYBOOK.md](./PLAYBOOK.md) — ACE Playbook（構造化知見、delt
 
 ## 関連ドキュメント
 
-- [PATTERNS.md](../02-design/PATTERNS.md) - 設計パターンと実装パターン
-- [TESTING.md](../07-quality/TESTING.md) - テスト戦略の詳細
+- [PATTERNS.md](../03-implementation/PATTERNS.md) - 設計パターンと実装パターン
+- [TESTING.md](../04-quality/TESTING.md) - テスト戦略の詳細
 - [DEPLOYMENT.md](../05-operations/DEPLOYMENT.md) - デプロイメントと運用
-- [DOMAIN.md](../01-business/DOMAIN.md) - ドメインモデルとビジネスルール
+- [DOMAIN.md](../02-design/DOMAIN.md) - ドメインモデルとビジネスルール
 
 ---
 

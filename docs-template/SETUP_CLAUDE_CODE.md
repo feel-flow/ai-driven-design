@@ -758,8 +758,8 @@ Claude Code のセットアップは以下の3ステップ：
 ### 次のステップ
 
 1. ✅ Claude Code のセットアップ完了
-2. → [GETTING_STARTED_NEW_PROJECT.md](GETTING_STARTED_NEW_PROJECT.md) で実際のプロジェクト開始
-3. → [docs-template/MASTER.md](docs-template/MASTER.md) で詳細なプロジェクトルール確認
+2. → [GETTING_STARTED_NEW_PROJECT.md](./GETTING_STARTED_NEW_PROJECT.md) で実際のプロジェクト開始
+3. → [docs-template/MASTER.md](./MASTER.md) で詳細なプロジェクトルール確認
 
 ---
 
@@ -768,5 +768,5 @@ Claude Code のセットアップは以下の3ステップ：
 - [Claude.ai](https://claude.ai)
 - [Claude Code](https://claude.ai/code)
 - [Anthropic Documentation](https://docs.anthropic.com/)
-- [MASTER.md](docs-template/MASTER.md)
-- [AGENTS.md](AGENTS.md)
+- [MASTER.md](./MASTER.md)
+- [AGENTS.md](../AGENTS.md)

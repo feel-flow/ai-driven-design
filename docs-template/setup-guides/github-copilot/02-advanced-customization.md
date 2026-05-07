@@ -238,5 +238,5 @@ EOF
 ## 次のステップ
 
 - [configuration.md](./configuration.md) - VS Code設定
-- [best-practices.md](./best-practices.md) - 効果的な使い方
+- [03-usage-and-troubleshooting.md](./03-usage-and-troubleshooting.md) - 効果的な使い方
 - [../../MASTER.md](../../MASTER.md) - プロジェクトルール参照

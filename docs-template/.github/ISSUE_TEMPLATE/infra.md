@@ -18,12 +18,12 @@ assignees: ""
 
 > **必須参照**: MASTER, DEPLOYMENT
 
-- [ ] [MASTER.md](../../docs-template/MASTER.md)
-- [ ] [DEPLOYMENT.md](../../docs-template/05-operations/DEPLOYMENT.md)
+- [ ] [MASTER.md](../../MASTER.md)
+- [ ] [DEPLOYMENT.md](../../05-operations/DEPLOYMENT.md)
 
 > **推奨参照**: ARCHITECTURE
 
-- [ ] [ARCHITECTURE.md#インフラ](../../docs-template/02-design/ARCHITECTURE.md)
+- [ ] [ARCHITECTURE.md#インフラ](../../02-design/ARCHITECTURE.md)
 
 ## 関連Issue
 

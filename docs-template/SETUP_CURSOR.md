@@ -715,8 +715,8 @@ Cursor のセットアップは以下の4ステップ：
 ### 次のステップ
 
 1. ✅ Cursor のセットアップ完了
-2. → [GETTING_STARTED_NEW_PROJECT.md](GETTING_STARTED_NEW_PROJECT.md) で実際のプロジェクト開始
-3. → [docs-template/MASTER.md](docs-template/MASTER.md) で詳細なプロジェクトルール確認
+2. → [GETTING_STARTED_NEW_PROJECT.md](./GETTING_STARTED_NEW_PROJECT.md) で実際のプロジェクト開始
+3. → [docs-template/MASTER.md](./MASTER.md) で詳細なプロジェクトルール確認
 
 ### Cursorの強み
 
@@ -731,5 +731,5 @@ Cursor のセットアップは以下の4ステップ：
 
 - [Cursor 公式サイト](https://cursor.sh)
 - [Cursor Documentation](https://docs.cursor.sh)
-- [MASTER.md](docs-template/MASTER.md)
-- [AGENTS.md](AGENTS.md)
+- [MASTER.md](./MASTER.md)
+- [AGENTS.md](../AGENTS.md)

@@ -24,12 +24,12 @@ assignees: ""
 
 > **必須参照**: ARCHITECTURE, PATTERNS
 
-- [ ] [ARCHITECTURE.md](../../docs-template/02-design/ARCHITECTURE.md)
-- [ ] [PATTERNS.md](../../docs-template/03-implementation/PATTERNS.md)
+- [ ] [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md)
+- [ ] [PATTERNS.md](../../03-implementation/PATTERNS.md)
 
 > **推奨参照**: TESTING
 
-- [ ] [TESTING.md](../../docs-template/04-quality/TESTING.md)
+- [ ] [TESTING.md](../../04-quality/TESTING.md)
 
 ## 関連Issue
 

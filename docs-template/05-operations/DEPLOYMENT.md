@@ -180,7 +180,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/infrastructure.md#rollback](./deployment/infrastructure.md#rollback)
+[deployment/infrastructure.md#4-ロールバック戦略](./deployment/infrastructure.md#4-ロールバック戦略)
 
 ## 6. 災害復旧
 
@@ -199,7 +199,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/infrastructure.md#disaster-recovery](./deployment/infrastructure.md#disaster-recovery)
+[deployment/infrastructure.md#5-災害復旧-dr](./deployment/infrastructure.md#5-災害復旧-dr)
 
 ## 7. 運用手順
 
@@ -214,7 +214,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### トラブルシューティング
 
-一般的な問題の対処方法は [deployment/monitoring.md#troubleshooting](./deployment/monitoring.md#troubleshooting) を参照。
+一般的な問題の対処方法は [deployment/monitoring.md#トラブルシューティング](./deployment/monitoring.md#トラブルシューティング) を参照。
 
 ## 8. 開発環境の最適化
 
@@ -228,7 +228,7 @@ PRマージ後のブランチ切り替え忘れを防ぐため、セッション
 
 ### 詳細ドキュメント
 
-[deployment/ai-tools-integration.md#session-hooks](./deployment/ai-tools-integration.md#session-hooks)
+[deployment/ai-tools-integration.md#sessionstart-hook](./deployment/ai-tools-integration.md#sessionstart-hook)
 
 ---
 

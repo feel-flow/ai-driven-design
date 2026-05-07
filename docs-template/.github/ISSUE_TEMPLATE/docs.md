@@ -24,7 +24,7 @@ assignees: ""
 
 > **必須参照**: MASTER
 
-- [ ] [MASTER.md](../../docs-template/MASTER.md)
+- [ ] [MASTER.md](../../MASTER.md)
 
 > **対象文書**
 

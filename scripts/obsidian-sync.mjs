@@ -129,10 +129,8 @@ async function runReport() {
   try {
     log('📈 ナレッジベースレポートを生成中...');
     
-    const [linkReport, orphanedFiles] = await Promise.all([
-      validateAllLinks(DOCS_TEMPLATE_ROOT),
-      getOrphanedFiles(DOCS_TEMPLATE_ROOT)
-    ]);
+    const linkReport = await validateAllLinks(DOCS_TEMPLATE_ROOT);
+    const orphanedFiles = await getOrphanedFiles(DOCS_TEMPLATE_ROOT);
     
     log('\n📊 ナレッジベース統計:');
     log(`  - ドキュメント数: ${linkReport.totalFiles}`);
