@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### Added
+- **設計原則ドキュメントの体系化**（2026-05-07、Issue #404）
+  - 新規: `docs/DESIGN_PRINCIPLES.md` — 5 原則（P1: URL 参照を一級市民とする / P2: 配布境界マップ / P3: 特定ツール依存物を配布対象に入れない / P4: ミニマル起点 + 段階拡張 / P5: 撤退コスト試算）と Obsidian 撤退ケーススタディを明文化
+  - 編集: `README.md` に「設計原則」セクション追加（5 原則の概要表 + DESIGN_PRINCIPLES.md ポインタ）
+  - 編集: `docs-template/MASTER.md` の関連ドキュメント一覧に DESIGN_PRINCIPLES.md を追加
+  - ガードレール: `.github/pull_request_template.md` に「配布境界チェック」項目、`.github/ISSUE_TEMPLATE/feature.md` と `infra.md` に「撤退コスト試算」項目を追加
+  - 配布版同期: `docs-template/.github/pull_request_template.md` と `docs-template/.github/ISSUE_TEMPLATE/feature.md`、`infra.md` にも一般化された相当チェック項目を追加
+  - **背景**: PR #403 で Obsidian 統合を撤退したが、再発防止の構造的ガードレールが欠落していた。本変更により着手前・PR 提出前・新機能 Issue 起票時の 3 タイミングで違反を catch する仕組みを導入
+
 ### Removed
 - **Obsidian 統合の完全排除**（2026-05-07、Issue #402）
   - 削除: `docs-template/.obsidian/`（4 設定ファイル）、`docs-template/08-knowledge/OBSIDIAN_GUIDE.md`、`docs-template/08-knowledge/OBSIDIAN_EVALUATION.md`、`mcp/src/obsidian/`（5 ソース）、`scripts/obsidian-sync.mjs`、`scripts/setup-obsidian-hook.sh`
