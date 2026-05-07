@@ -52,6 +52,15 @@
 - [ ] 型安全性を確保（該当する場合）
 - [ ] リンク切れがない
 
+## 配布境界チェック（[DESIGN_PRINCIPLES.md](../docs/DESIGN_PRINCIPLES.md) P2/P3）
+
+> `docs-template/` 配下を変更している PR では必ず確認。それ以外は該当なしで OK。
+
+- [ ] **該当なし**（`docs-template/` 配下を変更していない）/ 以下を確認した:
+- [ ] **配布境界違反なし**: `docs-template/` 配下に配置したファイルは、テンプレ利用者が特定ツール（Obsidian / Notion / Hugo 等）なしでも読める素の Markdown / 一般的な設定（git, prettier, markdownlint 等）に限られる
+- [ ] **特定ツール依存物なし**: Obsidian Vault 設定 (`.obsidian/`)・Notion 連携・Hugo/Jekyll テーマ等、特定アプリのインストールを前提とするファイルを `docs-template/` 配下に置いていない
+- [ ] **配布版テンプレ同期**: `.github/ISSUE_TEMPLATE/`・`.github/pull_request_template.md` を変更した場合、`docs-template/.github/` 配下の対応ファイルも更新した（または、リポ固有内容のため同期不要と判断した理由を記載）
+
 ## HIGH Impact Changes
 
 <!-- 影響度 HIGH の場合のみ記入してください（/assess-impact で判定可能） -->
