@@ -513,10 +513,6 @@ metrics:
 - [08-knowledge/FAQ.md](./08-knowledge/FAQ.md) - よくある質問と回答
 - [08-knowledge/PLAYBOOK.md](./08-knowledge/PLAYBOOK.md) - ACE Playbook（AIツール向け構造化知見）
 
-### 設計原則
-
-- [../docs/DESIGN_PRINCIPLES.md](../docs/DESIGN_PRINCIPLES.md) - 本リポジトリの設計原則（5 原則: URL 参照一級市民 / 配布境界マップ / 特定ツール依存禁止 / ミニマル起点 / 撤退コスト試算）
-
 ### 開発プロセスガイド
 
 - [06-reference/DEVELOPMENT_PREPARATION.md](./06-reference/DEVELOPMENT_PREPARATION.md) - 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）

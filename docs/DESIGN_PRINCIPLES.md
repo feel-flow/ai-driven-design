@@ -2,16 +2,17 @@
 id: design-principles
 title: 本リポジトリの設計原則
 version: 1.0.0
-status: approved
+status: active
 created: 2026-05-07
 updated: 2026-05-07
-owner: "@fffokazaki"
+owner: feel-flow
+phase: extension
 references:
   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
   - docs-template/MASTER.md
   - docs-template/08-knowledge/PLAYBOOK.md
 tags: [design, principles, governance]
-changeImpact: HIGH
+changeImpact: high
 ---
 
 # 本リポジトリの設計原則
@@ -33,7 +34,7 @@ changeImpact: HIGH
 
 - 概念解説: [AI Spec Driven Development](./AI_SPEC_DRIVEN_DEVELOPMENT.md)
 - AI 向け構造化知見: [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) ACE-021
-- ケーススタディの根拠 PR: PR #311（Obsidian 導入）/ PR #403（Obsidian 撤退）
+- ケーススタディの根拠: Issue #311 / commit `6ea43f8`（Obsidian 導入、PR を経ずに develop へ直 commit）/ PR #403（Obsidian 撤退）
 
 ---
 
@@ -102,7 +103,7 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 ### 過去の違反
 
-- **PR #311 (2026-02-12)**: `docs-template/.obsidian/`、`docs-template/08-knowledge/OBSIDIAN_GUIDE.md`、99 ファイルへの自動 backlinks 付与等を導入 → PR #403 (2026-05-07) で撤退（コスト: 13 ファイル削除 + 7 ファイル編集、+7/-1842 行）
+- **Issue #311 / commit `6ea43f8`（2026-02-12、develop 直 commit）**: `docs-template/.obsidian/`、`docs-template/08-knowledge/OBSIDIAN_GUIDE.md`、99 ファイルへの自動 backlinks 付与等を導入 → PR #403 (2026-05-07) で撤退（コスト: 13 ファイル削除 + 8 ファイル編集、+7/-1859 行）
 
 ---
 
@@ -149,7 +150,7 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 ### 過去のケース
 
-- **Obsidian 統合（PR #311 → PR #403）**: 試算なしで導入 → 3 ヶ月後に 13 ファイル削除 + 7 ファイル編集の撤退コストが顕在化。導入時に試算していれば、`docs-template/` 外でメンテナ個人運用にとどめる選択肢を取れた可能性がある
+- **Obsidian 統合（Issue #311 / commit `6ea43f8` → PR #403）**: 試算なしで導入（さらに PR を経ずに develop 直 commit でガードレールが効かなかった）→ 3 ヶ月後に 13 ファイル削除 + 8 ファイル編集の撤退コストが顕在化。導入時に試算 + PR 経由のレビューがあれば、`docs-template/` 外でメンテナ個人運用にとどめる選択肢を取れた可能性がある
 
 ---
 
@@ -157,9 +158,9 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 ### 何が起きたか
 
-- 2026-02-12: PR #311 で Obsidian 統合を `docs-template/.obsidian/`、`OBSIDIAN_GUIDE.md`、`mcp/src/obsidian/`、`scripts/obsidian-sync.mjs`、99 ファイルへの自動 backlinks セクション付与等として導入
+- 2026-02-12: Issue #311 / commit `6ea43f8` で Obsidian 統合を `docs-template/.obsidian/`、`OBSIDIAN_GUIDE.md`、`mcp/src/obsidian/`、`scripts/obsidian-sync.mjs`、99 ファイルへの自動 backlinks セクション付与等として導入（**PR を経ずに develop へ直 commit**、レビューゲートが効かない経路で入った）
 - 2026-05-07: `obsidian-sync.mjs` の自己破壊バグ（自身のマーカー文字列を本文に書いたドキュメントを破壊する再帰汚染、ACE-020 参照）と post-merge フックの暴走（Issue #401）が顕在化
-- 2026-05-07: PR #403 で完全撤退（コスト: 13 ファイル削除 + 7 ファイル編集、+7/-1842 行）
+- 2026-05-07: PR #403 で完全撤退（コスト: 13 ファイル削除 + 8 ファイル編集、+7/-1859 行）
 
 ### どの原則に違反したか
 
@@ -181,11 +182,11 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 3 タイミングで設計原則違反を catch する仕組みを持つ:
 
-| タイミング          | ガードレール                                                                               |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| 新機能 Issue 起票時 | [Issue テンプレ feature.md](../.github/ISSUE_TEMPLATE/feature.md) の「撤退コスト試算」項目 |
-| PR 提出時           | [PR テンプレ](../.github/pull_request_template.md) の「配布境界チェック」項目              |
-| マージ後の知見蓄積  | [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) ACE-021 / ACE-022                 |
+| タイミング          | ガードレール                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 新機能 Issue 起票時 | [Issue テンプレ feature.md](../.github/ISSUE_TEMPLATE/feature.md) / [infra.md](../.github/ISSUE_TEMPLATE/infra.md) の「撤退コスト試算」項目                        |
+| PR 提出時           | [PR テンプレ](../.github/pull_request_template.md) の「配布境界チェック」項目                                                                                      |
+| マージ後の知見蓄積  | [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) ACE-020（自動生成ツールの自己破壊）/ ACE-021（テンプレ配布リポ分離）/ ACE-022（削除時の取り残しチェック） |
 
 ## 改訂履歴
 
