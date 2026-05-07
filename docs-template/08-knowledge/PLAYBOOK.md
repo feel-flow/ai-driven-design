@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.10.0"
+version: "1.11.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-07"
 owner: "@fffokazaki"
-ace_entry_count: 22
+ace_entry_count: 23
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -679,7 +679,37 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-023: ドキュメント中の事実主張（PR/Issue 番号・ハッシュ・数値）は執筆時に 1 次情報で照合する
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #405 / Issue #404  |
+| Related    | ACE-002 / ACE-018     |
+| Date       | 2026-05-07            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: ドキュメント中で具体的な PR 番号・コミットハッシュ・数値を書くとき、**記憶や類推で書いた値は高確率で誤りを含む**。執筆中に `gh` / `git` で照合する習慣を持つ。`#N` 表記は Issue 番号・PR 番号の両方で commit メッセージに登場し混同しやすい。
+
+**Context**: PR #405 で「PR #311 (2026-02-12)」を 4 箇所に書いたが `gh pr view 311` → 404、実態は **Issue #311 を参照する commit `6ea43f8`（PR を経ず develop へ直 commit）**。撤退コスト数値「13 削除 + 7 編集、+7/-1842 行」も実態は「13 削除 + 8 編集、+7/-1859 行」（`gh pr view 403 --json additions,deletions,changedFiles` で取得可能）。Toolkit code-reviewer が両方 Critical 検出 → fix commit `b4b5191`。ACE-002（CLI フラグ実機照合）を事実関係全般に拡張した位置付け。
+
+**Action**:
+
+1. **PR / Issue 番号**: `gh pr view <N>` / `gh issue view <N>` で実在性と所属を確認。`#N` が両方ありうるため不明なら両方照会
+2. **コミットハッシュ**: `git log --first-parent` で merge commit 経由か直 commit かを判定（直 commit はガードレール全部スキップしている）
+3. **数値**: `gh pr view <N> --json additions,deletions,changedFiles` で 1 次情報取得、または `git show --stat <merge-commit>`
+
+---
+
 ## Changelog
+
+### [1.11.0] - 2026-05-07
+
+#### 追加
+
+- ACE-023: ドキュメント中の事実主張（PR/Issue 番号・ハッシュ・数値）は執筆時に 1 次情報で照合する — PR #405 で「PR #311」「-1842 行」と書いた値が実態と乖離（実態: Issue #311 / commit 6ea43f8 直 commit、-1859 行）し Toolkit が Critical 検出。ACE-002 を「事実関係全般」に拡張
 
 ### [1.10.0] - 2026-05-07
 
