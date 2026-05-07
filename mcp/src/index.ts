@@ -37,12 +37,6 @@ import url from 'url';
 import { EXCERPT_PADDING_CHARS, SPEC_STATUS, SpecStatus } from './constants.js';
 import { SectionIndexEntry, SpecIndexResult, SpecRecordMeta, Glossary } from './types.js';
 import { splitSections, parseFrontMatter, buildGlossary } from './utils.js';
-import { 
-  buildBacklinksMap, 
-  updateAllBacklinks, 
-  validateAllLinks, 
-  getOrphanedFiles 
-} from './obsidian/index.js';
 
 // ---------- Paths ----------
 const __filename = url.fileURLToPath(import.meta.url);
@@ -182,70 +176,6 @@ addTool('spec_search', 'Substring search over spec title, tags, summary.', {
     const score = [title, summary, tags].reduce((acc, part) => acc + (part.includes(q) ? 1 : 0), 0);
     if (!score) return null; return { specId: s.specId, title: s.title, status: s.status, score };
   }).filter(Boolean).sort((a, b) => (b!.score - a!.score)).slice(0, lim);
-});
-
-// ---------- Obsidian Tools ----------
-addTool('backlinks', 'Get backlinks for a specific file.', {
-  file: z.string().min(1)
-}, async ({ file }) => {
-  const rel = String(file);
-  const abs = path.join(REPO_ROOT, rel);
-  if (!abs.startsWith(REPO_ROOT) || !fs.existsSync(abs)) {
-    return { error: 'FILE_NOT_FOUND', file: rel };
-  }
-  const backlinksMap = await buildBacklinksMap(REPO_ROOT, DOCS_TEMPLATE_ROOT);
-  const backlinks = backlinksMap.get(abs) || [];
-  return {
-    file: rel,
-    backlinksCount: backlinks.length,
-    backlinks: backlinks.map(bl => ({
-      fromFile: path.relative(REPO_ROOT, bl.fromFile),
-      linkText: bl.linkText,
-      anchor: bl.anchor
-    }))
-  };
-});
-
-addTool('validate_links', 'Validate all markdown links in documentation.', {}, async () => {
-  const report = await validateAllLinks(DOCS_TEMPLATE_ROOT);
-  return {
-    summary: {
-      totalFiles: report.totalFiles,
-      totalLinks: report.totalLinks,
-      brokenLinks: report.brokenLinks
-    },
-    errors: report.errors.map(err => ({
-      file: path.relative(REPO_ROOT, err.file),
-      linkText: err.linkText,
-      linkPath: err.linkPath,
-      errorType: err.errorType,
-      message: err.message
-    }))
-  };
-});
-
-addTool('update_backlinks', 'Update backlinks section in all documentation files.', {}, async () => {
-  const result = await updateAllBacklinks(REPO_ROOT, DOCS_TEMPLATE_ROOT);
-  return {
-    updated: result.updated,
-    total: result.total,
-    failed: result.failed.length,
-    failures: result.failed,
-    message: result.failed.length > 0 
-      ? `Updated ${result.updated} of ${result.total} files (${result.failed.length} failed)`
-      : `Updated ${result.updated} of ${result.total} files`
-  };
-});
-
-addTool('orphaned_files', 'Find documentation files not linked from anywhere.', {}, async () => {
-  const orphaned = await getOrphanedFiles(DOCS_TEMPLATE_ROOT);
-  return {
-    count: orphaned.length,
-    files: orphaned.map(o => ({
-      file: o.relativePath,
-      absolutePath: path.relative(REPO_ROOT, o.file)
-    }))
-  };
 });
 
 // ---------- Zod request schemas ----------
