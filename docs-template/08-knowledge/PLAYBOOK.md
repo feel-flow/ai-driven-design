@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.11.0"
+version: "1.12.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-07"
 owner: "@fffokazaki"
-ace_entry_count: 23
+ace_entry_count: 24
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -447,7 +447,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #391 / PR #393 / Issue #295 |
 | Related    | ACE-005（補強）                |
 | Date       | 2026-05-06                     |
-| Helpful    | 0                              |
+| Helpful    | 1                              |
 | Harmful    | 0                              |
 | Status     | active                         |
 
@@ -549,7 +549,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #397 / Issue #396  |
 | Related    | ACE-014 / ACE-015     |
 | Date       | 2026-05-06            |
-| Helpful    | 0                     |
+| Helpful    | 1                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -580,7 +580,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #397 / Issue #396 |
 | Related    | ACE-012（修正対象）  |
 | Date       | 2026-05-06           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -703,7 +703,45 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+### ACE-024: SSOT で確立した用語を再利用する前に既存定義との衝突を確認する
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #409 / Issue #408  |
+| Related    | ACE-014 / ACE-018     |
+| Date       | 2026-05-07            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: SSOT として新設するドキュメントで「コア 7 文書」のような **フレームワーク内で確立された用語** を再利用するときは、**個数や名称が偶然一致しても意味が同じとは限らない**。新ドキュメントが既存用語を別の意味で使うと読者は誤った mental model を獲得する。Toolkit + Copilot の独立 reviewer が両方 Critical として検出する典型パターン。
+
+**Context**: PR #409 で `docs-template/README.md` を SSOT 新設した際、ルート直下のセットアップ系 7 ファイル（`MASTER.md` + `GETTING_STARTED_*` 3 種 + `SETUP_*` 3 種）を **「コア 7 文書 + ルート直下」** という見出しで列挙した。しかしフレームワーク既定の「コア 7 文書」は `MASTER.md` / `PROJECT.md` / `ARCHITECTURE.md` / `DOMAIN.md` / `PATTERNS.md` / `TESTING.md` / `DEPLOYMENT.md` の 7 ファイル（番号付きフォルダ配下に分散）を指す（`CLAUDE.md` L123-131 等で定義）。個数が偶然 7 で一致したことが衝突を見えにくくした。Toolkit comment-analyzer が C2 として検出、Copilot review も SSOT としての用語整合性を独立検出。fix commit `ab9c968` で見出しを「ルート直下のセットアップ系ドキュメント」に変更し、冒頭で正しい「コア 7 文書」定義を明示した。
+
+**Action**:
+
+1. **SSOT 新設前に固有名詞・カテゴリ名を列挙する**: 新ドキュメントで使う用語（数値、ラベル、見出し）を着手前にピックアップ
+2. **各語について grep で既存定義を探す**: `grep -rn "<用語>" docs-template/ CLAUDE.md ai_spec_driven_development.md README.md` で既存利用箇所を全て確認
+3. **既存定義があり別の意味で使う場合は別の語を採用**: 衝突するなら命名を変える（例: 「ルート直下のセットアップ系ファイル」のように修飾を加える）
+4. **同じ意味で使うなら既存定義へリンク**: SSOT 内で再定義せず、既存ドキュメントへの参照に留める
+5. **数や種別の偶然の一致は危険シグナル**: 「7」「コア」「メイン」「標準」のような汎用語が個数まで一致するときは、用語衝突の確率が高いと意識する
+
+---
+
 ## Changelog
+
+### [1.12.0] - 2026-05-07
+
+#### 追加
+
+- ACE-024: SSOT で確立した用語を再利用する前に既存定義との衝突を確認する — PR #409 で「コア 7 文書 + ルート直下」見出しがフレームワーク既定の「コア 7 文書」（MASTER/PROJECT/ARCHITECTURE/DOMAIN/PATTERNS/TESTING/DEPLOYMENT）と意味衝突。Toolkit comment-analyzer + Copilot が独立に Critical 検出（ACE-014 / ACE-018 を補強）
+
+#### 更新
+
+- ACE-014: Helpful +1（PR #409 で MASTER.md 内 2 箇所の表が drift リスクを生んだため、SSOT を README に集約し片方を pointer 化。索引集約パターンの再確認）
+- ACE-018: Helpful +1（PR #409 で「サブフォルダ内ファイルに番号プレフィックスを付けない」ルールを書く際、既存 6 件の違反（best-practices/0X-_, github-copilot/0X-_）を grep で検出すべきだった反省。ルール導入前の SSOT 列挙の重要性が再確認）
+- ACE-019: Helpful +1（PR #409 で best-practices/0X-_, github-copilot/0X-_ を「読み順を強く示したい複数パートの分割文書」例外として明示。暗黙の policy split を Toolkit + Copilot が両方 Critical 検出）
 
 ### [1.11.0] - 2026-05-07
 
