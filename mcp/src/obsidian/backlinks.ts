@@ -14,7 +14,17 @@ import { walkMarkdownFiles } from './utils.js';
  * Markdownリンクのパターン
  * 形式: [text](path.md) または [text](path.md#section)
  */
-const MARKDOWN_LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g;
+function createMarkdownLinkPattern(): RegExp {
+  return /\[([^\]]+)\]\(([^)]+)\)/g;
+}
+
+function stripFencedCodeBlocks(content: string): string {
+  return content.replace(/`{3}[\s\S]*?`{3}/g, '');
+}
+
+function stripInlineCode(content: string): string {
+  return content.replace(/`[^`\n]+`/g, '');
+}
 
 /**
  * バックリンクマップの型定義
@@ -36,6 +46,9 @@ export type BacklinksMap = Map<string, Array<{
 function resolveRelativePath(fromFile: string, linkPath: string): { absolutePath: string; anchor?: string } {
   // アンカーを分離
   const [pathPart, anchor] = linkPath.split('#');
+  if (!pathPart) {
+    return { absolutePath: fromFile, anchor };
+  }
   
   // 絶対パスの場合
   if (path.isAbsolute(pathPart)) {
@@ -57,13 +70,15 @@ function resolveRelativePath(fromFile: string, linkPath: string): { absolutePath
  */
 function extractLinks(filePath: string, content: string): Array<{ targetPath: string; linkText: string; anchor?: string }> {
   const links: Array<{ targetPath: string; linkText: string; anchor?: string }> = [];
-  let match;
+  const markdownLinkPattern = createMarkdownLinkPattern();
+  let match: RegExpExecArray | null;
   
   // バックリンクセクション内のリンクは無視（無限ループ回避）
   const backlinksIndex = content.indexOf(BACKLINKS_SECTION_HEADER);
-  const contentToScan = backlinksIndex !== -1 ? content.substring(0, backlinksIndex) : content;
+  const contentWithoutBacklinksSection = backlinksIndex !== -1 ? content.substring(0, backlinksIndex) : content;
+  const contentToScan = stripInlineCode(stripFencedCodeBlocks(contentWithoutBacklinksSection));
   
-  while ((match = MARKDOWN_LINK_PATTERN.exec(contentToScan)) !== null) {
+  while ((match = markdownLinkPattern.exec(contentToScan)) !== null) {
     const linkText = match[1];
     const linkPath = match[2];
     

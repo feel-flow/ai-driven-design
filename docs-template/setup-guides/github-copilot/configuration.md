@@ -301,4 +301,4 @@ private/
 
 VS Code設定と動作確認が完了したら、次はベストプラクティスを確認しましょう：
 
-[STEP 5 & 6: 効果的な使い方とチーム共有](./best-practices.md)
+[STEP 3-6: 設定・確認・活用・共有](./03-usage-and-troubleshooting.md)

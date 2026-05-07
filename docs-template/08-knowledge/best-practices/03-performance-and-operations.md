@@ -414,7 +414,7 @@ fi
 - 常に最新のdevelopブランチから作業開始
 - マージ忘れやブランチ混乱を削減
 
-詳細は [DEPLOYMENT.md](../05-operations/DEPLOYMENT.md) の「開発環境の最適化」セクションを参照してください。
+詳細は [DEPLOYMENT.md](../../05-operations/DEPLOYMENT.md) の「開発環境の最適化」セクションを参照してください。
 
 ---
 

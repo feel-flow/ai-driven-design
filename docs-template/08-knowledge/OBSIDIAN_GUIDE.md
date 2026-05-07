@@ -1,10 +1,10 @@
 ---
 title: "Obsidian統合ガイド"
-version: "1.0.0"
+version: "1.1.0"
 status: "approved"
 owner: "Development Team"
 created: "2026-02-12"
-updated: "2026-02-12"
+updated: "2026-05-07"
 ---
 
 # Obsidian統合ガイド
@@ -243,7 +243,7 @@ chmod +x .husky/post-merge
 
 **原因**: Wikiリンク形式を使用している
 
-**解決策**: 標準Markdownリンク形式（`[text](path.md)`）を使用してください。
+**解決策**: 標準Markdownリンク形式（`\[text\]\(path.md\)`）を使用してください。
 
 ## ベストプラクティス
 
@@ -335,16 +335,45 @@ AIエージェント（Claude, GitHub Copilot）からMCPツールを使用で�
 }
 ```
 
+## 有効性評価（Issue #311 拡張）
+
+Obsidian統合を継続運用するかどうかは、以下の評価サイクルで判断します。
+
+### 評価サイクル
+
+1. 週次でメトリクスを計測
+2. 2週間で1サイクルとして判定
+3. 判定結果を `継続 / 改善 / 停止` で記録
+
+### 週次の最小実行コマンド
+
+```bash
+npm run obsidian:sync -- validate
+npm run obsidian:sync -- report
+npm run obsidian:sync -- orphaned
+```
+
+### 評価観点（概要）
+
+- 構造品質: 壊れたリンク率、孤立ファイル率
+- 探索性: ドキュメント到達時間、関連情報発見率
+- 保守効率: バックリンク自動更新による手作業削減
+- 利用定着: Obsidian経由更新回数/週
+
+詳細な測定式、閾値、週次ログテンプレートは `OBSIDIAN_EVALUATION.md` を参照してください。
+
 ## 参考リンク
 
 - [Obsidian公式ドキュメント](https://help.obsidian.md/)
 - [Markdown記法ガイド](https://www.markdownguide.org/)
 - [Git Workflow](../05-operations/deployment/git-workflow.md)
+- [Obsidian有効性評価](./OBSIDIAN_EVALUATION.md)
 
 ---
 
 ## 更新履歴
 
-| 日付       | バージョン | 変更内容 |
-| ---------- | ---------- | -------- |
-| 2026-02-12 | 1.0.0      | 初版作成 |
+| 日付       | バージョン | 変更内容                                       |
+| ---------- | ---------- | ---------------------------------------------- |
+| 2026-05-07 | 1.1.0      | Obsidian有効性評価の運用手順と参照リンクを追加 |
+| 2026-02-12 | 1.0.0      | 初版作成                                       |

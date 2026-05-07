@@ -12,13 +12,25 @@ import { walkMarkdownFiles } from './utils.js';
  * Markdownリンクのパターン
  * 形式: [text](path.md) または [text](path.md#section)
  */
-const MARKDOWN_LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g;
+function createMarkdownLinkPattern(): RegExp {
+  return /\[([^\]]+)\]\(([^)]+)\)/g;
+}
 
 /**
  * Markdownヘッダーのパターン
  * 形式: # Header または ## Header など
  */
-const HEADER_PATTERN = /^#{1,6}\s+(.+)$/gm;
+function createHeaderPattern(): RegExp {
+  return /^#{1,6}\s+(.+)$/gm;
+}
+
+function stripFencedCodeBlocks(content: string): string {
+  return content.replace(/`{3}[\s\S]*?`{3}/g, '');
+}
+
+function stripInlineCode(content: string): string {
+  return content.replace(/`[^`\n]+`/g, '');
+}
 
 /**
  * リンクエラーの型定義
@@ -74,7 +86,7 @@ function generateAnchorId(header: string): string {
   return header
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // 特殊文字を削除
+    .replace(/[^\p{L}\p{N}\p{M}\s-]/gu, '') // 記号を削除（日本語などUnicode文字は保持）
     .replace(/\s+/g, '-'); // スペースをハイフンに変換
 }
 
@@ -85,9 +97,10 @@ function generateAnchorId(header: string): string {
  */
 function extractAnchors(content: string): Set<string> {
   const anchors = new Set<string>();
-  let match;
+  const headerPattern = createHeaderPattern();
+  let match: RegExpExecArray | null;
   
-  while ((match = HEADER_PATTERN.exec(content)) !== null) {
+  while ((match = headerPattern.exec(content)) !== null) {
     const header = match[1];
     const anchorId = generateAnchorId(header);
     anchors.add(anchorId);
@@ -105,6 +118,9 @@ function extractAnchors(content: string): Set<string> {
 function resolveRelativePath(fromFile: string, linkPath: string): { absolutePath: string; anchor?: string } {
   // アンカーを分離
   const [pathPart, anchor] = linkPath.split('#');
+  if (!pathPart) {
+    return { absolutePath: fromFile, anchor };
+  }
   
   // 絶対パスの場合
   if (path.isAbsolute(pathPart)) {
@@ -127,9 +143,11 @@ function resolveRelativePath(fromFile: string, linkPath: string): { absolutePath
 async function validateLinksInFile(filePath: string, content: string): Promise<{ errors: LinkError[]; linkCount: number }> {
   const errors: LinkError[] = [];
   let linkCount = 0;
-  let match;
+  const contentToScan = stripInlineCode(stripFencedCodeBlocks(content));
+  const markdownLinkPattern = createMarkdownLinkPattern();
+  let match: RegExpExecArray | null;
   
-  while ((match = MARKDOWN_LINK_PATTERN.exec(content)) !== null) {
+  while ((match = markdownLinkPattern.exec(contentToScan)) !== null) {
     const linkText = match[1];
     const linkPath = match[2];
     
@@ -229,9 +247,11 @@ export async function getOrphanedFiles(docsRoot: string): Promise<OrphanedFile[]
   
   // 全リンクを収集
   await walkMarkdownFiles(docsRoot, async (fullPath, content) => {
-    let match;
+    const markdownLinkPattern = createMarkdownLinkPattern();
+    const contentToScan = stripInlineCode(stripFencedCodeBlocks(content));
+    let match: RegExpExecArray | null;
     
-    while ((match = MARKDOWN_LINK_PATTERN.exec(content)) !== null) {
+    while ((match = markdownLinkPattern.exec(contentToScan)) !== null) {
       const linkPath = match[2];
       
       // 外部リンクはスキップ

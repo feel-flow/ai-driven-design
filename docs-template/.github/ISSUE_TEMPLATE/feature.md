@@ -18,14 +18,14 @@ assignees: ""
 
 > **必須参照**: MASTER, ARCHITECTURE, DOMAIN
 
-- [ ] [MASTER.md](../../docs-template/MASTER.md)
-- [ ] [ARCHITECTURE.md#該当セクション](../../docs-template/02-design/ARCHITECTURE.md)
-- [ ] [DOMAIN.md#該当セクション](../../docs-template/02-design/DOMAIN.md)
+- [ ] [MASTER.md](../../MASTER.md)
+- [ ] [ARCHITECTURE.md#該当セクション](../../02-design/ARCHITECTURE.md)
+- [ ] [DOMAIN.md#該当セクション](../../02-design/DOMAIN.md)
 
 > **推奨参照**: PATTERNS, TESTING
 
-- [ ] [PATTERNS.md](../../docs-template/03-implementation/PATTERNS.md)
-- [ ] [TESTING.md](../../docs-template/04-quality/TESTING.md)
+- [ ] [PATTERNS.md](../../03-implementation/PATTERNS.md)
+- [ ] [TESTING.md](../../04-quality/TESTING.md)
 
 ## 関連Issue
 

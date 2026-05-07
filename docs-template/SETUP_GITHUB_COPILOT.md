@@ -85,7 +85,7 @@ GitHub Copilotのサブスクリプション購入とVS Code拡張機能のイ�
 - Copilot Chatの動作確認
 - MASTER.mdルール反映確認
 
-**詳細ガイド**: [setup-guides/github-copilot/configuration.md#動作確認](./setup-guides/github-copilot/configuration.md#動作確認)
+**詳細ガイド**: [setup-guides/github-copilot/03-usage-and-troubleshooting.md#step-4-動作確認5分](./setup-guides/github-copilot/03-usage-and-troubleshooting.md#step-4-動作確認5分)
 
 ---
 
@@ -101,7 +101,7 @@ GitHub Copilotのサブスクリプション購入とVS Code拡張機能のイ�
 - Copilot Chatの活用法
 - 効果的なプロンプトの書き方
 
-**詳細ガイド**: [setup-guides/github-copilot/best-practices.md](./setup-guides/github-copilot/best-practices.md)
+**詳細ガイド**: [setup-guides/github-copilot/03-usage-and-troubleshooting.md](./setup-guides/github-copilot/03-usage-and-troubleshooting.md)
 
 ---
 
@@ -117,7 +117,7 @@ GitHub Copilotのサブスクリプション購入とVS Code拡張機能のイ�
 - `.vscode/settings.json`をチーム共有（オプション）
 - チームメンバーへの展開
 
-**詳細ガイド**: [setup-guides/github-copilot/best-practices.md#チーム開発での設定共有](./setup-guides/github-copilot/best-practices.md#チーム開発での設定共有)
+**詳細ガイド**: [setup-guides/github-copilot/03-usage-and-troubleshooting.md#step-6-チーム共有5分](./setup-guides/github-copilot/03-usage-and-troubleshooting.md#step-6-チーム共有5分)
 
 ---
 
@@ -174,7 +174,7 @@ git push
 |                               | プロンプト不足                | Copilot Chatで明示的に指示            |
 |                               | キャッシュ問題                | VS Code再起動                         |
 
-**詳細ガイド**: [setup-guides/github-copilot/best-practices.md#トラブルシューティング](./setup-guides/github-copilot/best-practices.md#トラブルシューティング)
+**詳細ガイド**: [setup-guides/github-copilot/03-usage-and-troubleshooting.md#トラブルシューティング](./setup-guides/github-copilot/03-usage-and-troubleshooting.md#トラブルシューティング)
 
 ---
 
@@ -240,7 +240,7 @@ your-project/
 
 ### 4. ベストプラクティス
 
-**ファイル**: [setup-guides/github-copilot/best-practices.md](./setup-guides/github-copilot/best-practices.md)
+**ファイル**: [setup-guides/github-copilot/03-usage-and-troubleshooting.md](./setup-guides/github-copilot/03-usage-and-troubleshooting.md)
 
 **内容**:
 
@@ -280,7 +280,7 @@ your-project/
 ### プロジェクト開発開始
 
 - [GETTING_STARTED_NEW_PROJECT.md](./GETTING_STARTED_NEW_PROJECT.md) - プロジェクト開始ガイド
-- [AI_DRIVEN_WORKFLOW.md](./AI_DRIVEN_WORKFLOW.md) - AI駆動開発ワークフロー
+- [05-operations/DEPLOYMENT.md](./05-operations/DEPLOYMENT.md) - AI駆動Git Workflow
 
 ---
 
