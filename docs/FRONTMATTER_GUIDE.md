@@ -34,7 +34,7 @@ changeImpact: medium
 - **付けないテンプレ**: `GETTING_STARTED*.md`、`SETUP_*.md` のような「採用前に読む手順書」は本文置換のみで OK（[docs-template/README.md](../docs-template/README.md) の「frontmatter を持たないテンプレ」節）。
 - **検証**: `node scripts/validate-docs.mjs` でコア 7 文書（CORE_DOCS 固定）、`node scripts/build-spec-index.mjs` で spec を CI 検証。MCP サーバーは `parseFrontMatter` で読み取って `spec_lookup` / `spec_search` に供給。
 - **SSOT 注意**: コア 7 文書スキーマの正本は本ガイド §5.1 と `scripts/validate-docs.mjs:62-63`。`docs/OPERATIONAL_GUIDE.md §7` の status enum (`draft|active|deprecated`) は stale なため、矛盾時は validate-docs.mjs を優先（解消は [Issue #412](https://github.com/feel-flow/ai-spec-driven-development/issues/412)）。
-- **ツール / 環境**: frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存**（Claude Code / Cursor / Copilot / Codex CLI どれでも、macOS / Linux / Windows どれでも使える）。例外は MCP ツール（Copilot/Codex は非対応）と `*.sh` スクリプト群（Windows native では Git Bash か WSL2 が必要）。詳細は §7 を参照。
+- **ツール / 環境**: frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存**（Claude Code / Cursor / Copilot / Codex CLI どれでも、macOS / Linux / Windows どれでも使える）。MCP サーバーは全 4 ツールで利用可だが、Claude Code 以外は **明示的な MCP 設定** が必要。`*.sh` スクリプトと `.husky/pre-commit` は Windows native では Git Bash か WSL2 が必要（sh + coreutils）。詳細は §7。
 
 ---
 
@@ -350,45 +350,49 @@ frontmatter スキーマと検証 Node スクリプトは **AI ツール非依�
 
 ### 7.1 AI ツール別
 
-| 項目                                                 | Claude Code | Cursor                | GitHub Copilot                    | Codex CLI / OpenAI Codex |
-| ---------------------------------------------------- | ----------- | --------------------- | --------------------------------- | ------------------------ |
-| frontmatter テキストを context として読む            | ✅          | ✅                    | ✅                                | ✅                       |
-| `scripts/validate-docs.mjs` / `build-spec-index.mjs` | ✅          | ✅                    | ✅                                | ✅                       |
-| MCP `spec_lookup` / `spec_search`                    | ✅ 自動呼出 | ⚠️ 一部対応（要設定） | ❌ MCP 非対応（ファイル直読）     | ❌ MCP 非対応            |
-| プロジェクト指示ファイルから MASTER.md 強制参照      | `CLAUDE.md` | `.cursorrules`        | `.github/copilot-instructions.md` | `AGENTS.md`              |
-| `changeImpact` / version bump 規律                   | ✅          | ✅                    | ✅                                | ✅                       |
-| SSOT 原則                                            | ✅          | ✅                    | ✅                                | ✅                       |
+2026 年現在、Claude Code / Cursor / GitHub Copilot / OpenAI Codex CLI **すべて MCP 対応済み**。違いは「本リポジトリの MCP サーバーを自動で組み込むか / ユーザーが明示設定するか」の運用面のみ。frontmatter スキーマ自体は全ツールで共通に機能する。
 
-**実用上の差**: MCP 非対応ツール（Copilot / Codex）でも spec ファイルは普通の Markdown としてそのまま読める。違いは「ツール経由でメタデータ検索」ではなく「ファイル全体を context window に入れる」になり、**context 消費量がやや増える**だけ。frontmatter スキーマの書き方や本ガイドの内容はそのまま適用できる。
+| 項目                                                 | Claude Code | Cursor                                                      | GitHub Copilot                                        | Codex CLI / OpenAI Codex                              |
+| ---------------------------------------------------- | ----------- | ----------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| frontmatter テキストを context として読む            | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
+| `scripts/validate-docs.mjs` / `build-spec-index.mjs` | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
+| MCP `spec_lookup` / `spec_search`                    | ✅ 自動呼出 | ✅ 要設定（`.cursor/mcp.json`）                             | ✅ 要設定（IDE / CLI / Cloud Agent の `mcp.json` 等） | ✅ 要設定（`codex mcp add` / `~/.codex/config.toml`） |
+| プロジェクト指示ファイルから MASTER.md 強制参照      | `CLAUDE.md` | `.cursor/rules/*.mdc`（旧 `.cursorrules` も可、deprecated） | `.github/copilot-instructions.md`                     | `AGENTS.md`                                           |
+| `changeImpact` / version bump 規律                   | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
+| SSOT 原則                                            | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
+
+**実用上の差**: 4 ツールいずれも MCP に対応しているが、**Claude Code は本リポジトリの MCP サーバーを `CLAUDE.md` / 設定経由で自動的に context へ組み込める**のに対し、他 3 ツールは `.cursor/mcp.json` / IDE Agent mode の `mcp.json` / `codex mcp add` での **明示的な MCP server 登録**が必要。MCP を設定せずに使う場合でも、spec ファイルは普通の Markdown としてそのまま読める（context window の消費量がやや増えるだけ）。frontmatter スキーマと本ガイドの内容はどのツールでもそのまま適用できる。
+
+**参考一次情報**: [GitHub Copilot MCP](https://docs.github.com/en/copilot/concepts/context/mcp) / [OpenAI Codex MCP](https://developers.openai.com/codex/mcp) / [Cursor MCP](https://cursor.com/docs/mcp) / [Cursor Rules](https://cursor.com/docs/context/rules)。
 
 ### 7.2 実行環境別
 
 frontmatter 管理（編集・検証・MCP）は Node スクリプトと標準ツール（git/gh/npm/markdownlint/prettier）だけで完結するため、**OS 非依存**。PR review 自動化や cleanup 系の `*.sh` スクリプトを使う場合のみ shell 環境の準備が必要。
 
-| 項目                                                | macOS / Linux | Windows native | Windows + Git Bash | Windows + WSL2 |
-| --------------------------------------------------- | ------------- | -------------- | ------------------ | -------------- |
-| Node スクリプト（`validate-docs.mjs` 等）           | ✅            | ✅             | ✅                 | ✅             |
-| frontmatter パーサー（`/\r?\n/` で CRLF 対応済み）  | ✅            | ✅             | ✅                 | ✅             |
-| `npm run quality:local`（`&&` 連結を含む）          | ✅            | ✅             | ✅                 | ✅             |
-| `markdownlint-cli2` / `prettier` / `vitest` / `tsx` | ✅            | ✅             | ✅                 | ✅             |
-| `git` / `gh` / `node` / `npm`                       | ✅            | ✅             | ✅                 | ✅             |
-| `.husky/pre-commit`（`#!/bin/sh`）                  | ✅            | ⚠️ sh.exe 必要 | ✅                 | ✅             |
-| `scripts/*.sh`（review wrapper / setup ヘルパー）   | ✅            | ❌             | ✅                 | ✅             |
-| Claude Code の `/merge-cleanup` / `/ace-curate` 等  | ✅            | ❌             | ✅                 | ✅             |
+| 項目                                                       | macOS / Linux | Windows native           | Windows + Git Bash      | Windows + WSL2 |
+| ---------------------------------------------------------- | ------------- | ------------------------ | ----------------------- | -------------- |
+| Node スクリプト（`validate-docs.mjs` 等）                  | ✅            | ✅                       | ✅                      | ✅             |
+| frontmatter パーサー（`/\r?\n/` で CRLF 対応済み）         | ✅            | ✅                       | ✅                      | ✅             |
+| `npm run quality:local`（`&&` 連結を含む）                 | ✅            | ✅                       | ✅                      | ✅             |
+| `markdownlint-cli2` / `prettier` / `vitest` / `tsx`        | ✅            | ✅                       | ✅                      | ✅             |
+| `git` / `gh` / `node` / `npm`                              | ✅            | ✅                       | ✅                      | ✅             |
+| `.husky/pre-commit`（`#!/bin/sh` + `grep` / `xargs` 使用） | ✅            | ⚠️ sh + coreutils が必要 | ✅                      | ✅             |
+| `scripts/*.sh`（`#!/bin/bash` の review wrapper / setup）  | ✅            | ❌                       | ✅                      | ✅             |
+| Claude Code の `/merge-cleanup` / `/ace-curate` 等         | ✅            | ❌                       | ⚠️ 大半は動作（未検証） | ✅             |
 
-**PowerShell について**: PowerShell をユーザーシェルにしていることは**問題にならない**。`npm` は内部で cmd.exe を spawn して script を走らせるため、`&&` 連結を含む `npm run quality:local` も PowerShell 5.1 から呼んで動く。`git commit` の husky hook も Git 側が `sh.exe` で hook を実行するため、ユーザーシェルに依存しない。**本当に問題なのは「システムに `sh` / `bash` が存在するか」**であり、Git for Windows をインストールすれば `sh.exe` / `bash.exe` が PATH に通って解決する。
+**PowerShell について**: PowerShell をユーザーシェルにしていることは**問題にならない**。`npm` は Windows ではデフォルトで `cmd.exe` を **script-shell** として使うため（`npm config get script-shell` で確認可）、`&&` 連結を含む `npm run quality:local` も PowerShell 5.1 から呼んで動く（`&&` 自体が cmd.exe で動くため）。`git commit` の husky hook も Git 側が `sh.exe` で hook を実行するため、ユーザーシェルに依存しない。**本当に問題なのは「システムに `sh` / `bash` + coreutils (grep / xargs / awk 等) が存在し PATH に通っているか」**であり、Git for Windows をインストールすれば同梱される（インストーラのオプションは下記）。
 
 **推奨セットアップ**:
 
-- **frontmatter 管理だけしたい Windows ユーザー**: Node.js 20+ をインストールすれば OK。`*.sh` を使わない範囲では追加準備不要。
-- **PR review / merge-cleanup / ACE 等の自動化も使う Windows ユーザー**: **Git for Windows をインストール**（`sh.exe` が標準で同梱され PATH も通る）。これだけで全機能が PowerShell からも cmd.exe からも使える。
-- **より快適に使いたい Windows ユーザー**: **WSL2 + Ubuntu** を導入。Linux 環境がそのまま使え、ファイル系の編集は VS Code Remote-WSL でシームレス。
+- **frontmatter 管理だけしたい Windows ユーザー**: Node.js 20+ をインストールすれば OK。`*.sh` / husky hook を使わない範囲では追加準備不要。
+- **PR review / merge-cleanup / ACE 等の自動化も使う Windows ユーザー**: **Git for Windows をインストール**。**インストーラの "Use Git and optional Unix tools from the Command Prompt"** を選ぶと `Git\usr\bin` まで PATH に追加され `sh.exe` / `bash.exe` / `grep` / `xargs` 等の coreutils が cmd.exe / PowerShell から使える。他のオプション（`Git\cmd` のみ）を選んだ場合は手動で `C:\Program Files\Git\usr\bin` を PATH に追加する。Claude Code の `/merge-cleanup` 等は bash の高度機能（process substitution 等）を使うため、**Git Bash で全機能が動く保証はなく実機検証推奨**。
+- **より確実 / 快適に使いたい Windows ユーザー**: **WSL2 + Ubuntu** を導入。Linux 環境がそのまま使え、`*.sh` / husky / `/merge-cleanup` 等全て動作確認できている前提のシェル環境になる。VS Code Remote-WSL でファイル系の編集もシームレス。
 
 ### 7.3 既知の落とし穴
 
-- **改行コード**: Windows でファイルを編集すると CRLF になることがある。frontmatter パーサーは全実装 `/\r?\n/` で正規化済みなので問題ないが、`.gitattributes` で `*.md text eol=lf` を強制しておくと差分ノイズが減る。
-- **`scripts/*.sh` を `./script.sh` で直接実行**: PowerShell / cmd.exe では `.sh` 拡張子の関連付けがないため、`bash ./scripts/multi-review.sh` のように明示する。
-- **MCP サーバーのパス**: Windows では `C:\Users\...\` のようなパスになるが、MCP 設定ファイル内では `/` 区切りでも `\\` エスケープでも動く。
+- **改行コード**: Windows でファイルを編集すると CRLF になることがある。frontmatter パーサーは全実装 `/\r?\n/` で正規化済みなので問題ないが、`.gitattributes` で `*.md text eol=lf` を強制しておくと差分ノイズが減る（本リポジトリは現状 `.gitattributes` 未配置のため、Windows 開発者を受け入れる際は `git add --renormalize .` も併せて実施するのが安全）。
+- **`scripts/*.sh` を `./script.sh` で直接実行**: PowerShell / cmd.exe では `.sh` 拡張子の関連付けがないため、`bash ./scripts/multi-review.sh` のように明示する（本リポジトリの `scripts/*.sh` は shebang が `#!/bin/bash` か `#!/usr/bin/env bash` のため `sh` ではなく `bash` で起動するのが安全）。
+- **MCP サーバーのパス**: Windows では `C:\Users\...\` 形式になるが、Claude Code の MCP 設定 JSON 内では `/` 区切りでも `\\` エスケープでも動作確認済み。他の MCP クライアント（Cursor / Codex / Copilot）はパス正規化処理の実装が異なる可能性があるため、各クライアントのドキュメントで `pathSeparator` 仕様を確認すること。
 
 ---
 
@@ -412,12 +416,22 @@ frontmatter 管理（編集・検証・MCP）は Node スクリプトと標準�
 #### 追加
 
 - §7「ツール・環境別の対応状況」を新設（Issue #413）
-  - §7.1 AI ツール別の対応状況（Claude Code / Cursor / GitHub Copilot / Codex CLI）— MCP 対応有無と各ツールのプロジェクト指示ファイル名を表で対比
-  - §7.2 実行環境別の対応状況（macOS / Linux / Windows native / Windows + Git Bash / WSL2）— Node スクリプトは OS 非依存、`*.sh` だけが Git Bash / WSL2 を要求する点を明示
-  - §7.2 に **PowerShell** 単独セクションを追加（npm の `&&` チェーンと husky hook が「ユーザーシェル非依存」で動く根拠を明記）
-  - §7.3 既知の落とし穴（CRLF、`.sh` 直接実行、MCP パス区切り）
+  - §7.1 AI ツール別の対応状況（Claude Code / Cursor / GitHub Copilot / Codex CLI）— 4 ツール **全て MCP 対応済み**、差別化軸は「自動呼出（Claude Code）vs 明示設定（他 3 ツール）」。各ツールのプロジェクト指示ファイル名と MCP 設定方法を表で対比
+  - §7.2 実行環境別の対応状況（macOS / Linux / Windows native / Windows + Git Bash / WSL2）— Node スクリプトは OS 非依存、`.husky/pre-commit` は **sh + coreutils (grep/xargs)** 要、`scripts/*.sh` は bash shebang のため Git Bash か WSL2 が必要
+  - §7.2 に **PowerShell** 単独セクションを追加（npm の `script-shell` がデフォルト `cmd.exe` であり `&&` が cmd.exe で動く根拠、husky hook が Git 側 sh.exe 実行のためユーザーシェル非依存である根拠を明記）
+  - §7.2 推奨セットアップで **Git for Windows のインストーラオプション "Use Git and optional Unix tools from the Command Prompt"** を案内（`Git\usr\bin` を PATH に通すため）
+  - §7.3 既知の落とし穴（CRLF + `.gitattributes` 再正規化、`.sh` は `bash` で起動、MCP パスは Claude Code 動作確認済み他は実装依存）
 - TL;DR にツール / 環境互換性の 1 行サマリーを追加
 - 既存 §7「関連ドキュメント」を §8 にリナンバー
+
+#### 訂正（PR #414 レビュー指摘反映）
+
+- §7.1 MCP 列の「Copilot/Codex 非対応 ❌」→ 「全 4 ツール対応 ✅、明示設定が必要」に訂正（2026 年現在の公式仕様）
+- §7.1 Cursor の指示ファイル `.cursorrules` → `.cursor/rules/*.mdc` を推奨（旧形式は deprecated）
+- §7.1 Cursor の MCP「⚠️ 一部対応」→ 「✅ 要設定」に訂正（完全実装）
+- §7.2 PowerShell 説明の「npm が内部で cmd.exe を spawn」→ 「npm の `script-shell` 設定が Windows でデフォルト `cmd.exe`」に正確化
+- §7.2 表 `.husky/pre-commit` 要件を「sh.exe 必要」→ 「sh + coreutils (grep/xargs)」に詳細化（実 hook 内容に整合）
+- §7.2 `/merge-cleanup` Windows + Git Bash セル: 「✅」→ 「⚠️ 大半は動作（未検証）」に弱める（bash の高度機能依存のため）
 
 ### [1.1.0] - 2026-05-19
 
