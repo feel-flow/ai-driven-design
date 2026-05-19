@@ -29,3 +29,6 @@ coverage/
 
 # Brainstorming visual companion (ephemeral mockups)
 .superpowers/
+
+# Codex CLI
+.codex/
