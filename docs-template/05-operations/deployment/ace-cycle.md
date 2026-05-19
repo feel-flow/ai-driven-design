@@ -54,6 +54,7 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 4. **パフォーマンス**: 最適化のヒント
 5. **アーキテクチャ**: 構造上の決定事項
 6. **プロセス**: ワークフロー・ツール活用の改善点
+7. **判断ログ**: 捨てた選択肢・spec から逸脱した点・spec にない判断（PR description の implementation-notes 転記より、[ACE-034](../../08-knowledge/PLAYBOOK.md)）
 
 ## 出力形式
 各知見について以下を出力してください:
@@ -300,6 +301,12 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 ---
 
 ## Changelog
+
+### [1.1.0] - 2026-05-20
+
+#### 追加
+
+- Phase 1 Generate AI プロンプトテンプレートに分析観点 7「判断ログ」を追加（Issue [#421](https://github.com/feel-flow/ai-spec-driven-development/issues/421)）。PR description に転記された implementation-notes（[ACE-034](../../08-knowledge/PLAYBOOK.md)）から「捨てた選択肢 / spec 乖離 / spec にない判断」を明示的に拾わせる
 
 ### [1.0.0] - YYYY-MM-DD
 
