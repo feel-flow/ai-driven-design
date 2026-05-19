@@ -1,7 +1,7 @@
 ---
 id: frontmatter-guide
 title: Frontmatter ガイド - なぜ・どこで・何を書くか
-version: 1.2.0
+version: 1.3.0
 status: draft
 created: 2026-05-19
 updated: 2026-05-19
@@ -26,15 +26,15 @@ changeImpact: medium
 
 ## TL;DR
 
-- **Why**: frontmatter は AI / MCP / CI / 検索の **メタデータ唯一の正式ソース (SSOT)** にするため。本文に書くと参照が散らばり、機械的に処理できなくなる。
+- **Why**: frontmatter は AI / CI / 検索の **メタデータ唯一の正式ソース (SSOT)** にするため。本文に書くと参照が散らばり、機械的に処理できなくなる。
 - **2 系統スキーマがある**:
   1. **コア7文書・拡張文書スキーマ** （本リポジトリ独自、3 ステータス `draft|review|approved`、`changeImpact`、SemVer）
   2. **`docs/specs/` 配下スキーマ** （GitHub Spec Kit 由来、6 ステータスライフサイクル、`specId`、メトリクス）
 - **付ける場所**: コア 7 文書、拡張文書（GLOSSARY, DECISIONS, FAQ 等）、`docs/specs/**`、PLAYBOOK 等の運用文書。
 - **付けないテンプレ**: `GETTING_STARTED*.md`、`SETUP_*.md` のような「採用前に読む手順書」は本文置換のみで OK（[docs-template/README.md](../docs-template/README.md) の「frontmatter を持たないテンプレ」節）。
-- **検証**: `node scripts/validate-docs.mjs` でコア 7 文書（CORE_DOCS 固定）、`node scripts/build-spec-index.mjs` で spec を CI 検証。MCP サーバーは `parseFrontMatter` で読み取って `spec_lookup` / `spec_search` に供給。
+- **検証**: `node scripts/validate-docs.mjs` でコア 7 文書（CORE_DOCS 固定）、`node scripts/build-spec-index.mjs` で spec を CI 検証。
 - **SSOT 注意**: コア 7 文書スキーマの正本は本ガイド §5.1 と `scripts/validate-docs.mjs:62-63`。`docs/OPERATIONAL_GUIDE.md §7` の status enum (`draft|active|deprecated`) は stale なため、矛盾時は validate-docs.mjs を優先（解消は [Issue #412](https://github.com/feel-flow/ai-spec-driven-development/issues/412)）。
-- **ツール / 環境**: frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存**（Claude Code / Cursor / Copilot / Codex CLI どれでも、macOS / Linux / Windows どれでも使える）。MCP サーバーは全 4 ツールで利用可だが、Claude Code 以外は **明示的な MCP 設定** が必要。`*.sh` スクリプトと `.husky/pre-commit` は Windows native では Git Bash か WSL2 が必要（sh + coreutils）。詳細は §7。
+- **ツール / 環境**: frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存**（Claude Code / Cursor / Copilot / Codex CLI どれでも、macOS / Linux / Windows どれでも使える）。`*.sh` スクリプトと `.husky/pre-commit` は Windows native では Git Bash か WSL2 が必要（sh + coreutils）。詳細は §7。
 
 ---
 
@@ -50,16 +50,15 @@ changeImpact: medium
 
 frontmatter は **YAML というスキーマ言語** にメタデータを閉じ込めることで、これを 1 箇所に集約する。本リポジトリでは `docs-template/MASTER.md`「プロジェクト識別情報」セクション等で「**バージョン: Frontmatter の `version` を参照**」と本文側からも明示し、SSOT を担保している。
 
-### 1.2 AI ツールに「最小コンテキスト」を渡すため
+### 1.2 AI ツールに「探しやすい索引」を提供するため
 
-役割分担は以下のとおり:
+frontmatter の `title` / `tags` / `references` / `status` / `changeImpact` は、AI ツールがドキュメント群から関連ファイルを絞り込むときの **索引** として機能する。例:
 
-- `scripts/build-spec-index.mjs` が `docs/specs/**/*.md` の frontmatter を読み取り **`dist/spec-index.json` を生成**する（CI 時に走らせる）。
-- `mcp/src/index.ts` の MCP サーバーは spec ファイルを **メモリ上で索引化**し、以下のツールとして AI に公開する:
-  - `spec_lookup(specId)` で spec の frontmatter + 本文を返す
-  - `spec_search(query)` でタイトル・タグから絞り込み
+- 「`tags: auth` で `status: approved` の文書」だけを絞れる
+- 「`changeImpact: high` の最近変更された文書」だけを集められる
+- 関連文書間のつながりを `references:` で辿れる
 
-→ AI は「全文 grep せずにメタデータだけで候補を絞れる」状態になり、コンテキスト最小化 → ハルシネーション減につながる。
+本文を全文 grep せずにメタデータだけで候補を絞れるため、AI に渡す context window が小さく済み、無関係な文書の混入によるハルシネーションが減る。`scripts/build-spec-index.mjs` は `docs/specs/**/*.md` の frontmatter を `dist/spec-index.json` に書き出し、CI や別ツールから読みやすい形にする。
 
 ### 1.3 CI で品質ゲートを回すため
 
@@ -86,19 +85,20 @@ frontmatter は **YAML というスキーマ言語** にメタデータを閉じ
 
 ## 2. What - 付けると何が起きるのか
 
-| パイプライン                    | 入力                                                                   | frontmatter から拾うフィールド                                        | 出力 / 効果                                                      |
-| ------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `scripts/validate-docs.mjs`     | `docs-template/` 配下の **固定 7 ファイル**（CORE_DOCS 配列で列挙）    | `title`, `version`, `status`, `owner`, `created`, `updated`           | 必須フィールド・enum・SemVer 検証。失敗で exit 1                 |
-| `scripts/build-spec-index.mjs`  | `docs/specs/**/*.md`                                                   | `specId`, `title`, `status`, `version`, `tags`, `links`, `metrics` 他 | `dist/spec-index.json` を生成。`specId` 重複・enum 違反で exit 1 |
-| `mcp/src/index.ts` MCP サーバー | 上記 2 系統（メモリ上で索引化、`dist/spec-index.json` 書き出しは別）   | `parseFrontMatter` で全フィールド                                     | `spec_lookup` / `spec_search` ツールが AI に最小コンテキスト供給 |
-| `npm run quality:local`         | 上記の validate / build-spec-index / MCP test / lint / prettier を統括 | 上記すべて                                                            | 旧 GitHub Actions CI 相当の品質ゲート（PR 前に手動実行）         |
+| パイプライン                   | 入力                                                                   | frontmatter から拾うフィールド                                        | 出力 / 効果                                                      |
+| ------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `scripts/validate-docs.mjs`    | `docs-template/` 配下の **固定 7 ファイル**（CORE_DOCS 配列で列挙）    | `title`, `version`, `status`, `owner`, `created`, `updated`           | 必須フィールド・enum・SemVer 検証。失敗で exit 1                 |
+| `scripts/build-spec-index.mjs` | `docs/specs/**/*.md`                                                   | `specId`, `title`, `status`, `version`, `tags`, `links`, `metrics` 他 | `dist/spec-index.json` を生成。`specId` 重複・enum 違反で exit 1 |
+| `npm run quality:local`        | 上記の validate / build-spec-index / MCP test / lint / prettier を統括 | 上記すべて                                                            | 旧 GitHub Actions CI 相当の品質ゲート（PR 前に手動実行）         |
 
 > **重要**: `validate-docs.mjs` は **CORE_DOCS 配列で列挙された 7 ファイルだけ**を検証する。拡張文書（GLOSSARY, DECISIONS 等）や `PLAYBOOK.md`、`docs/` 配下の方法論ガイド類は **CI で frontmatter 検証されない**。拡張対象にしたい場合は `CORE_DOCS` 配列への追加か別スクリプト化が必要。
 
-### 2.1 スクリプトの実装場所
+### 2.1 パーサー実装
 
-- パーサー: `mcp/src/utils.ts` `parseFrontMatter` （リポジトリで最も整備されている実装）
-- 簡易パーサー: `scripts/validate-docs.mjs` / `scripts/build-spec-index.mjs`（外部依存なしの自前実装、挙動差は §5.4.2 参照）
+リポジトリ内には外部ライブラリ非依存の自前 frontmatter パーサーが複数存在する（実装間の挙動差は §5.4.2 参照）:
+
+- `scripts/validate-docs.mjs` / `scripts/build-spec-index.mjs`（検証スクリプト用）
+- `mcp/src/utils.ts`（本リポジトリ自身が運用する MCP サーバー用、採用者には配布されない実装メタ情報）
 
 ---
 
@@ -253,7 +253,7 @@ metrics:
 | `done`         | 運用     | 非推奨決定         |
 | `deprecated`   | 廃止準備 | 削除 or 置換       |
 
-> **MCP 上の挙動**: `links:` / `metrics:` のような **ネスト構造は MCP の `parseFrontMatter` では string に丸めて格納**される（`build-spec-index.mjs` 経由でも `metrics.success` がサブグループのまま読まれず flat array 化）。そのため `spec_search` で `metrics.success.login_success_rate` のような階層検索はできない。階層情報を残したい場合は本文側にテーブルで記述する。
+> **パーサー上の挙動**: `links:` / `metrics:` のような **ネスト構造は本リポジトリのパーサー実装（自前 YAML サブセット）では string に丸めて格納**される（`build-spec-index.mjs` でも `metrics.success` がサブグループのまま読まれず flat array 化）。階層情報をプログラムから扱いたい場合は本文側にテーブルで記述するか、別途完全な YAML パーサー（`js-yaml` 等）を導入する必要がある。
 
 ### 5.3 更新時のチェックリスト
 
@@ -338,36 +338,32 @@ frontmatter スキーマが 2 系統あるのは **歴史的経緯** による�
 
 ### 6.3 なぜ統合しなかったか
 
-- **粒度が違う**: コア7文書は「長寿命の知識ベース」、spec は「個別仕様のライフサイクル」。前者に 6 ステータスは過剰、後者に `changeImpact` は粒度不一致。
-- **検証スクリプトを分けたい**: validate-docs（コア文書）と build-spec-index（spec）はチェック内容が違う。
-- **MCP ツールが spec 側だけを索引化する設計**: `spec_lookup` / `spec_search` は spec 専用、コア文書は full-text で扱う。
+- **粒度が違う**: コア 7 文書は「長寿命の知識ベース」、spec は「個別仕様のライフサイクル」。前者に 6 ステータスは過剰、後者に `changeImpact` は粒度不一致。
+- **検証スクリプトを分けたい**: validate-docs（コア文書）と build-spec-index（spec）はチェック内容が違う（必須フィールド・enum・出力先がすべて別）。
 
 ---
 
 ## 7. ツール・環境別の対応状況
 
-frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存** に設計されている。例外は MCP ツール群と `*.sh` スクリプト群の 2 点のみ。
+frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存** に設計されている。例外は `*.sh` スクリプト群と `.husky/pre-commit`（Windows native では Git Bash か WSL2 が必要）。
 
 ### 7.1 AI ツール別
 
-2026 年現在、Claude Code / Cursor / GitHub Copilot / OpenAI Codex CLI **すべて MCP 対応済み**。違いは「本リポジトリの MCP サーバーを自動で組み込むか / ユーザーが明示設定するか」の運用面のみ。frontmatter スキーマ自体は全ツールで共通に機能する。
+frontmatter スキーマと検証 Node スクリプトは全 AI ツールで共通に機能する。各ツールへの読み込ませ方は **プロジェクト指示ファイル** が異なるだけ。
 
-| 項目                                                 | Claude Code | Cursor                                                      | GitHub Copilot                                        | Codex CLI / OpenAI Codex                              |
-| ---------------------------------------------------- | ----------- | ----------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| frontmatter テキストを context として読む            | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
-| `scripts/validate-docs.mjs` / `build-spec-index.mjs` | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
-| MCP `spec_lookup` / `spec_search`                    | ✅ 自動呼出 | ✅ 要設定（`.cursor/mcp.json`）                             | ✅ 要設定（IDE / CLI / Cloud Agent の `mcp.json` 等） | ✅ 要設定（`codex mcp add` / `~/.codex/config.toml`） |
-| プロジェクト指示ファイルから MASTER.md 強制参照      | `CLAUDE.md` | `.cursor/rules/*.mdc`（旧 `.cursorrules` も可、deprecated） | `.github/copilot-instructions.md`                     | `AGENTS.md`                                           |
-| `changeImpact` / version bump 規律                   | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
-| SSOT 原則                                            | ✅          | ✅                                                          | ✅                                                    | ✅                                                    |
+| 項目                                                 | Claude Code | Cursor                                                      | GitHub Copilot                    | Codex CLI / OpenAI Codex |
+| ---------------------------------------------------- | ----------- | ----------------------------------------------------------- | --------------------------------- | ------------------------ |
+| frontmatter テキストを context として読む            | ✅          | ✅                                                          | ✅                                | ✅                       |
+| `scripts/validate-docs.mjs` / `build-spec-index.mjs` | ✅          | ✅                                                          | ✅                                | ✅                       |
+| プロジェクト指示ファイルから MASTER.md 強制参照      | `CLAUDE.md` | `.cursor/rules/*.mdc`（旧 `.cursorrules` も可、deprecated） | `.github/copilot-instructions.md` | `AGENTS.md`              |
+| `changeImpact` / version bump 規律                   | ✅          | ✅                                                          | ✅                                | ✅                       |
+| SSOT 原則                                            | ✅          | ✅                                                          | ✅                                | ✅                       |
 
-**実用上の差**: 4 ツールいずれも MCP に対応しているが、**Claude Code は本リポジトリの MCP サーバーを `CLAUDE.md` / 設定経由で自動的に context へ組み込める**のに対し、他 3 ツールは `.cursor/mcp.json` / IDE Agent mode の `mcp.json` / `codex mcp add` での **明示的な MCP server 登録**が必要。MCP を設定せずに使う場合でも、spec ファイルは普通の Markdown としてそのまま読める（context window の消費量がやや増えるだけ）。frontmatter スキーマと本ガイドの内容はどのツールでもそのまま適用できる。
-
-**参考一次情報**: [GitHub Copilot MCP](https://docs.github.com/en/copilot/concepts/context/mcp) / [OpenAI Codex MCP](https://developers.openai.com/codex/mcp) / [Cursor MCP](https://cursor.com/docs/mcp) / [Cursor Rules](https://cursor.com/docs/context/rules)。
+採用者が新規にツールを追加する場合は、上記「プロジェクト指示ファイル」を作成し、その先頭で `docs-template/MASTER.md` の読了を必須化するのが推奨パターン。
 
 ### 7.2 実行環境別
 
-frontmatter 管理（編集・検証・MCP）は Node スクリプトと標準ツール（git/gh/npm/markdownlint/prettier）だけで完結するため、**OS 非依存**。PR review 自動化や cleanup 系の `*.sh` スクリプトを使う場合のみ shell 環境の準備が必要。
+frontmatter 管理（編集・検証・索引化）は Node スクリプトと標準ツール（git/gh/npm/markdownlint/prettier）だけで完結するため、**OS 非依存**。PR review 自動化や cleanup 系の `*.sh` スクリプトを使う場合のみ shell 環境の準備が必要。
 
 | 項目                                                       | macOS / Linux | Windows native           | Windows + Git Bash      | Windows + WSL2 |
 | ---------------------------------------------------------- | ------------- | ------------------------ | ----------------------- | -------------- |
@@ -392,7 +388,6 @@ frontmatter 管理（編集・検証・MCP）は Node スクリプトと標準�
 
 - **改行コード**: Windows でファイルを編集すると CRLF になることがある。frontmatter パーサーは全実装 `/\r?\n/` で正規化済みなので問題ないが、`.gitattributes` で `*.md text eol=lf` を強制しておくと差分ノイズが減る（本リポジトリは現状 `.gitattributes` 未配置のため、Windows 開発者を受け入れる際は `git add --renormalize .` も併せて実施するのが安全）。
 - **`scripts/*.sh` を `./script.sh` で直接実行**: PowerShell / cmd.exe では `.sh` 拡張子の関連付けがないため、`bash ./scripts/multi-review.sh` のように明示する（本リポジトリの `scripts/*.sh` は shebang が `#!/bin/bash` か `#!/usr/bin/env bash` のため `sh` ではなく `bash` で起動するのが安全）。
-- **MCP サーバーのパス**: Windows では `C:\Users\...\` 形式になるが、Claude Code の MCP 設定 JSON 内では `/` 区切りでも `\\` エスケープでも動作確認済み。他の MCP クライアント（Cursor / Codex / Copilot）はパス正規化処理の実装が異なる可能性があるため、各クライアントのドキュメントで `pathSeparator` 仕様を確認すること。
 
 ---
 
@@ -410,6 +405,22 @@ frontmatter 管理（編集・検証・MCP）は Node スクリプトと標準�
 ---
 
 ## Changelog
+
+### [1.3.0] - 2026-05-19
+
+#### 変更
+
+- **MCP 関連の「採用者向け value 主張」を除外**（Issue #415）。本ガイドが「テンプレ採用者向けの導入ガイド」である位置づけを明確化。`mcp/` は配布境界 P2 で「❌ No（外部から参照のみ）」のため、採用者は MCP を使わない前提で読めるよう改稿。
+  - TL;DR: 「MCP サーバーは `parseFrontMatter` で `spec_lookup` / `spec_search` に供給」「MCP は全 4 ツールで利用可だが Claude Code 以外は明示設定」の 2 文を削除
+  - §1.2「AI ツールに『最小コンテキスト』を渡すため」→ 「AI ツールに『探しやすい索引』を提供するため」に改稿（タグ・タイトル・references による索引絞り込みを Why に）
+  - §2 表から `mcp/src/index.ts` 行を削除
+  - §2.1 を「パーサー実装」に改稿（MCP サーバー用パーサーは「採用者には配布されない実装メタ情報」と明記）
+  - §5.2 spec ネスト構造の注記を「MCP 上の挙動」→ 「パーサー上の挙動」に書き直し（`spec_search` 言及を削除、汎用 YAML パーサー導入の選択肢を提示）
+  - §6.3 から「MCP ツールが spec 側だけを索引化する設計」bullet を削除
+  - §7.1 表から MCP 行を削除、下の説明文と参考一次情報リンクも削除（プロジェクト指示ファイル比較に焦点化）
+  - §7.2 「frontmatter 管理（編集・検証・MCP）」→ 「frontmatter 管理（編集・検証・索引化）」、§7 イントロの「例外は MCP ツール群と...」を「例外は `*.sh` スクリプト群と `.husky/pre-commit`」に書き直し
+  - §7.3 「MCP サーバーのパス」既知の落とし穴を削除（採用者は MCP を使わない前提）
+- 実装詳細としての mcp/src/utils.ts は §5.4.2 パーサー対応表と §8 関連ドキュメントに残置（採用者は意識しなくて OK、コントリビューターが実装を辿るときに有用）
 
 ### [1.2.0] - 2026-05-19
 
