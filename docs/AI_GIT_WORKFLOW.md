@@ -155,6 +155,42 @@ git checkout -b "feature/123-user-auth"
 
 **重要**: コミットメッセージに参照したドキュメントを含める
 
+#### 作業中の判断ログ: `implementation-notes.md` を並走させる
+
+実装着手と同時に **作業ブランチ直下** に `implementation-notes.md` を作成し、コミットと一緒に追記する。コミット diff には残らない「なぜこの選択をしたか / spec から変えた点 / 捨てた選択肢」を保持することで、ステップ5（Self-Review）の精度とステップ10（ACE Generate）の入力品質が上がる。詳細根拠は [PLAYBOOK ACE-034](../docs-template/08-knowledge/PLAYBOOK.md)。
+
+最小ひな形（コピペして使う）:
+
+```markdown
+# Implementation Notes - #<ISSUE_NUM>
+
+## Decisions not in spec
+
+-
+
+## Changes from spec
+
+-
+
+## Tradeoffs
+
+-
+
+## Open questions / TODO
+
+-
+```
+
+**運用ルール**:
+
+- **書くタイミングは「気付いた瞬間」**: 後で書こうとすると確実に忘れる（ACE-032 の発見経緯と同じ構造）
+- **粒度は 1〜3 行**: 「なぜ A ではなく B を選んだか」を短文で残す
+- **スコープ外発見は本ファイルではなく Issue 化**: implementation-notes は「現 PR の判断ログ」、Issue は「別タスクへの分岐」と役割を分ける（[ワークフロー運用原則 原則2](../docs-template/05-operations/deployment/workflow-principles.md)）
+- **PR 作成時に PR description に転記**: ステップ6 でレビュアーが「なぜ」を読みやすくなる
+- **マージ前にファイルを削除する（推奨）**: 本リポは squash merge 標準のため、ファイルを残すと次 PR がルート直下で衝突する。pr-ready 直前に PR description へ転記 → `git rm implementation-notes.md` → 1 commit で削除。長期保存したい場合は `notes/<issue-num>.md` 形式で per-PR ファイル化する代替案あり（並行 PR で衝突しないが notes/ が累積するトレードオフ）
+
+#### コミット
+
 ```bash
 git commit -m "feat: ユーザー認証機能を実装
 

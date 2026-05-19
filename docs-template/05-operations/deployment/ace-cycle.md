@@ -29,12 +29,13 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 
 ### 対象データ
 
-| データソース     | 取得方法                                              | 主な知見                       |
-| ---------------- | ----------------------------------------------------- | ------------------------------ |
-| PR diff          | `gh pr diff ${PR_NUMBER}`                             | コード変更のパターン、設計判断 |
-| Issue 内容       | `gh issue view ${ISSUE_NUM}`                          | 元々の課題、要件               |
-| レビューコメント | `gh api repos/OWNER/REPO/pulls/${PR_NUMBER}/comments` | 指摘事項、改善点               |
-| CI/CD ログ       | GitHub Actions の結果                                 | ビルド・テストの教訓           |
+| データソース     | 取得方法                                              | 主な知見                                                                                                                 |
+| ---------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| PR diff          | `gh pr diff ${PR_NUMBER}`                             | コード変更のパターン、設計判断                                                                                           |
+| PR description   | `gh pr view ${PR_NUMBER} --json body`                 | 判断理由 / 捨てた選択肢 / spec 乖離（implementation-notes 転記済み、[PLAYBOOK ACE-034](../../08-knowledge/PLAYBOOK.md)） |
+| Issue 内容       | `gh issue view ${ISSUE_NUM}`                          | 元々の課題、要件                                                                                                         |
+| レビューコメント | `gh api repos/OWNER/REPO/pulls/${PR_NUMBER}/comments` | 指摘事項、改善点                                                                                                         |
+| CI/CD ログ       | GitHub Actions の結果                                 | ビルド・テストの教訓                                                                                                     |
 
 ### AIプロンプトテンプレート
 
