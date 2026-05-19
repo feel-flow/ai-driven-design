@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.13.0"
+version: "1.14.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-19"
 owner: "@fffokazaki"
-ace_entry_count: 27
+ace_entry_count: 30
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -813,7 +813,93 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+### ACE-028: 外部ツールの「現状」仕様を書くときは公式ドキュメントを WebFetch / WebSearch で必ず照合する
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #414 / Issue #413  |
+| Related    | ACE-023               |
+| Date       | 2026-05-19            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: SaaS / IDE / CLI ツール（GitHub Copilot, Cursor, Codex CLI 等）の対応状況・設定方法・推奨ファイル名は **数ヶ月単位で変化** し、LLM の training cutoff より新しい場合は **「古い知識のまま断定する」事故** が起きる。「最新仕様を整理する」型のドキュメントを書く場合、各事実主張ごとに **公式ドキュメント URL を WebFetch / WebSearch で必ず照合** し、出典 URL も併記する。
+
+**Context**: PR #414 で `docs/FRONTMATTER_GUIDE.md` §7.1「AI ツール別 frontmatter 対応状況」を執筆した際、「Copilot は MCP 非対応 ❌」「Codex CLI は MCP 非対応 ❌」「Cursor の指示ファイルは `.cursorrules`」「Cursor の MCP は一部対応」と一般論で書いた。Toolkit comment-analyzer と code-reviewer が独立に公式ドキュメントを照合し、すべて事実誤認と判明: (a) Copilot は VS Code Agent mode 等で MCP GA 済み (2025-04)、(b) Codex CLI も `codex mcp add` で MCP 対応済み、(c) Cursor の `.cursorrules` は 0.43+ で deprecated → `.cursor/rules/*.mdc` 推奨、(d) Cursor の MCP は tools/resources/dynamic context すべて完全実装。本ガイドの中核セクションで「Copilot ユーザーは MCP 経由で `spec_lookup` を使えない」という誤った技術判断を導くリスクがあった。fix commit で対応表を「全 4 ツール ✅、自動呼出 vs 明示設定」軸に再構築し、4 ツールの公式ドキュメント URL を表下に併記した。
+
+**Action**:
+
+1. **「現状仕様」を含む対応表は WebFetch/WebSearch を fact-check の前提に組み込む**: 「GitHub Copilot の MCP 対応状況は？」「Cursor の最新 rules ファイル形式は？」のような問いには **必ず公式ドキュメント URL を取得して照合** してから書く
+2. **LLM training cutoff より新しい変化が起きやすい領域を意識**: IDE 拡張機能 (`docs.github.com`, `cursor.com/docs`, `developers.openai.com`)、CLI tool 仕様 (`cli.github.com`)、SaaS API 変更、ライブラリの API stable/deprecated は特に rot しやすい
+3. **出典 URL を本文に併記**: 「参考一次情報: [GitHub Copilot MCP](URL) / [Cursor MCP](URL)」のように本文に書き残すと、後で読者・レビュアーが照合しやすく、自分の knowledge cutoff 起因の事故を防げる
+4. **執筆時点でわからない場合は明示**: 「2026-05 時点では...」のような時点明示か、「最新仕様は公式ドキュメントを参照」とエスケープする
+5. **レビュアー（特に並列レビュー）に WebFetch を期待**: Toolkit comment-analyzer は WebFetch を使って公式情報と照合してくれる。仕様系の主張があるドキュメントは並列レビューを必ず通す
+
+---
+
+### ACE-029: 外部ツール依存物（shell script の依存コマンド、shebang、インストーラオプション）を文書化するときは実体を読んで列挙する
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #414 / Issue #413  |
+| Related    | ACE-025               |
+| Date       | 2026-05-19            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: shell スクリプトや hook の「実行要件」を文書化するときは、**shebang だけで判断せず、ファイル本体を読んで使用コマンド（`grep`, `xargs`, `awk`, `find` 等）を列挙する** こと。インストーラ依存の「PATH に通す方法」を書くときは **インストーラの具体オプション名を引用する**。どちらも実体を見ずに一般論で書くと、Windows 等の追加要件のある環境で詰む。
+
+**Context**: PR #414 で frontmatter ガイド §7.2「実行環境別」表に「`.husky/pre-commit` (`#!/bin/sh`) → Windows native では sh.exe 必要」と書いたが、GitHub Copilot review が「`.husky/pre-commit` の実体は `grep -E ... | xargs npx ...` で coreutils も使うため、sh.exe だけでは不足。**`sh + coreutils (grep/xargs)`** が要件」と指摘。また「Git for Windows をインストールすれば `sh.exe` が PATH に通る」と書いたが、Git for Windows のインストーラオプション（「Use Git from Git Bash only」「Use Git from the Windows Command Prompt」「Use Git and optional Unix tools from the Command Prompt」の 3 択）によって `Git\usr\bin` が PATH に追加されるかが変わるため断定できない。さらに gemini-code-assist が「`scripts/*.sh` は `bash` ではなく `sh` で起動を」と suggest したが、`head -1 scripts/*.sh` で確認すると全部 `#!/bin/bash` or `#!/usr/bin/env bash` shebang のため `bash` 実行が整合（gemini の suggest は誤り）。fix commit で (a) `.husky/pre-commit` 要件を「sh + coreutils」に詳細化、(b) Git for Windows の具体オプション名 "Use Git and optional Unix tools from the Command Prompt" を案内、(c) 落とし穴に「`scripts/*.sh` は `#!/bin/bash` shebang のため bash 起動」を明記した。
+
+**Action**:
+
+1. **shell hook / script の「実行要件」を書く前に本体を grep**: `grep -oE '\b(grep|xargs|awk|find|sed|sort|uniq|cut|tr|tee|jq)\b' .husky/* scripts/*.sh` のように依存コマンドを抽出
+2. **shebang を一覧で確認**: `head -1 scripts/*.sh` で全 shebang を出す。`#!/bin/sh` か `#!/bin/bash` で起動方法が変わる
+3. **インストーラ依存の「PATH」記述はオプション名を引用**: Git for Windows なら「インストーラの "Use Git and optional Unix tools from the Command Prompt" オプション」のように具体的に。「インストールすれば OK」は事故の元
+4. **「PATH 通っていなければ手動追加」のフォールバックを併記**: `C:\Program Files\Git\usr\bin` 等の具体パスを書いておくと、ユーザーが詰んだときに自力解決できる
+5. **未検証の主張は弱める**: 「Windows + Git Bash で `/merge-cleanup` も動く」のような実機検証していない主張は、「⚠️ 大半は動作（未検証）」のように記号と注釈で正直に表現
+
+---
+
+### ACE-030: 対応表で `⚠️` を多用したら判定軸自体が間違っているサイン
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #414 / Issue #413  |
+| Related    | ACE-026               |
+| Date       | 2026-05-19            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: ツール対応表で `✅ / ❌` で判定できず **`⚠️ 一部対応` のような曖昧記号を使う** と、読者は「一部って何？」を想像で埋めて誤った技術判断につながる。`⚠️` が出てきたら **判定軸自体を見直し**、具体的な条件（「✅ 要設定」「✅ Agent mode のみ」等）に切り替えるのが正解。
+
+**Context**: PR #414 で frontmatter ガイド §7.1「AI ツール別」表で Cursor の MCP 列に「⚠️ 一部対応（要設定）」と書いたが、Toolkit comment-analyzer が「Cursor は MCP の初期採用者で、tools/resources/dynamic context すべて完全実装。`一部` というニュアンスは実態と乖離。さらに `要設定` という caveat は Claude Code を除く全ツール（Cursor/Copilot/Codex）に等しく適用される条件のため、Cursor だけにこの注記を付けるのは inconsistent」と指摘。本質的には「MCP 対応の有無」軸自体が崩壊しており、正しい判定軸は「**自動呼出 vs 明示設定**」だった。fix commit で表の判定軸を再構築し、4 ツール全部 `✅` にしたうえで Claude Code は「✅ 自動呼出」、他 3 ツールは「✅ 要設定（.cursor/mcp.json / mcp.json / codex mcp add）」のように具体的な設定方法を併記した。
+
+**Action**:
+
+1. **対応表で `⚠️` を使いたくなったら判定軸を疑う**: `⚠️` は「✅ でも ❌ でもない曖昧領域」を表すが、これは判定軸が現実に合っていないサイン
+2. **判定軸を「対応有無」から「対応方法・条件」に切り替える**: 「MCP 対応 ✅/❌」ではなく「MCP の組み込み方（自動 / 設定ファイル / インストール時オプション）」のように具体化
+3. **`⚠️` を残す場合は具体的な条件を併記**: 「⚠️ Agent mode のみ」「⚠️ 大半動作（未検証）」のように **何が条件なのか** を即座に分かる形で記述
+4. **複数ツール／環境を比較する表は「全 ✅ + 違い列」の形を優先**: 「全部対応している、違いは設定方法だけ」とわかる方が、対応状況の意思決定が容易
+5. **レビュー時に `⚠️` をカウント**: PR で対応表を追加するときは `⚠️` 出現数を数え、3 つ以上あれば判定軸の見直しを必ず検討
+
+---
+
 ## Changelog
+
+### [1.14.0] - 2026-05-19
+
+#### 追加
+
+- ACE-028: 外部ツールの「現状」仕様を書くときは公式ドキュメントを WebFetch / WebSearch で必ず照合する — PR #414 で Copilot / Codex CLI が MCP 非対応と書いたが、両者とも 2026 年現在対応済み（VS Code Agent mode GA 2025-04 / `codex mcp add`）、Cursor の `.cursorrules` も deprecated と判明。LLM training cutoff 起因の事実誤認を防ぐ（ACE-023 を補強）
+- ACE-029: 外部ツール依存物（shell script の依存コマンド、shebang、インストーラオプション）を文書化するときは実体を読んで列挙する — PR #414 で `.husky/pre-commit` の要件を「sh.exe 必要」と書いたが、実体は `grep`/`xargs` も使用しており「sh + coreutils」が正解。Git for Windows のインストーラオプションも「インストールすれば OK」では不十分（ACE-025 を補強）
+- ACE-030: 対応表で `⚠️` を多用したら判定軸自体が間違っているサイン — PR #414 で Cursor の MCP を「⚠️ 一部対応」と書いたが、実態は完全実装で判定軸自体が崩壊。判定軸を「対応有無」から「対応方法・条件」に切り替えるのが正解（ACE-026 を補強）
 
 ### [1.13.0] - 2026-05-19
 
