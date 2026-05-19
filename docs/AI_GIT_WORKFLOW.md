@@ -187,7 +187,7 @@ git checkout -b "feature/123-user-auth"
 - **粒度は 1〜3 行**: 「なぜ A ではなく B を選んだか」を短文で残す
 - **スコープ外発見は本ファイルではなく Issue 化**: implementation-notes は「現 PR の判断ログ」、Issue は「別タスクへの分岐」と役割を分ける（[ワークフロー運用原則 原則2](../docs-template/05-operations/deployment/workflow-principles.md)）
 - **PR 作成時に PR description に転記**: ステップ6 でレビュアーが「なぜ」を読みやすくなる
-- **マージ前にファイルを削除する**: 本リポは squash merge 標準のため、ファイルを残すと次 PR がルート直下で衝突する。pr-ready 直前に PR description へ転記 → `git rm implementation-notes.md` → 1 commit で削除（長期保存したい場合は `notes/<issue-num>.md` 形式で per-PR ファイル化する代替案あり）
+- **マージ前にファイルを削除する（推奨）**: 本リポは squash merge 標準のため、ファイルを残すと次 PR がルート直下で衝突する。pr-ready 直前に PR description へ転記 → `git rm implementation-notes.md` → 1 commit で削除。長期保存したい場合は `notes/<issue-num>.md` 形式で per-PR ファイル化する代替案あり（並行 PR で衝突しないが notes/ が累積するトレードオフ）
 
 #### コミット
 

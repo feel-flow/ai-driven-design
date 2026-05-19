@@ -148,7 +148,7 @@ git checkout -b "feature/${ISSUE_NUM}-user-auth"
 
 **運用ルール**:
 
-- **書くタイミングは「気付いた瞬間」**: 後で書こうとすると確実に忘れる
+- **書くタイミングは「気付いた瞬間」**: 後で書こうとすると確実に忘れる（[ACE-032](../../08-knowledge/PLAYBOOK.md) の発見経緯と同じ構造）
 - **粒度は 1〜3 行**: 「なぜ A ではなく B を選んだか」を短文で残す
 - **スコープ外発見は本ファイルではなく Issue 化**: implementation-notes は「現 PR の判断ログ」、Issue は「別タスクへの分岐」と役割を分ける（[ワークフロー運用原則 原則2](./workflow-principles.md)）
 - **PR 作成時に PR description に転記**: ステップ6 でレビュアーが「なぜ」を読みやすくなる

@@ -17,7 +17,7 @@
 ## Tradeoffs
 
 - **採った**: 既存 ACE エントリ（ACE-001〜033）と同じテーブル+Insight+Context+Action フォーマットを踏襲。形式整合性を優先し、新フォーマットの実験はしない
-- **採らなかった**: implementation-notes.md を `.gitignore` する選択肢。ACE-034 Action 5 で「PR に同梱したまま残す」を推奨にしたので、gitignore とは矛盾する。マージ後の扱いはチーム判断と明記
+- **採らなかった**: implementation-notes.md を `.gitignore` する選択肢。**advisor pivot 後の Action 5（マージ前に PR description へ転記 + git rm）と矛盾する**ため不採用。コミットに含めることで (a) レビュアーが PR レビュー中に参照可能、(b) ACE Phase 1 Generate が PR description 経由で raw material として再利用可能、の 2 点を担保する
 - **採らなかった**: ACE-034 のテンプレファイル（`docs-template/templates/implementation-notes.md` 等）を新規追加する選択肢。新規ファイル作成は最小限（CLAUDE.md 原則）に従い、ひな形は workflow 文書内に inline で提示
 - **採らなかった**: ステップ5（Self-Review）・ステップ10（ACE）の文書まで横断改稿する選択肢。スコープを広げすぎるとレビュー負荷が増えるため、ステップ3 にとどめて他ステップは ACE-034 への参照リンクのみで自然に効くようにした
 

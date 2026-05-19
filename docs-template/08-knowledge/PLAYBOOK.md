@@ -994,7 +994,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
    - `## Open questions / TODO`（未決事項）
 2. **コミットと一緒に追記**: 「なぜこの選択をしたか」を 1〜3 行で残す。後で書こうとすると確実に忘れる
 3. **PR 作成時に PR description に転記または同梱**: レビュアーが「なぜ」を読みやすくなり、レビュー指摘の精度が上がる
-4. **ACE Phase 1 Generate の raw material に追加**: `gh pr diff` / `gh issue view` / レビューコメントに加えて、本ファイルも Generate プロンプトに渡す（[ace-cycle.md §Phase 1](../05-operations/deployment/ace-cycle.md)）
+4. **ACE Phase 1 Generate の raw material は「PR description（implementation-notes 転記済み）」**: Action 5 でマージ前にファイル自体は削除されるため、ファイル本体ではなく PR description（転記済みの判断ログ）を `gh pr view --json body` で取得して Generate プロンプトに渡す。`gh pr diff` / `gh issue view` / レビューコメントと併せて入力にする（[ace-cycle.md §Phase 1](../05-operations/deployment/ace-cycle.md)）
 5. **マージ前にファイルを削除し PR description に統合（推奨）**: squash merge を標準とするリポでは「PR に同梱したまま残す」と squash 後にルート直下に前 PR のファイルが残り、次の feature branch が衝突・上書きする構造問題が起きる（ACE-021 と同型）。pr-ready 直前に (a) 中身を PR description に転記、(b) `git rm implementation-notes.md` で削除、(c) `git commit -m "chore: integrate implementation-notes into PR description"` の 3 ステップで処理する。長期保存したい場合は `notes/<issue-num>.md` 形式で per-PR ファイル化する代替案もあるが（並行 PR で衝突しない）、リポに notes/ が累積するトレードオフがある
 6. **スコープ外発見は引き続き Issue 化（[workflow-principles.md 原則2](../05-operations/deployment/workflow-principles.md)）**: implementation-notes は「現 PR の判断ログ」、Issue は「別タスクへの分岐」と役割を分ける（排他ではなく補完）
 
