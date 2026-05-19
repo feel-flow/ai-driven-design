@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.15.0"
+version: "1.16.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-19"
 owner: "@fffokazaki"
-ace_entry_count: 33
+ace_entry_count: 34
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -969,7 +969,44 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+### ACE-034: 実装中は implementation-notes.md を作業ブランチに並走させて spec 乖離・トレードオフ・判断理由を捕捉する
+
+| フィールド | 値                                                 |
+| ---------- | -------------------------------------------------- |
+| Category   | process                                            |
+| Origin     | 外部知見（Anthropic エンジニア公開実装プロンプト） |
+| Related    | ACE-009 / ACE-023 / ACE-032                        |
+| Date       | 2026-05-19                                         |
+| Helpful    | 0                                                  |
+| Harmful    | 0                                                  |
+| Status     | active                                             |
+
+**Insight**: 実装着手から PR 作成までの間、作業ブランチ直下に `implementation-notes.md` を 1 枚並走させ、(1) spec に書かれていなかった判断、(2) spec から変更した点、(3) 取った/捨てた選択肢とその理由（トレードオフ）、(4) レビュアー・ユーザーが知るべきその他情報を逐次記録する。コミット diff とレビューコメントには「why / 捨てた選択肢 / spec との差分」が残らず、ACE Phase 1 Generate の raw material の品質に上限が生じるため、in-flight でしか書けない情報を能動的に残す。
+
+**Context**: Anthropic エンジニアが SNS で公開した実装プロンプト（"implement \<SPEC\> and while you do keep a running implementation-notes.html file (or markdown) with decisions you had to make weren't in the spec, things you had to change, tradeoffs you had to make or anything else I should know"）を契機に、本リポの ACE Playbook (ACE-001 〜 033) と grep 照合し未抽出と確認。本リポの既存 ACE サイクル ([ace-cycle.md](../05-operations/deployment/ace-cycle.md)) は post-merge に `gh pr diff` + レビューコメントを raw material として Generate するが、コミットに残らない判断理由・捨てた選択肢・spec 乖離の文脈は diff には現れない。実際 ACE-032（PR #416 で MCP value 撤去後に §5.4.2 が宙に浮いた）のような「気付いた瞬間に書いておけば反映漏れがなかった」ケースが頻発しており、in-flight な判断ログの欠落が構造的に存在する。
+
+**Action**:
+
+1. **実装着手と同時に作業ブランチ直下に `implementation-notes.md` を作成**: 最低限 4 つの見出しを持つ
+   - `## Decisions not in spec`（spec にない判断）
+   - `## Changes from spec`（spec から変えた点）
+   - `## Tradeoffs`（採った/捨てた選択肢と理由）
+   - `## Open questions / TODO`（未決事項）
+2. **コミットと一緒に追記**: 「なぜこの選択をしたか」を 1〜3 行で残す。後で書こうとすると確実に忘れる
+3. **PR 作成時に PR description に転記または同梱**: レビュアーが「なぜ」を読みやすくなり、レビュー指摘の精度が上がる
+4. **ACE Phase 1 Generate の raw material に追加**: `gh pr diff` / `gh issue view` / レビューコメントに加えて、本ファイルも Generate プロンプトに渡す（[ace-cycle.md §Phase 1](../05-operations/deployment/ace-cycle.md)）
+5. **マージ前にファイルを削除し PR description に統合（推奨）**: squash merge を標準とするリポでは「PR に同梱したまま残す」と squash 後にルート直下に前 PR のファイルが残り、次の feature branch が衝突・上書きする構造問題が起きる（ACE-021 と同型）。pr-ready 直前に (a) 中身を PR description に転記、(b) `git rm implementation-notes.md` で削除、(c) `git commit -m "chore: integrate implementation-notes into PR description"` の 3 ステップで処理する。長期保存したい場合は `notes/<issue-num>.md` 形式で per-PR ファイル化する代替案もあるが（並行 PR で衝突しない）、リポに notes/ が累積するトレードオフがある
+6. **スコープ外発見は引き続き Issue 化（[workflow-principles.md 原則2](../05-operations/deployment/workflow-principles.md)）**: implementation-notes は「現 PR の判断ログ」、Issue は「別タスクへの分岐」と役割を分ける（排他ではなく補完）
+
+---
+
 ## Changelog
+
+### [1.16.0] - 2026-05-19
+
+#### 追加
+
+- ACE-034: 実装中は implementation-notes.md を作業ブランチに並走させて spec 乖離・トレードオフ・判断理由を捕捉する — Anthropic エンジニア公開実装プロンプト（"keep a running implementation-notes file with decisions / changes / tradeoffs"）と本リポ Playbook (ACE-001〜033) を grep 照合した結果未抽出と判明。コミット diff に残らない in-flight な判断ログを並走させることで ACE Phase 1 Generate の入力品質を底上げする（ACE-009 / ACE-023 / ACE-032 を補強）
 
 ### [1.15.0] - 2026-05-19
 
