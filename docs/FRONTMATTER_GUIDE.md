@@ -50,15 +50,15 @@ changeImpact: medium
 
 frontmatter は **YAML というスキーマ言語** にメタデータを閉じ込めることで、これを 1 箇所に集約する。本リポジトリでは `docs-template/MASTER.md`「プロジェクト識別情報」セクション等で「**バージョン: Frontmatter の `version` を参照**」と本文側からも明示し、SSOT を担保している。
 
-### 1.2 AI ツールに「探しやすい索引」を提供するため
+### 1.2 CI / 別ツールに「機械可読な索引」を提供するため
 
-frontmatter の `title` / `tags` / `references` / `status` / `changeImpact` は、AI ツールがドキュメント群から関連ファイルを絞り込むときの **索引** として機能する。例:
+frontmatter の `title` / `tags` / `references` / `status` / `changeImpact` は、CI スクリプトや別ツールがドキュメント群を機械的に絞り込むときの **索引** として機能する。例:
 
-- 「`tags: auth` で `status: approved` の文書」だけを絞れる
-- 「`changeImpact: high` の最近変更された文書」だけを集められる
-- 関連文書間のつながりを `references:` で辿れる
+- 「`tags: auth` で `status: approved` の文書」を listing する CI チェック
+- 「`changeImpact: high` の最近変更された文書」を Release Note に列挙
+- 関連文書間のつながりを `references:` で辿る依存グラフ生成
 
-本文を全文 grep せずにメタデータだけで候補を絞れるため、AI に渡す context window が小さく済み、無関係な文書の混入によるハルシネーションが減る。`scripts/build-spec-index.mjs` は `docs/specs/**/*.md` の frontmatter を `dist/spec-index.json` に書き出し、CI や別ツールから読みやすい形にする。
+`scripts/build-spec-index.mjs` は `docs/specs/**/*.md` の frontmatter を `dist/spec-index.json` に書き出し、上記のような別ツールから読みやすい形にする。AI ツール自身は通常ファイル全文を context として読むため、本ガイドの範囲では「AI コンテキスト供給」の機構は提供しないが、採用者が **MCP サーバー等の索引ツール** を別途用意すれば AI からも候補絞り込みに使える形にできる（本リポジトリの場合は `mcp/` 配下に実装あり、ただし配布対象外）。
 
 ### 1.3 CI で品質ゲートを回すため
 
@@ -85,11 +85,11 @@ frontmatter の `title` / `tags` / `references` / `status` / `changeImpact` は�
 
 ## 2. What - 付けると何が起きるのか
 
-| パイプライン                   | 入力                                                                   | frontmatter から拾うフィールド                                        | 出力 / 効果                                                      |
-| ------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `scripts/validate-docs.mjs`    | `docs-template/` 配下の **固定 7 ファイル**（CORE_DOCS 配列で列挙）    | `title`, `version`, `status`, `owner`, `created`, `updated`           | 必須フィールド・enum・SemVer 検証。失敗で exit 1                 |
-| `scripts/build-spec-index.mjs` | `docs/specs/**/*.md`                                                   | `specId`, `title`, `status`, `version`, `tags`, `links`, `metrics` 他 | `dist/spec-index.json` を生成。`specId` 重複・enum 違反で exit 1 |
-| `npm run quality:local`        | 上記の validate / build-spec-index / MCP test / lint / prettier を統括 | 上記すべて                                                            | 旧 GitHub Actions CI 相当の品質ゲート（PR 前に手動実行）         |
+| パイプライン                   | 入力                                                                | frontmatter から拾うフィールド                                        | 出力 / 効果                                                      |
+| ------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `scripts/validate-docs.mjs`    | `docs-template/` 配下の **固定 7 ファイル**（CORE_DOCS 配列で列挙） | `title`, `version`, `status`, `owner`, `created`, `updated`           | 必須フィールド・enum・SemVer 検証。失敗で exit 1                 |
+| `scripts/build-spec-index.mjs` | `docs/specs/**/*.md`                                                | `specId`, `title`, `status`, `version`, `tags`, `links`, `metrics` 他 | `dist/spec-index.json` を生成。`specId` 重複・enum 違反で exit 1 |
+| `npm run quality:local`        | 上記の validate / lint / prettier を統括                            | 上記すべて                                                            | 旧 GitHub Actions CI 相当の品質ゲート（PR 前に手動実行）         |
 
 > **重要**: `validate-docs.mjs` は **CORE_DOCS 配列で列挙された 7 ファイルだけ**を検証する。拡張文書（GLOSSARY, DECISIONS 等）や `PLAYBOOK.md`、`docs/` 配下の方法論ガイド類は **CI で frontmatter 検証されない**。拡張対象にしたい場合は `CORE_DOCS` 配列への追加か別スクリプト化が必要。
 
@@ -253,7 +253,7 @@ metrics:
 | `done`         | 運用     | 非推奨決定         |
 | `deprecated`   | 廃止準備 | 削除 or 置換       |
 
-> **パーサー上の挙動**: `links:` / `metrics:` のような **ネスト構造は本リポジトリのパーサー実装（自前 YAML サブセット）では string に丸めて格納**される（`build-spec-index.mjs` でも `metrics.success` がサブグループのまま読まれず flat array 化）。階層情報をプログラムから扱いたい場合は本文側にテーブルで記述するか、別途完全な YAML パーサー（`js-yaml` 等）を導入する必要がある。
+> **パーサー上の挙動**: `links:` / `metrics:` のような **ネストした map のサブキー（`links.issues`, `metrics.success` 等）は本リポジトリのパーサー実装（自前 YAML サブセット、§5.4.2 参照）では保持されない**。具体的には `mcp/src/utils.ts` は配下の `- item` 行を string 配列に丸めて親キーに付与（階層は失われる）、`scripts/build-spec-index.mjs` はサブキー行を明示的に skip する（line 40 のコメント参照）。階層情報をプログラムから扱いたい場合は本文側にテーブルで記述するか、`js-yaml` のような完全な YAML パーサーで置き換える。
 
 ### 5.3 更新時のチェックリスト
 
@@ -296,7 +296,7 @@ metrics:
 
 - spec を書くときは必ず `docs/specs/spec-template.md` をコピーする（実テンプレが通る形になっている）。
 - コア 7 文書は `tags` / `references` を使わない最小構成（§5.1 の最小雛形）から始めると warning が出ない。
-- 凝った YAML を書きたいときは、**当該フィールドを読む実装はどれか**（CI 用なら `validate-docs.mjs`、AI 提供用なら `mcp/src/utils.ts` または `build-spec-index.mjs`）を確認してから書く。
+- 凝った YAML を書きたいときは、**当該フィールドを読む実装はどれか**（CI 用なら `validate-docs.mjs`、spec 索引生成なら `build-spec-index.mjs`、本リポジトリ自身の MCP サーバー実装まで踏み込むなら `mcp/src/utils.ts`）を確認してから書く。
 
 #### 5.4.3 frontmatter 開始は **ファイル冒頭**
 
@@ -349,17 +349,16 @@ frontmatter スキーマと検証 Node スクリプトは **AI ツール非依�
 
 ### 7.1 AI ツール別
 
-frontmatter スキーマと検証 Node スクリプトは全 AI ツールで共通に機能する。各ツールへの読み込ませ方は **プロジェクト指示ファイル** が異なるだけ。
+frontmatter スキーマと検証 Node スクリプトは **4 ツール共通で機能する**: (a) frontmatter テキストを context として読み込む、(b) `scripts/validate-docs.mjs` / `build-spec-index.mjs` を npm 経由で実行する、(c) `changeImpact` / version bump 規律と SSOT 原則を遵守する、いずれもツール差はない。
 
-| 項目                                                 | Claude Code | Cursor                                                      | GitHub Copilot                    | Codex CLI / OpenAI Codex |
-| ---------------------------------------------------- | ----------- | ----------------------------------------------------------- | --------------------------------- | ------------------------ |
-| frontmatter テキストを context として読む            | ✅          | ✅                                                          | ✅                                | ✅                       |
-| `scripts/validate-docs.mjs` / `build-spec-index.mjs` | ✅          | ✅                                                          | ✅                                | ✅                       |
-| プロジェクト指示ファイルから MASTER.md 強制参照      | `CLAUDE.md` | `.cursor/rules/*.mdc`（旧 `.cursorrules` も可、deprecated） | `.github/copilot-instructions.md` | `AGENTS.md`              |
-| `changeImpact` / version bump 規律                   | ✅          | ✅                                                          | ✅                                | ✅                       |
-| SSOT 原則                                            | ✅          | ✅                                                          | ✅                                | ✅                       |
+ツールごとに違うのは **「どのファイルでプロジェクト指示を書くか」** のみ。新規にツールを追加する場合は、下表のファイルを作成し、その先頭で `docs-template/MASTER.md` の読了を必須化するのが推奨パターン:
 
-採用者が新規にツールを追加する場合は、上記「プロジェクト指示ファイル」を作成し、その先頭で `docs-template/MASTER.md` の読了を必須化するのが推奨パターン。
+| AI ツール                | プロジェクト指示ファイル                                    |
+| ------------------------ | ----------------------------------------------------------- |
+| Claude Code              | `CLAUDE.md`                                                 |
+| Cursor                   | `.cursor/rules/*.mdc`（旧 `.cursorrules` も可、deprecated） |
+| GitHub Copilot           | `.github/copilot-instructions.md`                           |
+| Codex CLI / OpenAI Codex | `AGENTS.md`                                                 |
 
 ### 7.2 実行環境別
 
@@ -420,7 +419,16 @@ frontmatter 管理（編集・検証・索引化）は Node スクリプトと�
   - §7.1 表から MCP 行を削除、下の説明文と参考一次情報リンクも削除（プロジェクト指示ファイル比較に焦点化）
   - §7.2 「frontmatter 管理（編集・検証・MCP）」→ 「frontmatter 管理（編集・検証・索引化）」、§7 イントロの「例外は MCP ツール群と...」を「例外は `*.sh` スクリプト群と `.husky/pre-commit`」に書き直し
   - §7.3 「MCP サーバーのパス」既知の落とし穴を削除（採用者は MCP を使わない前提）
-- 実装詳細としての mcp/src/utils.ts は §5.4.2 パーサー対応表と §8 関連ドキュメントに残置（採用者は意識しなくて OK、コントリビューターが実装を辿るときに有用）
+- 実装詳細としての mcp/src/utils.ts は §5.4.2 パーサー対応表 / §8 関連ドキュメント / frontmatter `references:` に残置（採用者は意識しなくて OK、コントリビューターが実装を辿るときに有用）
+
+#### 訂正（PR #416 レビュー指摘反映）
+
+- §1.2: 改稿後の Why が「AI ツールが索引で絞り込む」と書いていたが、MCP 撤去後は AI から `dist/spec-index.json` を読む経路が消えるため論理的穴が発生 → 「CI / 別ツールに索引提供」視点に再改稿（「採用者が MCP 等の索引ツールを別途用意すれば AI からも使える」と注記）
+- §5.2: 「ネスト構造は string に丸めて格納」が `build-spec-index.mjs` の挙動として不正確 → 「ネストした map サブキーは保持されない（utils.ts は配列フラット化、build-spec-index.mjs は明示 skip）」に正確化
+- §5.2: 「`js-yaml` 等を導入する必要がある」が事実誤認（既に `mcp/package.json:27` に依存宣言済み、unused dependency）→ 「`js-yaml` のような完全な YAML パーサーで置き換える」に中立化（依存整理は [Issue #418](https://github.com/feel-flow/ai-spec-driven-development/issues/418) で別途）
+- §5.4.2 line 299: 「AI 提供用なら `mcp/src/utils.ts`」が §2.1 の「採用者には配布されない実装メタ情報」と矛盾 → 「本リポジトリ自身の MCP サーバー実装まで踏み込むなら」に整合
+- §2 表: `npm run quality:local` の説明から「MCP test」を削除（採用者向け表記との整合、`quality:local` の実体チェーンとの整合は [Issue #417](https://github.com/feel-flow/ai-spec-driven-development/issues/417) で別途）
+- §7.1: 5 行中 4 行が `✅ ✅ ✅ ✅` の uniform で表として情報量が薄かったため、共通機能を 1 文に集約し、表は「プロジェクト指示ファイル」1 列の小型表に縮小
 
 ### [1.2.0] - 2026-05-19
 
