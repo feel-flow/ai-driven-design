@@ -1,7 +1,7 @@
 ---
 id: frontmatter-guide
 title: Frontmatter ガイド - なぜ・どこで・何を書くか
-version: 1.1.0
+version: 1.2.0
 status: draft
 created: 2026-05-19
 updated: 2026-05-19
@@ -34,6 +34,7 @@ changeImpact: medium
 - **付けないテンプレ**: `GETTING_STARTED*.md`、`SETUP_*.md` のような「採用前に読む手順書」は本文置換のみで OK（[docs-template/README.md](../docs-template/README.md) の「frontmatter を持たないテンプレ」節）。
 - **検証**: `node scripts/validate-docs.mjs` でコア 7 文書（CORE_DOCS 固定）、`node scripts/build-spec-index.mjs` で spec を CI 検証。MCP サーバーは `parseFrontMatter` で読み取って `spec_lookup` / `spec_search` に供給。
 - **SSOT 注意**: コア 7 文書スキーマの正本は本ガイド §5.1 と `scripts/validate-docs.mjs:62-63`。`docs/OPERATIONAL_GUIDE.md §7` の status enum (`draft|active|deprecated`) は stale なため、矛盾時は validate-docs.mjs を優先（解消は [Issue #412](https://github.com/feel-flow/ai-spec-driven-development/issues/412)）。
+- **ツール / 環境**: frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存**（Claude Code / Cursor / Copilot / Codex CLI どれでも、macOS / Linux / Windows どれでも使える）。例外は MCP ツール（Copilot/Codex は非対応）と `*.sh` スクリプト群（Windows native では Git Bash か WSL2 が必要）。詳細は §7 を参照。
 
 ---
 
@@ -343,7 +344,55 @@ frontmatter スキーマが 2 系統あるのは **歴史的経緯** による�
 
 ---
 
-## 7. 関連ドキュメント
+## 7. ツール・環境別の対応状況
+
+frontmatter スキーマと検証 Node スクリプトは **AI ツール非依存・OS 非依存** に設計されている。例外は MCP ツール群と `*.sh` スクリプト群の 2 点のみ。
+
+### 7.1 AI ツール別
+
+| 項目                                                 | Claude Code | Cursor                | GitHub Copilot                    | Codex CLI / OpenAI Codex |
+| ---------------------------------------------------- | ----------- | --------------------- | --------------------------------- | ------------------------ |
+| frontmatter テキストを context として読む            | ✅          | ✅                    | ✅                                | ✅                       |
+| `scripts/validate-docs.mjs` / `build-spec-index.mjs` | ✅          | ✅                    | ✅                                | ✅                       |
+| MCP `spec_lookup` / `spec_search`                    | ✅ 自動呼出 | ⚠️ 一部対応（要設定） | ❌ MCP 非対応（ファイル直読）     | ❌ MCP 非対応            |
+| プロジェクト指示ファイルから MASTER.md 強制参照      | `CLAUDE.md` | `.cursorrules`        | `.github/copilot-instructions.md` | `AGENTS.md`              |
+| `changeImpact` / version bump 規律                   | ✅          | ✅                    | ✅                                | ✅                       |
+| SSOT 原則                                            | ✅          | ✅                    | ✅                                | ✅                       |
+
+**実用上の差**: MCP 非対応ツール（Copilot / Codex）でも spec ファイルは普通の Markdown としてそのまま読める。違いは「ツール経由でメタデータ検索」ではなく「ファイル全体を context window に入れる」になり、**context 消費量がやや増える**だけ。frontmatter スキーマの書き方や本ガイドの内容はそのまま適用できる。
+
+### 7.2 実行環境別
+
+frontmatter 管理（編集・検証・MCP）は Node スクリプトと標準ツール（git/gh/npm/markdownlint/prettier）だけで完結するため、**OS 非依存**。PR review 自動化や cleanup 系の `*.sh` スクリプトを使う場合のみ shell 環境の準備が必要。
+
+| 項目                                                | macOS / Linux | Windows native | Windows + Git Bash | Windows + WSL2 |
+| --------------------------------------------------- | ------------- | -------------- | ------------------ | -------------- |
+| Node スクリプト（`validate-docs.mjs` 等）           | ✅            | ✅             | ✅                 | ✅             |
+| frontmatter パーサー（`/\r?\n/` で CRLF 対応済み）  | ✅            | ✅             | ✅                 | ✅             |
+| `npm run quality:local`（`&&` 連結を含む）          | ✅            | ✅             | ✅                 | ✅             |
+| `markdownlint-cli2` / `prettier` / `vitest` / `tsx` | ✅            | ✅             | ✅                 | ✅             |
+| `git` / `gh` / `node` / `npm`                       | ✅            | ✅             | ✅                 | ✅             |
+| `.husky/pre-commit`（`#!/bin/sh`）                  | ✅            | ⚠️ sh.exe 必要 | ✅                 | ✅             |
+| `scripts/*.sh`（review wrapper / setup ヘルパー）   | ✅            | ❌             | ✅                 | ✅             |
+| Claude Code の `/merge-cleanup` / `/ace-curate` 等  | ✅            | ❌             | ✅                 | ✅             |
+
+**PowerShell について**: PowerShell をユーザーシェルにしていることは**問題にならない**。`npm` は内部で cmd.exe を spawn して script を走らせるため、`&&` 連結を含む `npm run quality:local` も PowerShell 5.1 から呼んで動く。`git commit` の husky hook も Git 側が `sh.exe` で hook を実行するため、ユーザーシェルに依存しない。**本当に問題なのは「システムに `sh` / `bash` が存在するか」**であり、Git for Windows をインストールすれば `sh.exe` / `bash.exe` が PATH に通って解決する。
+
+**推奨セットアップ**:
+
+- **frontmatter 管理だけしたい Windows ユーザー**: Node.js 20+ をインストールすれば OK。`*.sh` を使わない範囲では追加準備不要。
+- **PR review / merge-cleanup / ACE 等の自動化も使う Windows ユーザー**: **Git for Windows をインストール**（`sh.exe` が標準で同梱され PATH も通る）。これだけで全機能が PowerShell からも cmd.exe からも使える。
+- **より快適に使いたい Windows ユーザー**: **WSL2 + Ubuntu** を導入。Linux 環境がそのまま使え、ファイル系の編集は VS Code Remote-WSL でシームレス。
+
+### 7.3 既知の落とし穴
+
+- **改行コード**: Windows でファイルを編集すると CRLF になることがある。frontmatter パーサーは全実装 `/\r?\n/` で正規化済みなので問題ないが、`.gitattributes` で `*.md text eol=lf` を強制しておくと差分ノイズが減る。
+- **`scripts/*.sh` を `./script.sh` で直接実行**: PowerShell / cmd.exe では `.sh` 拡張子の関連付けがないため、`bash ./scripts/multi-review.sh` のように明示する。
+- **MCP サーバーのパス**: Windows では `C:\Users\...\` のようなパスになるが、MCP 設定ファイル内では `/` 区切りでも `\\` エスケープでも動く。
+
+---
+
+## 8. 関連ドキュメント
 
 - [AI_SPEC_DRIVEN_DEVELOPMENT.md](AI_SPEC_DRIVEN_DEVELOPMENT.md) - 方法論の全体像
 - [OPERATIONAL_GUIDE.md](OPERATIONAL_GUIDE.md) - AI Agent 向け運用仕様（frontmatter 詳細はここ）
@@ -357,6 +406,18 @@ frontmatter スキーマが 2 系統あるのは **歴史的経緯** による�
 ---
 
 ## Changelog
+
+### [1.2.0] - 2026-05-19
+
+#### 追加
+
+- §7「ツール・環境別の対応状況」を新設（Issue #413）
+  - §7.1 AI ツール別の対応状況（Claude Code / Cursor / GitHub Copilot / Codex CLI）— MCP 対応有無と各ツールのプロジェクト指示ファイル名を表で対比
+  - §7.2 実行環境別の対応状況（macOS / Linux / Windows native / Windows + Git Bash / WSL2）— Node スクリプトは OS 非依存、`*.sh` だけが Git Bash / WSL2 を要求する点を明示
+  - §7.2 に **PowerShell** 単独セクションを追加（npm の `&&` チェーンと husky hook が「ユーザーシェル非依存」で動く根拠を明記）
+  - §7.3 既知の落とし穴（CRLF、`.sh` 直接実行、MCP パス区切り）
+- TL;DR にツール / 環境互換性の 1 行サマリーを追加
+- 既存 §7「関連ドキュメント」を §8 にリナンバー
 
 ### [1.1.0] - 2026-05-19
 
