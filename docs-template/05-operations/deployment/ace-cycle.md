@@ -29,13 +29,13 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 
 ### 対象データ
 
-| データソース     | 取得方法                                              | 主な知見                                                                                                                 |
-| ---------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| PR diff          | `gh pr diff ${PR_NUMBER}`                             | コード変更のパターン、設計判断                                                                                           |
-| PR description   | `gh pr view ${PR_NUMBER} --json body`                 | 判断理由 / 捨てた選択肢 / spec 乖離（implementation-notes 転記済み、[PLAYBOOK ACE-034](../../08-knowledge/PLAYBOOK.md)） |
-| Issue 内容       | `gh issue view ${ISSUE_NUM}`                          | 元々の課題、要件                                                                                                         |
-| レビューコメント | `gh api repos/OWNER/REPO/pulls/${PR_NUMBER}/comments` | 指摘事項、改善点                                                                                                         |
-| CI/CD ログ       | GitHub Actions の結果                                 | ビルド・テストの教訓                                                                                                     |
+| データソース     | 取得方法                                              | 主な知見                                                                                                                                  |
+| ---------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| PR diff          | `gh pr diff ${PR_NUMBER}`                             | コード変更のパターン、設計判断                                                                                                            |
+| PR description   | `gh pr view ${PR_NUMBER} --json body`                 | spec にない判断 / spec から変更した点 / 捨てた選択肢（implementation-notes 転記済み、[PLAYBOOK ACE-034](../../08-knowledge/PLAYBOOK.md)） |
+| Issue 内容       | `gh issue view ${ISSUE_NUM}`                          | 元々の課題、要件                                                                                                                          |
+| レビューコメント | `gh api repos/OWNER/REPO/pulls/${PR_NUMBER}/comments` | 指摘事項、改善点                                                                                                                          |
+| CI/CD ログ       | GitHub Actions の結果                                 | ビルド・テストの教訓                                                                                                                      |
 
 ### AIプロンプトテンプレート
 
@@ -54,6 +54,7 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 4. **パフォーマンス**: 最適化のヒント
 5. **アーキテクチャ**: 構造上の決定事項
 6. **プロセス**: ワークフロー・ツール活用の改善点
+7. **判断ログ**: spec にない判断 / spec から変更した点 / 捨てた選択肢（#1「採用した判断」を補完するレイヤ。データソースは上記表「PR description」行、[ACE-034](../../08-knowledge/PLAYBOOK.md)。カテゴリは `process` または `architecture` を推奨。試行中: [Issue #421](https://github.com/feel-flow/ai-spec-driven-development/issues/421)、5 PR で評価）
 
 ## 出力形式
 各知見について以下を出力してください:
@@ -300,6 +301,12 @@ git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止
 ---
 
 ## Changelog
+
+### [1.1.0] - 2026-05-20
+
+#### 追加
+
+- Phase 1 分析観点に「7. 判断ログ」を追加（試行中、5 PR で評価）。詳細は §Phase 1 観点 7（Issue [#421](https://github.com/feel-flow/ai-spec-driven-development/issues/421)、[ACE-034](../../08-knowledge/PLAYBOOK.md) 連動）
 
 ### [1.0.0] - YYYY-MM-DD
 
