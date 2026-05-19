@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.16.0"
+version: "1.17.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-19"
 owner: "@fffokazaki"
-ace_entry_count: 34
+ace_entry_count: 37
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -176,7 +176,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category   | process           |
 | Origin     | PR #316 / PR #319 |
 | Date       | 2026-03-10        |
-| Helpful    | 2                 |
+| Helpful    | 3                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -1000,7 +1000,94 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+### ACE-035: 新規 process パターンを Playbook に追加するときは「ドッグフード + advisor / second opinion」で運用上の構造問題を検出する
+
+| フィールド | 値                |
+| ---------- | ----------------- |
+| Category   | process           |
+| Origin     | PR #420           |
+| Related    | ACE-021 / ACE-034 |
+| Date       | 2026-05-19        |
+| Helpful    | 0                 |
+| Harmful    | 0                 |
+| Status     | active            |
+
+**Insight**: 新しい process パターン（特に「マージ後の振る舞い」を伴うもの）を Playbook に追加する PR では、(1) その PR 自身で当該パターンを実行（ドッグフード）し、(2) advisor / second opinion に「この推奨を本リポで運用したら何が起きるか」を確認させる。初稿の机上判断だけだと、自リポの merge strategy（squash か否か）と矛盾する構造問題を見逃す。
+
+**Context**: PR #420 で ACE-034 Action 5「マージ時の扱い」初稿に「(a) PR に同梱したまま残す」を推奨に設定。advisor がこれを「squash merge 標準のリポでは ACE-021 と同型の構造問題（次 feature branch がルート直下で衝突）を起こす」と指摘し、「(b) マージ前削除 + PR description 統合」に pivot。advisor を呼ばずにマージしていたら、自分の PR でドッグフードした implementation-notes.md が develop ルートに残り、次 PR が確実に衝突した。机上では見落とす運用問題が「ドッグフード + advisor」の組み合わせで検出された具体例。
+
+**Action**:
+
+1. **Playbook 新規エントリの Action / 推奨パターンには「自リポでの運用シミュレーション」段落を必ず通す**: 特に squash merge / rebase merge / merge commit の選択がエントリの推奨と矛盾しないか確認
+2. **PR 自身でドッグフード可能なパターンは必ずドッグフードする**: implementation-notes.md / 命名規則 / コミットメッセージ規則など、PR 内で実行できるものは PR 内で 1 回回す
+3. **advisor / second opinion を「初稿完成 → quality:local 通過 → commit 前」のタイミングで必ず呼ぶ**: post-commit に呼ぶと修正コストが上がる
+4. **構造問題が見つかったら pivot 経緯を implementation-notes.md に記録**: pivot 自体が ACE Phase 1 の raw material になる（ACE-034 と組み合わせる）
+
+---
+
+### ACE-036: 外部知見（SNS / ブログ / 社内 wiki）を Playbook に取り込む前に既存 ACE エントリ全件と grep 照合する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | knowledge-management |
+| Origin     | PR #420              |
+| Related    | ACE-018 / ACE-023    |
+| Date       | 2026-05-19           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 外部の SNS / ブログ / 公式ドキュメント等で見つけた「実装パターン」を Playbook に取り込む前に、既存 ACE エントリのタイトル + Insight 行を全件 grep 照合する。これがないと (a) 既存知見の細分化（同じ insight を別エントリで再記述）、(b) 矛盾する推奨の併存、(c) Related フィールドへの相互リンク漏れ が起きる。
+
+**Context**: PR #420 で Anthropic エンジニアが SNS で公開した implementation-notes.md 並走パターンを取り込む際、ACE-001〜033 を `grep -niE "implementation|notes|decision|tradeoff"` で照合し未抽出と確認。さらに「気付いた瞬間に書く」観点で ACE-032（撤去後の論理連鎖切れ）と類似性があり、Related フィールドに ACE-032 を追加。grep 照合せずに新規追加だけしていたら、ACE-009（Issue spec 曖昧さ）や ACE-023（事実主張は 1 次情報照合）との関連付けも漏れた可能性がある。ACE-018 が「自リポ内の横断的番号変更時の事前 grep」を扱うのに対し、本 Insight は「外部知見取り込み時の事前 grep」を扱う相補的知見。
+
+**Action**:
+
+1. **取り込み前に grep キーワードを決めて全件照合**: 外部パターンの中心概念を 3〜5 個のキーワードに分解 → `grep -niE "kw1|kw2|kw3" docs-template/08-knowledge/PLAYBOOK.md`
+2. **照合結果は「重複 / 類似 / 関連 / 新規」の 4 段階で分類**: 「類似」「関連」は Related フィールドへの相互リンクで処理、「重複」は Helpful +1、「新規」のみ新エントリ作成
+3. **Issue 起票時点で grep 照合結果を本文に書く**: 「既存 ACE-XXX と類似だが観点が違う」など根拠を明示 → レビュアーが「これは別エントリで正しいか」を判断できる
+4. **Related フィールドへの相互リンクは執筆過程で発見した類似性も含める**: ACE-034 で執筆中に気付いた ACE-032 との類似は当初の Issue 本文には無く、執筆中に発覚 → Related に追加した実例
+
+---
+
+### ACE-037: ACE エントリの新規追加は対応する運用手順（workflow / self-review / ace-cycle）への組み込みを同 PR で済ませる
+
+| フィールド | 値                          |
+| ---------- | --------------------------- |
+| Category   | knowledge-management        |
+| Origin     | PR #420                     |
+| Related    | ACE-014 / ACE-031 / ACE-034 |
+| Date       | 2026-05-19                  |
+| Helpful    | 0                           |
+| Harmful    | 0                           |
+| Status     | active                      |
+
+**Insight**: ACE Playbook に新規エントリを追加する PR では、対応する運用手順（`git-workflow.md` / `self-review.md` / `ace-cycle.md` / `workflow-principles.md` 等）への組み込みも同 PR で済ませる。Playbook に書いてあるだけで運用フックに組み込まれない ACE は「死蔵知見」になり、Helpful カウンターが永久にゼロのまま蓄積する。
+
+**Context**: PR #420 で ACE-034 を追加する際、当初は「Playbook 追加のみ」のスコープも検討したが、概念知見と運用手順はセットで効くため 1 PR で `docs-template/05-operations/deployment/git-workflow.md`（ステップ3 Implement）/ `docs/AI_GIT_WORKFLOW.md`（同）/ `ace-cycle.md`（Phase 1 対象データ）の 3 ドキュメントに組み込んだ。Copilot レビューで Action 4 が指す raw material 取得経路の整合性が指摘されたが、これは「組み込みが片手落ち（ace-cycle.md に PR description が無かった）」ためで、本 Insight の重要性を裏付ける具体例になった。組み込みを全て同 PR で済ませると Copilot のような cross-model reviewer が「整合性チェック」を一気に通せる。
+
+**Action**:
+
+1. **新規 ACE 起票時に「組み込み先候補」を Issue 本文にリストする**: `git-workflow.md` / `self-review.md` / `ace-cycle.md` / `workflow-principles.md` / `PATTERNS.md` / `TESTING.md` のどれに組み込むか or 組み込み不要か を着手前に判定
+2. **「組み込み不要」と判断した場合はその理由を Issue に明記**: 後から見た人が「なぜ Playbook だけに残されたのか」を理解できる
+3. **組み込みが多数のドキュメントにまたがる場合は ACE-014 の SSOT 原則を遵守**: 1 箇所に詳細、他は誘導リンクのみ
+4. **PR レビューで「運用手順との整合性」指摘が出たら本 Insight の発動サイン**: 「組み込み忘れ」ではなく「組み込み計画段階の漏れ」として再発防止を考える（実装後の追記ではなく Issue 段階で判定する）
+
+---
+
 ## Changelog
+
+### [1.17.0] - 2026-05-19
+
+#### 追加
+
+- ACE-035: 新規 process パターンを Playbook に追加するときは「ドッグフード + advisor / second opinion」で運用上の構造問題を検出する — PR #420 でドッグフードした implementation-notes.md の扱い (a) → (b) pivot 経験から抽出。advisor を呼ばずにマージしていたら develop ルートで構造的衝突が起きていた具体例
+- ACE-036: 外部知見（SNS / ブログ / 社内 wiki）を Playbook に取り込む前に既存 ACE エントリ全件と grep 照合する — Anthropic エンジニア公開プロンプトを ACE-034 として取り込む際の照合手順から抽出。ACE-018（自リポ横断 grep）と相補的
+- ACE-037: ACE エントリの新規追加は対応する運用手順（workflow / self-review / ace-cycle）への組み込みを同 PR で済ませる — PR #420 で Playbook + git-workflow + ace-cycle を同時改稿した経験と Copilot 整合性指摘から抽出
+
+#### 更新
+
+- ACE-001（クロスモデルレビュー）Helpful: 2 → 3 — PR #420 で Copilot（semantic 矛盾検出） + Gemini Code Assist（SSOT 同期検出）の役割分担を観察、別カテゴリ問題が並列レビューで発見された
 
 ### [1.16.0] - 2026-05-19
 
