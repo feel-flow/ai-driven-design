@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.17.0"
+version: "1.18.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-05-19"
+updated: "2026-05-20"
 owner: "@fffokazaki"
-ace_entry_count: 37
+ace_entry_count: 41
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1008,7 +1008,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #420           |
 | Related    | ACE-021 / ACE-034 |
 | Date       | 2026-05-19        |
-| Helpful    | 0                 |
+| Helpful    | 1                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -1075,7 +1075,118 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+### ACE-038: 「データ収集待ち」を要求する受入基準でも、ロールバック容易な変更は先行実装 + 試行中ステータス明記でフィードバックループを早める
+
+| フィールド | 値                |
+| ---------- | ----------------- |
+| Category   | process           |
+| Origin     | PR #423           |
+| Related    | ACE-034 / ACE-035 |
+| Date       | 2026-05-20        |
+| Helpful    | 0                 |
+| Harmful    | 0                 |
+| Status     | active            |
+
+**Insight**: 受入基準が「N サンプル運用後に判断」を要求する Issue では、(a) 変更が 1〜3 行で revert 容易 / (b) 待たずに動かす方が学習機会が増える、を満たす場合に「先行実装 + 試行中ステータス明示 + ロールバック条件明記」のパターンで前進できる。データを溜める時間も「観点なしで運用したら何が拾えないか」を観察できる時間として活用すべきで、観点ありで運用しながら評価する方が情報密度が高い。
+
+**Context**: Issue #421 の受入基準は「ACE-034 を 5 PR 以上で運用してから判断」だったが、観点追加は 1 行 diff で revert コスト極小、かつ「観点なしで運用すると implementation-notes 由来の raw material が構造的に拾われない」リスクの方が大きいと判断。PR #423 で先に観点 7 を追加 + L57 / Changelog に「試行中: 5 PR で評価」を明記して、ロールバック条件を本文に残した状態でマージ。「待つ間に何が拾えなかったか」のデータも、観点 7 ありで運用しないと取れない構造になっていた。
+
+**Action**:
+
+1. **「データ収集待ち」受入基準を見たら 3 軸で判定する**: (a) 変更の revert コスト（行数・依存）、(b) 「待つ間に何ができないか」のコスト、(c) 試行中ステータスを文書化できるか
+2. **revert コスト極小（1〜3 行）+ 試行中明示できる場合は先行実装**: ただし「試行中」「N PR で評価」「ロールバック条件」を**テンプレ本文に書く**（PR description だけだとマージ後にアクセスしづらい）
+3. **試行中ステータスは目立つ場所に書く**: 観点 / ルールの末尾括弧（例: `（試行中: [Issue #XXX](...)、5 PR で評価）`）、または独立した「## 試行中」セクション
+4. **評価期間後のロールバック判定 Issue を着手時に起票**: 「5 PR 後に評価」follow-up Issue を最初に作っておくと、評価忘れによる定着リスクが下がる（PR #423 では follow-up #424 #425 を同時起票）
+
+---
+
+### ACE-039: AI プロンプトテンプレに「分析観点リスト」と「分類カテゴリリスト」が並存する場合、新観点追加時はカテゴリ対応を観点側に明記する
+
+| フィールド | 値                |
+| ---------- | ----------------- |
+| Category   | tooling           |
+| Origin     | PR #423           |
+| Related    | ACE-014 / ACE-024 |
+| Date       | 2026-05-20        |
+| Helpful    | 0                 |
+| Harmful    | 0                 |
+| Status     | active            |
+
+**Insight**: AI プロンプトテンプレで「観点 N 項目 / カテゴリ M 種類」のように 2 つの列挙が並存する場合、新観点を追加するときに対応カテゴリを明記しないと AI が分類に迷う。観点リスト側に「カテゴリは X または Y を推奨」を 1 句書くだけで AI 出力の一貫性が大きく上がる。Gemini Code Assist のような副レビュアーが detect しやすい欠陥でもある。
+
+**Context**: PR #423 で ACE Phase 1 Generate プロンプトに観点 7「判断ログ」を追加したが、L62 のカテゴリリスト（coding/architecture/testing/security/performance/devops/process/tooling）には観点 7 に対応する明示語がなく、Gemini Code Assist が medium priority で「観点 7 をどのカテゴリに分類すべきか不明確 → 推奨カテゴリを観点側に追記せよ」と指摘。fix commit で観点 7 に「カテゴリは `process` または `architecture` を推奨」を追記して解消。
+
+**Action**:
+
+1. **観点リストとカテゴリリストが並存するプロンプトで新観点を追加するときは、観点側に推奨カテゴリを明記する**: 「**観点名**: 説明（カテゴリは X または Y を推奨）」の形式で 1 句
+2. **カテゴリリスト自体を観点と 1:1 にできる場合は構造化を優先**: 観点 N 項目とカテゴリ M 種類が異なる軸を持つ場合のみ (1) のパターンを使う
+3. **副レビュアー（Gemini Code Assist 等の auto-bot）の medium priority 指摘は無視しない**: Toolkit 一次レビューで見逃すパターンを independent detect する役割を持つ。Critical でなくても「カテゴリ整合」「対応欠落」系の medium は対応すべき
+
+---
+
+### ACE-040: AI プロンプトテンプレ内で同概念を複数の語で表現すると AI 出力品質が下がる — 一次定義（SSOT）の語彙に統一する
+
+| フィールド | 値                |
+| ---------- | ----------------- |
+| Category   | process           |
+| Origin     | PR #423           |
+| Related    | ACE-014 / ACE-024 |
+| Date       | 2026-05-20        |
+| Helpful    | 0                 |
+| Harmful    | 0                 |
+| Status     | active            |
+
+**Insight**: AI プロンプトテンプレや知見エントリで同概念を 2〜3 の異なる語（例: 「spec 乖離」「spec から逸脱」「spec から変更した点」）で表現すると、AI が「これらは別概念か？」と誤解する余地が生まれ、冗長な分類や category mismatch を引き起こす。**一次定義（最初に登場する場所）を SSOT として扱い、他は同じ語彙を使う**。ACE-024（SSOT 用語の既存定義との衝突確認）の dual: 一度確立した用語が**自リポ内で**徐々に変質するパターン。
+
+**Context**: PR #423 のレビューで comment-analyzer S3 が指摘。元々 PLAYBOOK ACE-034 エントリは「spec から変更した点」「spec にない判断」を正準形として使っていたが、観点 7 ドラフトでは「逸脱」、L35 対象データ表セルでは「乖離」と表記揺れが発生していた。3 箇所で異なる語を使うと AI prompt として渡された時に AI が冗長分類するリスクあり。fix commit で全箇所を ACE-034 の正準語「spec にない判断 / spec から変更した点 / 捨てた選択肢」に統一。
+
+**Action**:
+
+1. **AI プロンプトテンプレ / 知見エントリで複数箇所が同概念に言及する場合、一次定義（SSOT）を grep で特定し、他箇所は同じ語彙を使う**: `grep -rn "<概念名>" docs-template/` で散らばりを確認
+2. **新エントリ・新観点を起草するときは既存 SSOT 用語を最初に確認**: 既存 PLAYBOOK エントリの Insight 文 / Action ステップで使われている語彙をピックアップして草稿の語彙を合わせる
+3. **レビュー段階で表記揺れが検出されたら、変更箇所だけでなくファイル全体を grep で確認して同 commit で統一する**: 部分修正だとレビュー後に新たな揺れが入る
+
+---
+
+### ACE-041: マージ後 cleanup の未追跡ファイルガードに引っかかったら、独立した chore PR で .gitignore 追加して cleanup を継続する
+
+| フィールド | 値                |
+| ---------- | ----------------- |
+| Category   | process           |
+| Origin     | PR #423           |
+| Related    | ACE-009 / ACE-012 |
+| Date       | 2026-05-20        |
+| Helpful    | 0                 |
+| Harmful    | 0                 |
+| Status     | active            |
+
+**Insight**: マージ後 cleanup の `git status --porcelain` ガードでツール設定ファイル（`.codex/`、`.vscode/local.json` 等）に止まった場合、その場で削除や restore せず、独立した chore PR で `.gitignore` 追加するパターンが安全。CLAUDE.md「勝手に git restore / git clean しない」原則を守りつつ cleanup を継続できる。短命の chore PR は Draft + 並列セルフレビューをスキップ可能な「真に trivial な変更」の典型例。
+
+**Context**: PR #423 マージ後の `/merge-cleanup 423` で `.codex/config.toml`（Codex CLI ローカル MCP 設定、`.claude/settings.local.json` と同型）が未追跡で検出され Step 1 ガードに引っかかった。中身を確認しユーザーに 3 択提示 → `.gitignore` 追加を選択 → chore branch `chore/#426-gitignore-codex` 作成 → 3 行追加 commit → 非 Draft PR #427 で直接 ready + merge → PR #423 + #427 の 2 本まとめて cleanup 完遂。
+
+**Action**:
+
+1. **cleanup ガードで未追跡ファイルに止まったら、中身を確認して 3 分類する**: (a) 作業中の commit し損ね → 元ブランチに戻して commit、(b) ツール / 個人設定 → chore PR + .gitignore、(c) ビルド成果物 → .gitignore
+2. **ツール設定の chore PR は短命で済ませる**: 1 ファイル 1〜3 行の .gitignore 追加なら Toolkit/Copilot 並列レビューはスキップ可能（PR description に "trivial な .gitignore" と理由を明記）
+3. **cleanup 中の chore PR は元 PR と同じ run で merge + cleanup する**: PR 番号を 2 つ持つ cleanup（`gh pr view A` + `gh pr view B` を順番に処理）で 1 cycle 完結
+4. **`.gitignore` への追加は既存セクションの末尾**: `# <Tool name>` 見出し + パターン 1 行で、既存パターン（`.claude/settings.local.json` 等）と同じスタイルに合わせる
+
+---
+
 ## Changelog
+
+### [1.18.0] - 2026-05-20
+
+#### 追加
+
+- ACE-038: 「データ収集待ち」を要求する受入基準でも、ロールバック容易な変更は先行実装 + 試行中ステータス明記でフィードバックループを早める — PR #423 で Issue #421 受入基準（5 PR 運用待ち）を 1 行 diff + 試行中明記の組み合わせで先行実装した経験から抽出
+- ACE-039: AI プロンプトテンプレに「分析観点リスト」と「分類カテゴリリスト」が並存する場合、新観点追加時はカテゴリ対応を観点側に明記する — PR #423 で Gemini Code Assist が「観点 7 のカテゴリ対応が L62 リストに無い」と検出した medium 指摘から抽出
+- ACE-040: AI プロンプトテンプレ内で同概念を複数の語で表現すると AI 出力品質が下がる — 一次定義（SSOT）の語彙に統一する — PR #423 で「spec 乖離 / 逸脱 / 変更した点」の 3 表記揺れが comment-analyzer S3 で検出された経験から抽出。ACE-024 の dual
+- ACE-041: マージ後 cleanup の未追跡ファイルガードに引っかかったら、独立した chore PR で .gitignore 追加して cleanup を継続する — PR #423 cleanup 中に `.codex/config.toml` 未追跡で止まり chore PR #427 で解消した経験から抽出
+
+#### 更新
+
+- ACE-035（ドッグフード + advisor）Helpful: 0 → 1 — PR #423 description で「採用しなかった選択肢（5 PR 待ち）」「ロールバック条件」を明記したことが観点 7 用 raw material のドッグフードとして機能した実例
 
 ### [1.17.0] - 2026-05-19
 
