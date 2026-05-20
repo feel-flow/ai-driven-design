@@ -29,7 +29,7 @@ assignees: ''
 > **必須参照**: 関連Issue, PATTERNS
 
 - [ ] #XX [関連する過去のIssue]
-- [ ] [PATTERNS.md#エラーハンドリング](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/03-implementation/PATTERNS.md)
+- [ ] [PATTERNS.md#エラーハンドリング](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/03-implementation/PATTERNS.md#エラーハンドリング)
 
 > **推奨参照**: TESTING
 
