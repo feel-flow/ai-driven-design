@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.22.0"
+version: "1.23.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-20"
 owner: "@fffokazaki"
-ace_entry_count: 45
+ace_entry_count: 46
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -184,7 +184,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category   | process           |
 | Origin     | PR #316 / PR #319 |
 | Date       | 2026-03-10        |
-| Helpful    | 5                 |
+| Helpful    | 6                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -1326,7 +1326,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #429 / Issue #417        |
 | Related    | ACE-032 / ACE-037 / ACE-043 |
 | Date       | 2026-05-20                  |
-| Helpful    | 1                           |
+| Helpful    | 2                           |
 | Harmful    | 0                           |
 | Status     | active                      |
 
@@ -1377,7 +1377,45 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-046"></a>
+
+### ACE-046: PR/Issue body 内の相対リンクは `pull/N/` または `issues/N/` 起点で展開される — リポローカルテンプレでは `blob/HEAD/` 絶対 URL を使い、配布版は plain text にする
+
+| フィールド | 値                                                                    |
+| ---------- | --------------------------------------------------------------------- |
+| Category   | documentation-quality                                                 |
+| Origin     | PR #437 / Issue #433-#436                                             |
+| Date       | 2026-05-20                                                            |
+| Helpful    | 0                                                                     |
+| Harmful    | 0                                                                     |
+| Status     | active                                                                |
+| Related    | [ACE-016](#ace-016)（anchor URL 欠落）/ [ACE-044](#ace-044) carve-out |
+
+**Insight**: GitHub の PR/Issue body はファイル単体閲覧時と **異なる base URL** でレンダリングされる。`.github/pull_request_template.md` を新規 PR で展開した場合、相対リンク `../docs/X.md` は repo ルートに届かず `repo/docs/X.md` という存在しない URL（HTTP 404）に解決される。先頭 `../` が無い `docs-template/X.md` のような形も同様に `pull/N/docs-template/X.md` 起点で展開され 404。テンプレファイル内では「ファイル単体閲覧」と「PR/Issue body 展開」で互換性のない 2 モードがあり、相対リンクは両方を満たせない。
+
+**Context**: PR #431 で Gemini Code Assist が `[docs/...](../docs/...)` を「PR body 展開時にリンク切れ」と指摘 → ACE-044 carve-out 判定で別 Issue 化 → PR #437 で実証 + 修正。HEAD リクエストで確認: `repo/docs/AI_GIT_WORKFLOW.md` は **404**、`blob/HEAD/docs/AI_GIT_WORKFLOW.md` は **200**、`pull/N/docs/AI_GIT_WORKFLOW.md` は 302 → `pull/new/...`（事実上 404）。仕様根拠は [github/markup#576](https://github.com/github/markup/issues/576)。PR #437 で `.github/pull_request_template.md` の 3 箇所（L15/L28/L54）を `blob/HEAD/` 絶対 URL 化した直後、Gemini が L39 `[Review Response Policy](docs-template/...)` の絶対 URL 化漏れを指摘 — 当方 grep が `\.\./` 前提だったため先頭 `../` の無い形を見逃した。fix commit `38f12e1` で対応。同問題はリポローカル PR テンプレ 4 箇所 + ISSUE_TEMPLATE 16 箇所 + 配布版 15 箇所の計 35 箇所に存在（子 Issue #434/#436/#435 で段階対応）。
+
+**Action**:
+
+1. **リポローカル PR/Issue テンプレ**: `https://github.com/<owner>/<repo>/blob/HEAD/<path>` 形式の絶対 URL を使う。`HEAD` は GitHub が default branch に自動解決するため `develop`/`main` ハードコードを避けられる（default branch リネーム耐性あり）。
+2. **配布版テンプレ** (`docs-template/.github/`): 採用先リポの URL が不明なので絶対 URL 不可。リンクを外し inline code (`` `docs-template/X.md` ``) に変更し、採用者向けに「リンク化する場合は自リポの `blob/HEAD/` URL に置換」と注釈を付ける。
+3. **相対リンク検出 grep の拡張**: [ACE-016](#ace-016) Action 2 の `grep -nE "\]\(\.\./[^)]+\)"` は先頭 `../` のみ catch する。テンプレファイル内では `\]\([^h)#][^)]*\.md` （http/`#` で始まらない URL 部分を持つリンク全般）まで広げる。実証: PR #437 で `../` 前提 grep を信じて 3 箇所修正 → Gemini が L39 `docs-template/...` の絶対 URL 化漏れを指摘 → 拡張 grep で hit する形。
+4. **検証手順**: (1) `gh pr view <N> --json body --jq .body` で PR body の生テキストを確認、(2) `curl -sI <絶対 URL>` で各リンクが HTTP 200 を返すか確認、(3) ファイル単体閲覧でも開けるか確認（`blob/HEAD/` なら両モード OK）。
+
+---
+
 ## Changelog
+
+### [1.23.0] - 2026-05-20
+
+#### 追加
+
+- ACE-046: PR/Issue body 内の相対リンクは `pull/N/` または `issues/N/` 起点で展開される — リポローカルテンプレでは `blob/HEAD/` 絶対 URL を使い、配布版は plain text にする — PR #437 で `.github/pull_request_template.md` の 4 箇所を絶対 URL 化した経験 + HEAD リクエスト実証データ（`repo/docs/X.md` は 404、`blob/HEAD/docs/X.md` は 200）から抽出
+
+#### 更新
+
+- ACE-001（クロスモデルレビュー）Helpful: 5 → 6 — PR #437 で Toolkit code-reviewer は「Critical/Important なし、承認推奨」だったが Gemini Code Assist が medium 2 件（L39 絶対 URL 化漏れ + L54 リンクテキスト一貫性）を独立検出。Toolkit 単独では catch できない漏れを Gemini が補完した事例で、auto-attach 経路の費用対効果を再確認
+- ACE-044（review 指摘スコープを編集セクション境界で判定）Helpful: 1 → 2 — PR #431 で `../docs/` 指摘を「pre-existing で L15/L54 を巻き込む」として別 Issue #430 / #433 系に分割した判定が PR #437 で本格対応として完遂。「別 Issue 化判定 → 後続 PR で纏めて対応」のサイクルが機能した事例として補強
 
 ### [1.22.0] - 2026-05-20
 
