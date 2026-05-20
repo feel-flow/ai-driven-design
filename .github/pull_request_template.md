@@ -36,7 +36,7 @@
 
 - [ ] PR Review Toolkit: 実施済み
 - [ ] Codex CLI (`bash scripts/codex-review.sh --branch`): 実施済み
-- [ ] [Review Response Policy](docs-template/05-operations/deployment/review-response-policy.md) に従い対応済み
+- [ ] [Review Response Policy](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/05-operations/deployment/review-response-policy.md) に従い対応済み
 
 ## Test plan
 
@@ -51,7 +51,7 @@
 - [ ] 型安全性を確保（該当する場合）
 - [ ] リンク切れがない
 
-## 配布境界チェック（[DESIGN_PRINCIPLES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/DESIGN_PRINCIPLES.md) P2/P3）
+## 配布境界チェック（[docs/DESIGN_PRINCIPLES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/DESIGN_PRINCIPLES.md) P2/P3）
 
 > `docs-template/` 配下を変更している PR では必ず確認。それ以外は該当なしで OK。
 
