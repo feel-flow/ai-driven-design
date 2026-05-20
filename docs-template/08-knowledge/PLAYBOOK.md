@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.20.0"
+version: "1.21.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-20"
 owner: "@fffokazaki"
-ace_entry_count: 42
+ace_entry_count: 44
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -791,9 +791,9 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | ---------- | --------------------- |
 | Category   | documentation-quality |
 | Origin     | PR #411 / Issue #410  |
-| Related    | ACE-023               |
+| Related    | ACE-023 / ACE-043     |
 | Date       | 2026-05-19            |
-| Helpful    | 0                     |
+| Helpful    | 1                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1288,7 +1288,80 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-043"></a>
+
+### ACE-043: 品質ゲート script の chain と文書の「統括内容」記述は drift する — 自然文サマリではなく実体 script 名で列挙する
+
+| フィールド | 値                          |
+| ---------- | --------------------------- |
+| Category   | documentation-quality       |
+| Origin     | PR #429 / Issue #417        |
+| Related    | ACE-023 / ACE-025 / ACE-018 |
+| Date       | 2026-05-20                  |
+| Helpful    | 0                           |
+| Harmful    | 0                           |
+| Status     | active                      |
+
+**Insight**: 品質ゲート script（`quality:local` のような複数 npm script を `&&` で連結したもの）の中身を文書で「validate / lint / prettier を統括」のような **自然文サマリ** で要約すると、`package.json:scripts.*` の実体が変わったときに文書側が drift する。drift は同じ周辺を編集する別 PR の review (Toolkit / Copilot 等) が偶発的に検出するパターンが多く、検出までのラグが長い (PR #414 → PR #416 review → Issue #417 → PR #429 で 1 ヶ月以上)。自然文サマリの代わりに **実体 script 名を順序通り列挙する** 形式で書けば、`package.json` を変更する PR で grep にヒットし、同 PR 内で文書側も同期できる。
+
+**Context**: PR #414 で `quality:local` に `format:md:check` を追加した際、`docs/FRONTMATTER_GUIDE.md §2` 表の「`quality:local`: 上記の validate / lint / prettier を統括」記述は更新されなかった。さらに後の PR で `build:spec-index` が定義 (`package.json:14`) されたが `quality:local` chain には組み込まれず、`docs/FRONTMATTER_GUIDE.md §2` 表が「`build:spec-index` も統括しているかのように読める」記述のまま放置された。PR #416 で Toolkit code-reviewer が **pre-existing 誤記** として検出 → Issue #417 起票 → PR #429 で `package.json` に `build:spec-index` を追加するとともに `FRONTMATTER_GUIDE.md §2` と `NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §3.2-3.3` の bash ブロック / 表 / 「中身の順序」記述を実体と整合。修正中、Toolkit comment-analyzer がさらに §3.2 line 89 の「`format:md` は存在しません」（実態は存在する）と §3.3 line 94 の「中身の順序」での `format:md:check` 欠落を追加検出し、同 PR の fix commit で潰した。
+
+**Action**:
+
+1. **品質ゲート script を変更する PR では `package.json:scripts.*` と文書の chain 記述を双方向 grep**: `grep -rn 'quality:local' docs/` で言及箇所を全列挙し、自然文サマリではなく実体 script 名を列挙形式で書き直す
+2. **「統括」「相当」「同等」のような曖昧語を避ける**: 「上記の validate / lint / prettier を統括」より「`build:mcp → check → mcp test → test:ace-scripts → validate -- docs-template → build:spec-index → format:md:check → lint:md` を順に実行」のような **実体列挙** が drift しにくい
+3. **スクリプト挙動の説明では慣用語 (no-op / safe / handles gracefully) を避ける**: 「不在で no-op」のような表現は読み手の前提次第で「何もしない」「失敗しない」「副作用なし」の解釈が分かれる。`scripts/build-spec-index.mjs` の不在時挙動は厳密には「specs=0 で `dist/spec-index.json` を空索引として書き出し exit 0」であり、出力先・出力内容・exit code・副作用を字面で書く方が retrievable で誤読されにくい（ACE-025 を補強）
+4. **「pre-existing な誤記」を起票するときは検出元 PR と原典 PR を明示**: Issue #417 のように「PR #416 review で発見、PR #414 起源」と書けば、修正 PR (#429) でも history を辿りやすい
+5. **drift 修正 PR では同セクション内の隣接記述も再走査**: 触ったセクション (= heading 配下) の他の事実主張も Toolkit / Copilot に再読させる（[ACE-044](#ace-044) と組み合わせる）
+
+---
+
+<a id="ace-044"></a>
+
+### ACE-044: review 指摘を取り込むスコープは「編集セクション境界」で判定する — 触ったセクション内の隣接 stale は同 PR、別ファイル / 別セクションは別 issue
+
+| フィールド | 値                          |
+| ---------- | --------------------------- |
+| Category   | process                     |
+| Origin     | PR #429 / Issue #417        |
+| Related    | ACE-032 / ACE-037 / ACE-043 |
+| Date       | 2026-05-20                  |
+| Helpful    | 0                           |
+| Harmful    | 0                           |
+| Status     | active                      |
+
+**Insight**: Toolkit / Copilot review は編集差分から離れた行も検査するため、本 PR で触っていない pre-existing stale を発見することがある。これを「同 PR で潰す」か「別 issue にする」かは「touch ファイル外 vs ファイル内」だけでは粒度が粗く、**「同セクション (= heading 配下) vs 別セクション」の境界** を判定軸に加えると読み手にとって自然な PR diff になる。同セクション内の隣接 stale を放置すると、`build:spec-index` を追加した PR が「半端な最新化（隣の行は古いまま）」と読まれ、レビュー時の文脈分断を招く。
+
+**Context**: PR #429 で `docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §3.2-3.3` を編集（`build:spec-index` 追加）。Toolkit comment-analyzer が以下を検出:
+
+- **W1**: 同 §3.2 内 line 89 注記「`package.json` に `format:md` は存在しません」が事実誤認（実態は `format:md` / `format:md:check` の両方が存在）。本 PR では line 89 を触っていなかったが、隣接行（line 86 表の `build:spec-index` 追加）を編集したため「半端な最新化」と読まれる risk。**同 PR で整合**。
+- **W2**: 同 §3.3 内 line 94「中身の順序」で `format:md:check` 欠落（pre-existing）。本 PR で同行に `build:spec-index` を**挿入したことで** 「この行を最新版に整えた」と読まれる risk が高まった。**同 PR で 1 トークン追加して整合**。
+- **S2/S3**: `README.md:74` / `.github/pull_request_template.md:28` の stale 記述（`quality:local` の chain 列挙）。本 PR では触っていないファイル。**別 issue 化 (#430)**。
+
+3 段階の判定基準が機能した: (1) touch ファイル外 = 別 issue、(2) touch ファイル内かつ別セクション = 状況次第（W1/W2 は同セクションだったので同 PR）、(3) touch セクション内 = 機械的に同 PR で整合。
+
+**Action**:
+
+1. **review 指摘を分類するとき 3 段階で判定**: (a) touch ファイル外 → 別 issue を即起票（CLAUDE.md「『別 Issue』と言ったら即 `gh issue create`」ルール）、(b) touch ファイル内 / 別セクション → 影響範囲と PR スコープを天秤にかける、(c) touch セクション内 → 1 fix commit に束ねて同 PR で機械的に整合
+2. **「半端な最新化」を意識的に回避する**: PR で同行や隣接行に変更を加えたら、その行が含まれる説明全体が一致しているかを再走査。`grep -n <ファイル>` で section の境界を確認してから fix commit を切る
+3. **別 issue 化したものは fix commit のコメントで明示**: PR コメントで「W1/W2 は本 PR で対応、S2/S3 は #430 で別対応」のように issue 番号を引いてレビュアーの脳内マップを補助する
+4. **pre-existing と本 PR 起因を区別する**: コミットメッセージで「W1 (comment-analyzer): pre-existing で本 PR で隣接行を編集したため整合対応」のように **来歴を残す**。これにより後続の review が「なぜこの 1 行も直したのか」を辿れる
+5. **本 PR スコープ判定で迷ったら軽量側 (= 範囲内) に倒す**: CLAUDE.md ルール「過剰な issue 分割は PR の流れを止める」と整合。ただし「触っていないファイル」だけは別 issue を例外なく適用する
+
+---
+
 ## Changelog
+
+### [1.21.0] - 2026-05-20
+
+#### 追加
+
+- ACE-043: 品質ゲート script の chain と文書の「統括内容」記述は drift する — 自然文サマリではなく実体 script 名で列挙する — PR #429 で `quality:local` の chain に `build:spec-index` を追加した際、`FRONTMATTER_GUIDE.md §2` 表 / `NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §3.2-3.3` の自然文サマリ記述が drift しており PR #416 review が pre-existing 誤記として検出 (Issue #417) した経験から抽出
+- ACE-044: review 指摘を取り込むスコープは「編集セクション境界」で判定する — 触ったセクション内の隣接 stale は同 PR、別ファイル / 別セクションは別 issue — PR #429 で Toolkit comment-analyzer が同 §3.2-3.3 内の W1 / W2（pre-existing）と README.md:74 / PR テンプレ:28（S2/S3）を検出し、3 段階のスコープ判定で前者を同 PR fix commit、後者を #430 で別対応とした経験から抽出
+
+#### 更新
+
+- ACE-025（スクリプトの対象範囲を実装列挙で書く）Helpful: 0 → 1 — PR #429 で「不在で no-op」のような慣用語ではなく「specs=0 で `dist/spec-index.json` を空索引として書き出し exit 0」と実装挙動を字面で書く事例として補強。Related に [ACE-043](#ace-043) を追加
 
 ### [1.20.0] - 2026-05-20
 
