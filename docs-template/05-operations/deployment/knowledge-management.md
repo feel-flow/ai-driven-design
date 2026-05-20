@@ -65,6 +65,11 @@ GitHub Discussions は **人間が読むためのナラティブ（物語的記�
 | 形式     | 構造化テーブル + 短文      | 自由記述               |
 | 更新頻度 | 毎回のマージ後・cleanup 後 | 重要な知見のみ         |
 
+### Playbook エントリの anchor 規則
+
+- 命名規則の SSOT は [PLAYBOOK.md 記述ガイドライン](../../08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照（フォーマット・参照リンク形式の正典）。
+- 実装手順は [ace-cycle.md Phase 3](./ace-cycle.md) を参照。
+
 詳細: [ace-cycle.md](./ace-cycle.md)
 
 マージ後のキャプチャを **人手から切り離す** 場合は、[ace-autonomous.md](./ace-autonomous.md) の autonomous パターン（feature flag・garden wall・shadow 運用）を参照してください。

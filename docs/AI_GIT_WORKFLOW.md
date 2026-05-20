@@ -157,7 +157,7 @@ git checkout -b "feature/123-user-auth"
 
 #### 作業中の判断ログ: `implementation-notes.md` を並走させる
 
-実装着手と同時に **作業ブランチ直下** に `implementation-notes.md` を作成し、コミットと一緒に追記する。コミット diff には残らない「なぜこの選択をしたか / spec から変えた点 / 捨てた選択肢」を保持することで、ステップ5（Self-Review）の精度とステップ10（ACE Generate）の入力品質が上がる。詳細根拠は [PLAYBOOK ACE-034](../docs-template/08-knowledge/PLAYBOOK.md)。
+実装着手と同時に **作業ブランチ直下** に `implementation-notes.md` を作成し、コミットと一緒に追記する。コミット diff には残らない「なぜこの選択をしたか / spec から変えた点 / 捨てた選択肢」を保持することで、ステップ5（Self-Review）の精度とステップ10（ACE Generate）の入力品質が上がる。詳細根拠は [ACE-034](../docs-template/08-knowledge/PLAYBOOK.md#ace-034)。
 
 最小ひな形（コピペして使う）:
 
@@ -468,7 +468,7 @@ gh discussion create \
 
 > **どちらを選ぶか**: コミッタが 1〜2 人のリポジトリは「個人開発」、3 人以上または ACE 内容のレビューを残したいリポジトリは「チーム開発」を選ぶ。判断基準を README / CLAUDE.md に明記してチーム内で揃える。
 >
-> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[PLAYBOOK.md ACE-012](../docs-template/08-knowledge/PLAYBOOK.md)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
+> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[ACE-012](../docs-template/08-knowledge/PLAYBOOK.md#ace-012)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
 
 ---
 

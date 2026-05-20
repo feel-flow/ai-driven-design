@@ -33,7 +33,7 @@ changeImpact: high
 ### 関連
 
 - 概念解説: [AI Spec Driven Development](./AI_SPEC_DRIVEN_DEVELOPMENT.md)
-- AI 向け構造化知見: [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) ACE-021
+- AI 向け構造化知見: [ACE-021](../docs-template/08-knowledge/PLAYBOOK.md#ace-021)
 - ケーススタディの根拠: Issue #311 / commit `6ea43f8`（Obsidian 導入、PR を経ずに develop へ直 commit）/ PR #403（Obsidian 撤退）
 
 ---
@@ -174,7 +174,7 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 - 自動生成ツールは「特定ツール依存物」の典型例である（P3）
 - 撤退コスト試算は「導入してから 2 週間評価」より早期に撤退判断を可能にする（P5）
 
-詳細な再発防止知見: [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) ACE-020 / ACE-021 / ACE-022
+詳細な再発防止知見: [ACE-020](../docs-template/08-knowledge/PLAYBOOK.md#ace-020) / [ACE-021](../docs-template/08-knowledge/PLAYBOOK.md#ace-021) / [ACE-022](../docs-template/08-knowledge/PLAYBOOK.md#ace-022)
 
 ---
 
@@ -182,11 +182,15 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 3 タイミングで設計原則違反を catch する仕組みを持つ:
 
-| タイミング          | ガードレール                                                                                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 新機能 Issue 起票時 | [Issue テンプレ feature.md](../.github/ISSUE_TEMPLATE/feature.md) / [infra.md](../.github/ISSUE_TEMPLATE/infra.md) の「撤退コスト試算」項目                        |
-| PR 提出時           | [PR テンプレ](../.github/pull_request_template.md) の「配布境界チェック」項目                                                                                      |
-| マージ後の知見蓄積  | [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) ACE-020（自動生成ツールの自己破壊）/ ACE-021（テンプレ配布リポ分離）/ ACE-022（削除時の取り残しチェック） |
+| タイミング          | ガードレール                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 新機能 Issue 起票時 | [Issue テンプレ feature.md](../.github/ISSUE_TEMPLATE/feature.md) / [infra.md](../.github/ISSUE_TEMPLATE/infra.md) の「撤退コスト試算」項目 |
+| PR 提出時           | [PR テンプレ](../.github/pull_request_template.md) の「配布境界チェック」項目                                                               |
+| マージ後の知見蓄積  | [ACE-020][] / [ACE-021][] / [ACE-022][]（順に: 自動生成ツールの自己破壊 / テンプレ配布リポ分離 / 削除時の取り残しチェック）                 |
+
+[ACE-020]: ../docs-template/08-knowledge/PLAYBOOK.md#ace-020
+[ACE-021]: ../docs-template/08-knowledge/PLAYBOOK.md#ace-021
+[ACE-022]: ../docs-template/08-knowledge/PLAYBOOK.md#ace-022
 
 ## 改訂履歴
 
