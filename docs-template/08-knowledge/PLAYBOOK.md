@@ -94,8 +94,8 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 
 ### 記述ガイドライン
 
-- **anchor**: 各エントリは見出し直前に `<a id="ace-NNN"></a>` を 1 行付与する。`NNN` は小文字 + ハイフン + 3 桁ゼロパディング（例: `ace-001`, `ace-034`）。これにより他ドキュメントから `[ACE-034](path/to/PLAYBOOK.md#ace-034)` 形式で**特定エントリに直接ジャンプ可能**になる（PLAYBOOK.md は 1000 行を超えるためファイルレベル参照ではジャンプできない）。
-- **参照リンク形式**: 他ドキュメントから ACE エントリを参照する場合は `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式に統一する。`[PLAYBOOK ACE-NNN]` / `[PLAYBOOK.md ACE-NNN]` 等の異なる label は使わない（[ACE-024](#ace-024) 用語統一の系）。
+- **anchor**: 各エントリは見出し直前に `<a id="ace-NNN"></a>` を 1 行付与する。`NNN` は小文字 + ハイフン + 3 桁ゼロパディング（例: `ace-001`, `ace-034`）。ファイルレベル参照（`PLAYBOOK.md` 単体）は常にファイル先頭に着地するため、anchor がなければ個別エントリへの誘導が成立しない。anchor 付与により他ドキュメントから `[ACE-034](path/to/PLAYBOOK.md#ace-034)` 形式で**特定エントリに直接ジャンプ可能**になる。
+- **参照リンク形式**: 他ドキュメントから ACE エントリを参照する場合は `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式に統一する。`[PLAYBOOK ACE-NNN]` / `[PLAYBOOK.md ACE-NNN]` 等の異なる label は使わない（[ACE-040](#ace-040) 語彙統一 / [ACE-024](#ace-024) 用語衝突防止 の系。Origin: Issue [#425](https://github.com/feel-flow/ai-spec-driven-development/issues/425)）。
 - **Insight**: 「何を学んだか」を簡潔に。1-2文。
 - **Context**: 「どんな状況で発見したか」を記述。再現条件が明確であるほど価値が高い。
 - **Action**: 「次回何をすべきか」を具体的に。コード例があると AIツールが直接適用しやすい。
@@ -155,9 +155,9 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 <!-- ここから下にエントリを追記してください。最新のエントリが末尾になるように追記します。 -->
 <!-- 追記例:
-<a id="ace-001"></a>
+<a id="ace-xxx"></a>
 
-### ACE-001: N+1クエリの発生パターンと防止策
+### ACE-XXX: N+1クエリの発生パターンと防止策
 
 | フィールド | 値 |
 |-----------|---|
@@ -1262,6 +1262,14 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 ---
 
 ## Changelog
+
+### [1.19.0] - 2026-05-20
+
+#### 追加
+
+- ACE-001〜041 の各エントリ直前に explicit anchor (`<a id="ace-NNN"></a>`) を 41 件付与（Issue #425）
+- エントリテンプレート / 記述ガイドラインに anchor 命名規則を追加（小文字 + ハイフン + 3 桁ゼロパディング）
+- 他ドキュメントからの ACE 参照を `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式に統一（旧 3 形式を撤去）
 
 ### [1.18.0] - 2026-05-20
 

@@ -67,9 +67,8 @@ GitHub Discussions は **人間が読むためのナラティブ（物語的記�
 
 ### Playbook エントリの anchor 規則
 
-- 新規エントリには見出し直前に `<a id="ace-NNN"></a>` を 1 行付与する（小文字 + ハイフン + 3 桁ゼロパディング）。
-- 他ドキュメントからの参照は `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式に統一する（PLAYBOOK.md は 1000 行超のためファイルレベル参照ではジャンプできない）。
-- 詳細手順は [ace-cycle.md Phase 3](./ace-cycle.md) を参照。
+- 命名規則の SSOT は [PLAYBOOK.md 記述ガイドライン](../../08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照（フォーマット・参照リンク形式の正典）。
+- 実装手順は [ace-cycle.md Phase 3](./ace-cycle.md) を参照。
 
 詳細: [ace-cycle.md](./ace-cycle.md)
 

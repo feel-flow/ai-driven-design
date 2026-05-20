@@ -99,7 +99,7 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 **Action**: [推奨アクション]
 ```
 
-**anchor 規則**: 見出し直前に `<a id="ace-NNN"></a>` を 1 行付与（`NNN` は小文字 + ハイフン + 3 桁ゼロパディング、例: `ace-042`）。他ドキュメントから `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式で直接ジャンプ可能にする（PLAYBOOK.md 1000 行超対応、Issue [#425](https://github.com/feel-flow/ai-spec-driven-development/issues/425)）。
+**anchor 命名規則**: 見出し直前に `<a id="ace-NNN"></a>` を 1 行付与（小文字 + ハイフン + 3 桁ゼロパディング）。詳細・根拠は SSOT である [PLAYBOOK.md 記述ガイドライン](../../docs-template/08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照。
 
 #### 4-c. Frontmatter の更新
 

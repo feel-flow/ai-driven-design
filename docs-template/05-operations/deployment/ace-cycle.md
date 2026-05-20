@@ -166,7 +166,7 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 **Action**: [推奨アクション]
 ```
 
-**anchor 命名規則**: 各エントリの見出し直前に `<a id="ace-NNN"></a>` を 1 行付与する。`NNN` は小文字 + ハイフン + 3 桁ゼロパディング（例: `ace-006`, `ace-034`）。他ドキュメントから `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式で特定エントリに直接ジャンプ可能にするため。PLAYBOOK.md は 1000 行超のため、ファイルレベル参照ではジャンプできない（Issue [#425](https://github.com/feel-flow/ai-spec-driven-development/issues/425) の経緯）。
+**anchor 命名規則**: 見出し直前に `<a id="ace-NNN"></a>` を 1 行付与（小文字 + ハイフン + 3 桁ゼロパディング）。詳細・根拠は SSOT である [PLAYBOOK.md 記述ガイドライン](../../08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照。
 
 #### 3. Frontmatter の更新
 
