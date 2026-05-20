@@ -18,12 +18,12 @@ assignees: ''
 
 > **必須参照**: MASTER, DEPLOYMENT
 
-- [ ] [MASTER.md](../../docs-template/MASTER.md)
-- [ ] [DEPLOYMENT.md](../../docs-template/05-operations/DEPLOYMENT.md)
+- [ ] [MASTER.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/MASTER.md)
+- [ ] [DEPLOYMENT.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/05-operations/DEPLOYMENT.md)
 
 > **推奨参照**: ARCHITECTURE
 
-- [ ] [ARCHITECTURE.md#インフラ](../../docs-template/02-design/ARCHITECTURE.md)
+- [ ] [ARCHITECTURE.md#インフラ](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md)
 
 ## 関連Issue
 
@@ -67,7 +67,7 @@ assignees: ''
 
 [問題が発生した場合の切り戻し方法]
 
-## 撤退コスト試算（[DESIGN_PRINCIPLES.md](../../docs/DESIGN_PRINCIPLES.md) P5）
+## 撤退コスト試算（[docs/DESIGN_PRINCIPLES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/DESIGN_PRINCIPLES.md) P5）
 
 > 新ツール・新インフラを導入する場合、**「採用しないことになった場合に削除対象となる範囲」を着手前に見積もる**。インフラ系は依存が広がりやすく、撤退コストが大きくなりがち。
 
