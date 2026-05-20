@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.21.0"
+version: "1.22.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-20"
 owner: "@fffokazaki"
-ace_entry_count: 44
+ace_entry_count: 45
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -184,7 +184,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category   | process           |
 | Origin     | PR #316 / PR #319 |
 | Date       | 2026-03-10        |
-| Helpful    | 4                 |
+| Helpful    | 5                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -481,7 +481,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #391 / PR #393 / Issue #295 |
 | Related    | ACE-005（補強）                |
 | Date       | 2026-05-06                     |
-| Helpful    | 2                              |
+| Helpful    | 3                              |
 | Harmful    | 0                              |
 | Status     | active                         |
 
@@ -536,7 +536,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #395 / Issue #296  |
 | Related    | ACE-013（補強）       |
 | Date       | 2026-05-06            |
-| Helpful    | 0                     |
+| Helpful    | 1                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1326,7 +1326,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #429 / Issue #417        |
 | Related    | ACE-032 / ACE-037 / ACE-043 |
 | Date       | 2026-05-20                  |
-| Helpful    | 0                           |
+| Helpful    | 1                           |
 | Harmful    | 0                           |
 | Status     | active                      |
 
@@ -1350,7 +1350,47 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-045"></a>
+
+### ACE-045: 設計文書内の「mirror 付録（実体の参照用コピー）」は本体改稿で silent drift する — mirror を持つなら本体改稿で同期、または mirror を削って外部参照に置換
+
+| フィールド | 値                          |
+| ---------- | --------------------------- |
+| Category   | documentation-quality       |
+| Origin     | PR #431 / Issue #430        |
+| Related    | ACE-014 / ACE-043 / ACE-044 |
+| Date       | 2026-05-20                  |
+| Helpful    | 0                           |
+| Harmful    | 0                           |
+| Status     | active                      |
+
+**Insight**: 設計文書（design doc / 仕様書）の付録に「実体ファイルの参照用コピー」を載せると、実体ファイルを改稿した瞬間 mirror が silent に drift する。`format:md:check` / markdownlint は内容の一致を検査しないため自動検出されず、後から読んだ人は「mirror = 実体」と誤認したまま古い snapshot を信じる。chain drift（ACE-043）/ 索引の数値重複（ACE-014）と源流を共有するが、本件は「同一文書内に実体のコピーを抱える」mirror パターン特有の落とし穴で、`grep` で気付かなければ次の chain 変更まで silent rot する。
+
+**Context**: PR #431 で `.github/pull_request_template.md` の Self-Review Results を簡略化（旧 chain 列挙 → `npm run quality:local` 1 行）した際、Toolkit code-reviewer I1 (88%) が `docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` 付録 A (L211-258) を検出。付録 A 冒頭の「`.github/pull_request_template.md` には**反映済み**。以下は採用時点の**参照用コピー**。」という注記が本 PR で本体を改稿した瞬間「反映済み」が嘘になり、付録 A の参照用コピーが本体と乖離。Toolkit は同 PR 内 fix commit でテンプレ本体と付録 A を同時更新するよう推奨し、mirror を持つ場合の同期責任を明示した。同型の bug は ACE-014（索引文書の数値重複）/ ACE-043（chain の自然文サマリ drift）と源流を共有するが、本件は「同一文書内に実体のコピーを抱える」mirror パターンに特化。
+
+**Action**:
+
+1. **設計文書内に mirror 付録を作らない**: 外部ファイル（PR テンプレ / 設定ファイル等）の現行スナップショットが必要なら、(a) 付録ではなく `[該当ファイル](path)` への参照 URL のみ置く、(b) 「採用時点」のような時系列情報が重要なら git tag / commit SHA への永続リンクを使う
+2. **mirror を持つ判断をした場合は本体改稿 PR で同期**: ACE-044 の「touch ファイル外 = 別 issue」原則の **carve-out 例外**として、mirror であることが文書内に明示されている付録は同 PR で同期する（mirror 注記自体が「本体と整合させる」契約として機能する）
+3. **mirror 注記には「自動同期されません」を明記**: 「以下は採用時点の参照用コピーで、自動同期されません。一次情報は `path/to/source`」のように一次情報の場所を明示し、本体と mirror どちらを信じるかを読者が判断できるようにする
+4. **mirror の存在を grep で発見可能にする**: コードフェンス内の特徴的なヘッダや mirror 注記の定型句（「参照用コピー」「採用時点」「反映済み」等）で着手前に grep し、本体改稿時に未認識の mirror を見落とさない仕組みにする
+
+---
+
 ## Changelog
+
+### [1.22.0] - 2026-05-20
+
+#### 追加
+
+- ACE-045: 設計文書内の「mirror 付録（実体の参照用コピー）」は本体改稿で silent drift する — mirror を持つなら本体改稿で同期、または mirror を削って外部参照に置換 — PR #431 で `docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` 付録 A が本体 PR テンプレ簡略化と drift し Toolkit code-reviewer I1 (88%) が検出した経験から抽出
+
+#### 更新
+
+- ACE-001（クロスモデルレビュー）Helpful: 4 → 5 — PR #431 で Toolkit comment-analyzer (Suggestion 4 件) + Toolkit code-reviewer (Critical C1 + Important I1) + Copilot (3 inline comments) + Gemini Code Assist (org 設定で auto-attach、2 inline comments) の **4 系統が独立検出**。Gemini auto-attach により追加コストなしでレビュースタックが拡張された事例
+- ACE-014（索引文書 SSOT 集約）Helpful: 2 → 3 — PR #431 で `quality:local` の chain 列挙を **README + PR テンプレ + 付録 A の 3 箇所**に持っていた SSOT 違反を、`§3.3` 1 箇所に集約 + 他 2 箇所を参照型に整理した事例。Related に [ACE-045](#ace-045) を追加
+- ACE-016（anchor link は label と URL の両方に書く）Helpful: 0 → 1 — PR #431 で `[\`docs/...\` §3.3](../docs/...)`が label に`§3.3`を含むが URL に`#anchor`欠落のパターンを Toolkit code-reviewer C1 (95%) が再検出。fix は`<a id="quality-local-detail"></a>`を §3.3 見出し直前に付与し、参照側を`#quality-local-detail` で固定（PLAYBOOK 外で初適用）。explicit anchor 採用で heading slug 変更（日本語 / コードフェンス / コロン混在）への耐性も獲得
+- ACE-044（review 指摘スコープを編集セクション境界で判定）Helpful: 0 → 1 — PR #431 で 2 種類のスコープ判定をドッグフード: (a) Gemini の `../docs/` 相対パス指摘は touched ファイル内 (L28) だが pre-existing で L15/L54 を巻き込むため **spawn task で別 Issue 化**、(b) Appendix A drift は別ファイルだが **「mirror であることが明示」carve-out** で同 PR 内 fix commit に統合（[ACE-045](#ace-045) Action 2 として運用ルール化）
 
 ### [1.21.0] - 2026-05-20
 
