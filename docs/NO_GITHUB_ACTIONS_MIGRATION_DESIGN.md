@@ -88,6 +88,8 @@ npm run lint:md
 
 **注**: ルートの `package.json` には `format:md`（Prettier 書き込み）/ `format:md:check`（Prettier 検査）が存在するが、本 §3.2 は **旧 `ci.yml` のステップ順** を再現するセクションのため列挙していない（旧 `ci.yml` には Prettier ステップが含まれていなかった）。**`quality:local` の実体には `format:md:check` が含まれる**（§3.3 参照）。
 
+<a id="quality-local-detail"></a>
+
 ### 3.3 `quality:local` npm スクリプト（実装済み）
 
 - **ルート `package.json`**: `quality:local` は **3.2 と同順**だが、**`npm ci` および `npm --prefix mcp ci` を含まない**（日々の実行時間を抑える。ロックファイル厳密再現が必要なときは手動で 3.2 冒頭の 2 ステップを先に実行する）。
@@ -223,8 +225,7 @@ npm run lint:md
 
 ## Self-Review Results
 
-- [ ] **ローカル品質ゲート**（CI 相当: `npm ci` → `npm --prefix mcp ci` → `npm run build:mcp` → `npm run check` → `npm --prefix mcp test` → `npm run test:ace-scripts` → `npm run validate -- docs-template` → `npm run lint:md`）を **PR 提出前**に実行し、**失敗がない**ことを確認した
-- [ ] または、**`npm run quality:local`** で同等の確認をした
+- [ ] **ローカル品質ゲート**: `npm run quality:local` を **PR 提出前** に実行し、**失敗がない** ことを確認した（依存ロック厳密再現が必要な場合は事前に `npm ci` / `npm --prefix mcp ci`。実体チェーンは [§3.3](#quality-local-detail)）
 - [ ] `markdownlint`: 該当 Markdown に問題なし（Husky pre-commit と整合）
 - [ ] MCP: `npm run check` 相当でエラーなし（該当する場合）
 - [ ] テスト: `npm --prefix mcp test` および `npm run test:ace-scripts`（該当する場合）がパス
