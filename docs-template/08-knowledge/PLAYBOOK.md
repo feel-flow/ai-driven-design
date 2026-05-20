@@ -1,6 +1,6 @@
 ---
 title: "PLAYBOOK"
-version: "1.23.0"
+version: "1.24.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-20"
@@ -536,7 +536,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #395 / Issue #296  |
 | Related    | ACE-013（補強）       |
 | Date       | 2026-05-06            |
-| Helpful    | 1                     |
+| Helpful    | 2                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1386,7 +1386,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | documentation-quality                                                 |
 | Origin     | PR #437 / Issue #433-#436                                             |
 | Date       | 2026-05-20                                                            |
-| Helpful    | 0                                                                     |
+| Helpful    | 1                                                                     |
 | Harmful    | 0                                                                     |
 | Status     | active                                                                |
 | Related    | [ACE-016](#ace-016)（anchor URL 欠落）/ [ACE-044](#ace-044) carve-out |
@@ -1405,6 +1405,13 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 ---
 
 ## Changelog
+
+### [1.24.0] - 2026-05-20
+
+#### 更新
+
+- ACE-016（anchor link は label と URL の両方に書く）Helpful: 1 → 2 — PR #438 で `.github/ISSUE_TEMPLATE/bug.md` L32（`[PATTERNS.md#エラーハンドリング](.../PATTERNS.md)`）と `infra.md` L26（`[ARCHITECTURE.md#インフラ](.../ARCHITECTURE.md)`）の「ラベルに `#anchor` を含むのに URL 側にフラグメント欠落」パターンを **Copilot review が「ACE-016 で言及されているパターン」と PLAYBOOK エントリ名を明示引用して指摘** した事例。Gemini Code Assist も独立に同じ 2 箇所 + `feature.md` L22/L23 の placeholder 形 `#該当セクション` を medium 指摘し、AI レビューワー（Copilot/Gemini）が PLAYBOOK を内化して同パターンを継続検出する運用が確立
+- ACE-046（PR/Issue body 内の相対リンクは絶対 URL 化）Helpful: 0 → 1 — PR #437（PR テンプレ 4 箇所）と同一の `blob/HEAD/` 絶対 URL 化方針を PR #438 で `.github/ISSUE_TEMPLATE/` 配下 16 箇所に **機械的に再適用** した事例。`grep -rn '\.\./\.\./docs' .github/ISSUE_TEMPLATE/` → 0 件 / `grep -rn 'blob/HEAD/' .github/ISSUE_TEMPLATE/` → 16 件で受け入れ条件を実証ベースで確認し、子 Issue #436 を一発でクローズ。同一知見が複数 PR（#437 と #438）で再利用された事例として補強
 
 ### [1.23.0] - 2026-05-20
 
