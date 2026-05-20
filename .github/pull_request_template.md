@@ -12,7 +12,7 @@
 - [ ] 201〜400 行 — ⚠️ レビュー見落としリスク増加（理由を Summary に記載）
 - [ ] 401 行以上 — 🚨 原則として分割推奨（分割不可の理由 / レビュー観点ガイドを以下に記載）
 
-> **目安**: 1 機能あたり 200 行以下を推奨。400 行を超える場合はマージ前に分割を検討するか、分割困難な場合は **レビュー観点ガイド**（読む順序・前提コンテキスト・重点確認箇所）を Summary に明記する。詳細: [docs/AI_GIT_WORKFLOW.md#ステップ6-pr作成](../docs/AI_GIT_WORKFLOW.md#ステップ6-pr作成)。
+> **目安**: 1 機能あたり 200 行以下を推奨。400 行を超える場合はマージ前に分割を検討するか、分割困難な場合は **レビュー観点ガイド**（読む順序・前提コンテキスト・重点確認箇所）を Summary に明記する。詳細: [docs/AI_GIT_WORKFLOW.md#ステップ6-pr作成](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/AI_GIT_WORKFLOW.md#ステップ6-pr作成)。
 
 ## Changes
 
@@ -25,7 +25,7 @@
 
 ## Self-Review Results
 
-- [ ] **ローカル品質ゲート**: `npm run quality:local` を **PR 提出前** に実行し、**失敗がない** ことを確認した（依存ロック厳密再現が必要な場合は事前に `npm ci` / `npm --prefix mcp ci`。実体チェーンは [`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` §3.3](../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#quality-local-detail)）
+- [ ] **ローカル品質ゲート**: `npm run quality:local` を **PR 提出前** に実行し、**失敗がない** ことを確認した（依存ロック厳密再現が必要な場合は事前に `npm ci` / `npm --prefix mcp ci`。実体チェーンは [`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` §3.3](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#quality-local-detail)）
 - [ ] `markdownlint`: 該当 Markdown に問題なし（Husky pre-commit と整合）
 - [ ] MCP: `npm run check` 相当でエラーなし（該当する場合）
 - [ ] テスト: `npm --prefix mcp test` および `npm run test:ace-scripts`（該当する場合）がパス
@@ -51,7 +51,7 @@
 - [ ] 型安全性を確保（該当する場合）
 - [ ] リンク切れがない
 
-## 配布境界チェック（[DESIGN_PRINCIPLES.md](../docs/DESIGN_PRINCIPLES.md) P2/P3）
+## 配布境界チェック（[DESIGN_PRINCIPLES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/DESIGN_PRINCIPLES.md) P2/P3）
 
 > `docs-template/` 配下を変更している PR では必ず確認。それ以外は該当なしで OK。
 
