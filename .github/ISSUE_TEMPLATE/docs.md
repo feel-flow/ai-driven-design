@@ -24,7 +24,7 @@ assignees: ''
 
 > **必須参照**: MASTER
 
-- [ ] [MASTER.md](../../docs-template/MASTER.md)
+- [ ] [MASTER.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/MASTER.md)
 
 > **対象文書**
 

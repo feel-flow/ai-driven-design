@@ -18,14 +18,14 @@ assignees: ""
 
 > **必須参照**: MASTER, ARCHITECTURE, DOMAIN
 
-- [ ] [MASTER.md](../../docs-template/MASTER.md)
-- [ ] [ARCHITECTURE.md#該当セクション](../../docs-template/02-design/ARCHITECTURE.md)
-- [ ] [DOMAIN.md#該当セクション](../../docs-template/02-design/DOMAIN.md)
+- [ ] [MASTER.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/MASTER.md)
+- [ ] [ARCHITECTURE.md#該当セクション](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md)
+- [ ] [DOMAIN.md#該当セクション](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/DOMAIN.md)
 
 > **推奨参照**: PATTERNS, TESTING
 
-- [ ] [PATTERNS.md](../../docs-template/03-implementation/PATTERNS.md)
-- [ ] [TESTING.md](../../docs-template/04-quality/TESTING.md)
+- [ ] [PATTERNS.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/03-implementation/PATTERNS.md)
+- [ ] [TESTING.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/04-quality/TESTING.md)
 
 ## 関連Issue
 
@@ -61,7 +61,7 @@ assignees: ""
 - DEPLOYMENT.md（インフラ変更なし）
 - [その他、今回やらないこと]
 
-## 撤退コスト試算（[DESIGN_PRINCIPLES.md](../../docs/DESIGN_PRINCIPLES.md) P5）
+## 撤退コスト試算（[docs/DESIGN_PRINCIPLES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/DESIGN_PRINCIPLES.md) P5）
 
 > 新機能・新ツール・新インフラを導入する Issue では、**「採用しないことになった場合に削除対象となる範囲」を着手前に見積もる**。撤退コスト > 採用メリット × 期待値 なら採用しない判断が正しい。
 
