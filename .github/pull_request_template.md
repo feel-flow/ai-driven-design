@@ -25,7 +25,7 @@
 
 ## Self-Review Results
 
-- [ ] **ローカル品質ゲート**: `npm run quality:local` を **PR 提出前** に実行し、**失敗がない** ことを確認した（依存ロック厳密再現が必要な場合は事前に `npm ci` / `npm --prefix mcp ci`。実体チェーンは [`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` §3.3](../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md)）
+- [ ] **ローカル品質ゲート**: `npm run quality:local` を **PR 提出前** に実行し、**失敗がない** ことを確認した（依存ロック厳密再現が必要な場合は事前に `npm ci` / `npm --prefix mcp ci`。実体チェーンは [`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` §3.3](../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#quality-local-detail)）
 - [ ] `markdownlint`: 該当 Markdown に問題なし（Husky pre-commit と整合）
 - [ ] MCP: `npm run check` 相当でエラーなし（該当する場合）
 - [ ] テスト: `npm --prefix mcp test` および `npm run test:ace-scripts`（該当する場合）がパス

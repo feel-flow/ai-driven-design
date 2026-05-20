@@ -65,18 +65,18 @@ PR マージ後の `/ace-curate` 手動実行を、**別プロセスの subagent
 
 ### 利用可能なコマンド
 
-| コマンド                             | 説明                                                                                                                                                                               |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run setup`                      | 依存関係インストール + MCP サーバービルド                                                                                                                                          |
-| `npm run validate`                   | コア7文書の存在と構造の検証                                                                                                                                                        |
-| `npm run check`                      | MCP サーバーの動作確認                                                                                                                                                             |
-| `npm run build:mcp`                  | MCP サーバーのビルド                                                                                                                                                               |
-| `npm run quality:local`              | PR 前のローカル品質ゲート（`npm ci` / `mcp ci` は含まない。実体チェーンは [`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md`](./docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) §3.3 参照） |
-| `npm run lint:md`                    | markdownlint（従来 CI と同条件のパス指定）                                                                                                                                         |
-| `npm run format:md`                  | Markdown を Prettier で整形（`docs/`、`docs-template/`、ルート `*.md`）                                                                                                            |
-| `npm run format:md:check`            | Markdown が Prettier 整形済みかを検査（CI / pre-commit 用）                                                                                                                        |
-| `npm run setup:labels`               | GitHub ラベルの自動セットアップ                                                                                                                                                    |
-| `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ                                                                                                                                              |
+| コマンド                             | 説明                                                                                                                                                                                                                 |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run setup`                      | 依存関係インストール + MCP サーバービルド                                                                                                                                                                            |
+| `npm run validate`                   | コア7文書の存在と構造の検証                                                                                                                                                                                          |
+| `npm run check`                      | MCP サーバーの動作確認                                                                                                                                                                                               |
+| `npm run build:mcp`                  | MCP サーバーのビルド                                                                                                                                                                                                 |
+| `npm run quality:local`              | PR 前のローカル品質ゲート（`npm ci` / `npm --prefix mcp ci` は含まない。実体チェーンは [`docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` §3.3](./docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#quality-local-detail) 参照） |
+| `npm run lint:md`                    | markdownlint（従来 CI と同条件のパス指定）                                                                                                                                                                           |
+| `npm run format:md`                  | Markdown を Prettier で整形（`docs/`、`docs-template/`、ルート `*.md`）                                                                                                                                              |
+| `npm run format:md:check`            | Markdown が Prettier 整形済みかを検査（CI / pre-commit 用）                                                                                                                                                          |
+| `npm run setup:labels`               | GitHub ラベルの自動セットアップ                                                                                                                                                                                      |
+| `bash scripts/setup-multi-review.sh` | Multi-CLI Review Agent のセットアップ                                                                                                                                                                                |
 
 品質ゲートの全体像・リリース手動フローは [docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](./docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) を参照してください。
 
