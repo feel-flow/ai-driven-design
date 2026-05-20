@@ -79,7 +79,7 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 エントリ一覧セクションの末尾（`## Changelog` の直前）に新エントリを追記:
 
 ```markdown
-<a id="ace-xxx"></a>
+<a id="ace-XXX"></a>
 
 ### ACE-XXX: [タイトル]
 
