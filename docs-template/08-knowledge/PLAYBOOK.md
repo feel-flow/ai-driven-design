@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.19.0"
+version: "1.20.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-20"
 owner: "@fffokazaki"
-ace_entry_count: 41
+ace_entry_count: 42
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -184,7 +184,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category   | process           |
 | Origin     | PR #316 / PR #319 |
 | Date       | 2026-03-10        |
-| Helpful    | 3                 |
+| Helpful    | 4                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -481,7 +481,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #391 / PR #393 / Issue #295 |
 | Related    | ACE-005（補強）                |
 | Date       | 2026-05-06                     |
-| Helpful    | 1                              |
+| Helpful    | 2                              |
 | Harmful    | 0                              |
 | Status     | active                         |
 
@@ -591,7 +591,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #397 / Issue #396  |
 | Related    | ACE-014 / ACE-015     |
 | Date       | 2026-05-06            |
-| Helpful    | 1                     |
+| Helpful    | 2                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1084,7 +1084,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #420           |
 | Related    | ACE-021 / ACE-034 |
 | Date       | 2026-05-19        |
-| Helpful    | 1                 |
+| Helpful    | 2                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -1261,7 +1261,47 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-042"></a>
+
+### ACE-042: テンプレファイル内の同一概念 placeholder は同一シンボル + 大文字で統一する — `XXX`/`NNN`/`xxx` 混在は AI/人のコピペ後置換漏れによる silent rot を誘発する
+
+| フィールド | 値                          |
+| ---------- | --------------------------- |
+| Category   | documentation               |
+| Origin     | PR #428 / Issue #425        |
+| Related    | ACE-014 / ACE-024 / ACE-040 |
+| Date       | 2026-05-20                  |
+| Helpful    | 0                           |
+| Harmful    | 0                           |
+| Status     | active                      |
+
+**Insight**: テンプレファイル内で同一概念の placeholder を `XXX`（heading 大文字）/ `xxx`（anchor 小文字）/ `NNN`（guideline 別シンボル）と書き分けると、AI / 人がコピペ後に片方の置換だけ忘れて anchor が壊れる silent rot を誘発する。anchor は ID 文字列の見た目が本物と区別しにくく、`ace-xxx` のまま残っても見落とされやすい。同一概念は **1 文書内で 1 シンボル + 大文字（`XXX` / `NNN` 等「明らかに置換しろ」と読める形）に統一** する。
+
+**Context**: PR #428（Issue #425 anchor 化）で PLAYBOOK.md エントリテンプレに `<a id="ace-xxx"></a>`（lowercase）+ heading `### ACE-XXX:`（uppercase）+ guideline `<a id="ace-NNN"></a>`（uppercase N）の 3 種類の placeholder symbol を混在させた。Copilot review が「コピペ時に `ace-xxx` のまま残り `#ace-001` 等の参照と不一致になる silent rot リスク」を検出。post-merge で Gemini code-assist も別観点（「`NNN` の主語が不明確で `ace-001` 全体を指すかのように読める」）から独立に同じ placeholder 曖昧さを指摘。複数 AI が異なる切り口から同種の構造問題を検出した（[ACE-001](#ace-001) 系の補強）。
+
+**Action**:
+
+1. **同一概念は 1 文書内で同じシンボルに統一**: 「3 桁置換ターゲット」を `XXX` か `NNN` か 1 つに揃える。3 種類混ぜない
+2. **シンボルは大文字 + 連続 (`XXX` / `NNN` / `YYY`)**: 小文字 `xxx` は実在の anchor `ace-xxx` と見た目が区別できず誤コピペを誘発する。大文字連続は「明らかに置換せよ」のシグナルとして強い
+3. **置換ルールを placeholder の直近に明記**: 「`XXX` は 3 桁数字に置換」と動詞形で書く。「`XXX` は 3 桁ゼロパディング」だけだと、`XXX` が完全形 `ace-001` を指すかと曲解される（Gemini が独立指摘した構造）
+4. **複数文書に同じ placeholder 規則を書くなら 1 箇所を SSOT 化、他はポインタ**: 重複させると 1 箇所だけ更新する drift 事故が起きる（[ACE-014](#ace-014) の系。PR #428 では 4 文書重複を Toolkit comment-analyzer が検出）
+
+---
+
 ## Changelog
+
+### [1.20.0] - 2026-05-20
+
+#### 追加
+
+- ACE-042: テンプレファイル内の同一概念 placeholder は同一シンボル + 大文字で統一する — PR #428 で `<a id="ace-xxx">` / `### ACE-XXX:` / `<a id="ace-NNN">` の 3 種混在を Copilot + Gemini が独立に placeholder rot リスク / 主語曖昧さの異なる切り口で検出した経験から抽出
+
+#### 更新
+
+- ACE-001（クロスモデルレビュー）Helpful: 3 → 4 — PR #428 で Toolkit code-reviewer（Changelog 同期違反 + 表セル幅）/ Toolkit comment-analyzer（SSOT 違反 4 ファイル）/ Copilot（placeholder 符号統一）/ Gemini（主語曖昧さ）の 4 モデルが互いに重ならない構造問題を独立検出
+- ACE-014（索引と実体の SSOT 集約）Helpful: 1 → 2 — PR #428 で 2 種類の SSOT 違反を同時検出（(a) 同じ anchor 命名規則を 4 文書に重複、(b) frontmatter `version` を bump して Changelog 項目を追加し忘れた索引-実体の同期漏れ）
+- ACE-018（横断 grep で SSOT 列挙）Helpful: 1 → 2 — PR #428 で受入基準 2 文書だけ列挙したが advisor が「実 mutation point である `.claude/commands/ace-curate.md` の anchor テンプレも更新しないと silent rot」と指摘 → enforcement 点列挙が不足していた事例
+- ACE-035（ドッグフード + advisor）Helpful: 1 → 2 — PR #428 で着手後 advisor を呼び、(a) ace-curate.md の mutation point ギャップ、(b) implementation-notes 取り扱い、(c) anchor の手動 navigation 検証必要性 の 3 件を pre-substantive で発見
 
 ### [1.19.0] - 2026-05-20
 
