@@ -70,26 +70,28 @@ npm run check
 npm --prefix mcp test
 npm run test:ace-scripts
 npm run validate -- docs-template
+npm run build:spec-index
 npm run lint:md
 ```
 
-| 手順                                | 根拠（スクリプト定義先）                                |
-| ----------------------------------- | ------------------------------------------------------- |
-| `npm ci`                            | ルート。ロックファイルに従いルート依存を再現。          |
-| `npm --prefix mcp ci`               | `mcp/package.json`。MCP サーバー側の `npm ci`。         |
-| `npm run build:mcp`                 | ルート → `npm --prefix mcp run build`（MCP ビルド）。   |
-| `npm run check`                     | ルート → `mcp` の `check`（ビルド＋`--check`）。        |
-| `npm --prefix mcp test`             | `mcp` の Vitest。                                       |
-| `npm run test:ace-scripts`          | ルート、ルート `vitest run`（ACE スクリプト用テスト）。 |
-| `npm run validate -- docs-template` | ルート `validate` に `docs-template` 引数。             |
-| `npm run lint:md`                   | ルート、`markdownlint-cli2` 対象パスを指定。            |
+| 手順                                | 根拠（スクリプト定義先）                                                                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm ci`                            | ルート。ロックファイルに従いルート依存を再現。                                                                                                             |
+| `npm --prefix mcp ci`               | `mcp/package.json`。MCP サーバー側の `npm ci`。                                                                                                            |
+| `npm run build:mcp`                 | ルート → `npm --prefix mcp run build`（MCP ビルド）。                                                                                                      |
+| `npm run check`                     | ルート → `mcp` の `check`（ビルド＋`--check`）。                                                                                                           |
+| `npm --prefix mcp test`             | `mcp` の Vitest。                                                                                                                                          |
+| `npm run test:ace-scripts`          | ルート、ルート `vitest run`（ACE スクリプト用テスト）。                                                                                                    |
+| `npm run validate -- docs-template` | ルート `validate` に `docs-template` 引数。                                                                                                                |
+| `npm run build:spec-index`          | ルート → `node scripts/build-spec-index.mjs`。`docs/specs/**` 検証＋索引生成（不在時は specs=0 で `dist/spec-index.json` を空索引として書き出し exit 0）。 |
+| `npm run lint:md`                   | ルート、`markdownlint-cli2` 対象パスを指定。                                                                                                               |
 
-**注**: ルートの `package.json` に `format:md` は**存在しません**（本設計のコマンド表および移行手順の記述では参照しません。README 等の古い表記の是正は「更新が必要なドキュメント」で扱います）。
+**注**: ルートの `package.json` には `format:md`（Prettier 書き込み）/ `format:md:check`（Prettier 検査）が存在するが、本 §3.2 は **旧 `ci.yml` のステップ順** を再現するセクションのため列挙していない（旧 `ci.yml` には Prettier ステップが含まれていなかった）。**`quality:local` の実体には `format:md:check` が含まれる**（§3.3 参照）。
 
 ### 3.3 `quality:local` npm スクリプト（実装済み）
 
 - **ルート `package.json`**: `quality:local` は **3.2 と同順**だが、**`npm ci` および `npm --prefix mcp ci` を含まない**（日々の実行時間を抑える。ロックファイル厳密再現が必要なときは手動で 3.2 冒頭の 2 ステップを先に実行する）。
-- **中身の順序**: `build:mcp` → `check` → `mcp test` → `test:ace-scripts` → `validate -- docs-template` → `lint:md`。
+- **中身の順序**: `build:mcp` → `check` → `mcp test` → `test:ace-scripts` → `validate -- docs-template` → `build:spec-index` → `format:md:check` → `lint:md`。
 - **合意事項**: 3.2 の意図を破壊的に変えない（意図的な手順変更を除く）。
 
 ### 3.4 markdownlint（補足）
