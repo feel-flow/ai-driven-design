@@ -65,6 +65,12 @@ GitHub Discussions は **人間が読むためのナラティブ（物語的記�
 | 形式     | 構造化テーブル + 短文      | 自由記述               |
 | 更新頻度 | 毎回のマージ後・cleanup 後 | 重要な知見のみ         |
 
+### Playbook エントリの anchor 規則
+
+- 新規エントリには見出し直前に `<a id="ace-NNN"></a>` を 1 行付与する（小文字 + ハイフン + 3 桁ゼロパディング）。
+- 他ドキュメントからの参照は `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式に統一する（PLAYBOOK.md は 1000 行超のためファイルレベル参照ではジャンプできない）。
+- 詳細手順は [ace-cycle.md Phase 3](./ace-cycle.md) を参照。
+
 詳細: [ace-cycle.md](./ace-cycle.md)
 
 マージ後のキャプチャを **人手から切り離す** 場合は、[ace-autonomous.md](./ace-autonomous.md) の autonomous パターン（feature flag・garden wall・shadow 運用）を参照してください。

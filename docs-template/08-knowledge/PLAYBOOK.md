@@ -1,6 +1,6 @@
 ---
 title: "PLAYBOOK"
-version: "1.18.0"
+version: "1.19.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-20"
@@ -72,6 +72,8 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 新しいエントリを追記する際は、以下のテンプレートを使用してください：
 
 ```markdown
+<a id="ace-xxx"></a>
+
 ### ACE-XXX: [タイトル（簡潔で検索しやすい表現）]
 
 | フィールド | 値                                                                                    |
@@ -92,6 +94,8 @@ GitHub Discussions が「人間が読むためのナラティブ（物語的記�
 
 ### 記述ガイドライン
 
+- **anchor**: 各エントリは見出し直前に `<a id="ace-NNN"></a>` を 1 行付与する。`NNN` は小文字 + ハイフン + 3 桁ゼロパディング（例: `ace-001`, `ace-034`）。これにより他ドキュメントから `[ACE-034](path/to/PLAYBOOK.md#ace-034)` 形式で**特定エントリに直接ジャンプ可能**になる（PLAYBOOK.md は 1000 行を超えるためファイルレベル参照ではジャンプできない）。
+- **参照リンク形式**: 他ドキュメントから ACE エントリを参照する場合は `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式に統一する。`[PLAYBOOK ACE-NNN]` / `[PLAYBOOK.md ACE-NNN]` 等の異なる label は使わない（[ACE-024](#ace-024) 用語統一の系）。
 - **Insight**: 「何を学んだか」を簡潔に。1-2文。
 - **Context**: 「どんな状況で発見したか」を記述。再現条件が明確であるほど価値が高い。
 - **Action**: 「次回何をすべきか」を具体的に。コード例があると AIツールが直接適用しやすい。
@@ -151,6 +155,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 <!-- ここから下にエントリを追記してください。最新のエントリが末尾になるように追記します。 -->
 <!-- 追記例:
+<a id="ace-001"></a>
+
 ### ACE-001: N+1クエリの発生パターンと防止策
 
 | フィールド | 値 |
@@ -168,6 +174,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 **Action**: 一覧取得時は `include` オプションで関連を一括取得する。`findMany({ include: { organization: true } })`
 -->
+
+<a id="ace-001"></a>
 
 ### ACE-001: クロスモデルレビューは単一AIモデルでは検出できない問題を発見する
 
@@ -188,6 +196,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-002"></a>
+
 ### ACE-002: CLIフラグは実機の --help 出力と照合が必須
 
 | フィールド | 値                   |
@@ -206,6 +216,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 **Action**: CLI ツールのフラグを記述する際は、(1) `command --help` で実機確認、(2) 公式リポジトリの README/docs と照合、(3) 可能なら `--dry-run` 等で動作確認、の3ステップを必ず実施する。
 
 ---
+
+<a id="ace-003"></a>
 
 ### ACE-003: bash スクリプトは macOS デフォルト環境（bash 3.2）でテストする
 
@@ -226,6 +238,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-004"></a>
+
 ### ACE-004: ドキュメントの動作説明は実装メカニズムと一致させる
 
 | フィールド | 値         |
@@ -244,6 +258,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 **Action**: ドキュメントに動作説明を書く際は、(1) 実装コード/設定ファイルで実際の動作を確認、(2) 記載するコマンドは実在を検証（`package.json`のscripts、`--help`出力等）、(3) 「自動」「手動」等の表現は実装メカニズムに基づいて正確に選択する。
 
 ---
+
+<a id="ace-005"></a>
 
 ### ACE-005: 索引と実体を分離する委譲パターンでAIコンテキスト消費を抑える
 
@@ -264,6 +280,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-006"></a>
+
 ### ACE-006: サンプル付きテンプレファイルには⚠️SAMPLEバナーと固有化手順を必ず併設する
 
 | フィールド | 値                   |
@@ -282,6 +300,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 **Action**: docs-template に具体例（コードパス、ドメイン名、実装名）を含む新規テンプレファイルを追加する際は: (1) ファイル冒頭に `> ⚠️ **SAMPLE — テンプレートです**` 引用ブロックと書き換え案内を配置、(2) 末尾に「プロジェクト固有化の手順」セクション（番号付き手順 + frontmatter の `created/updated/owner` 置換まで含める）を配置、(3) 該当しない分岐・セクションは「**該当セクションごと削除してよい**」と明記、(4) 該当する失敗モード（採用後にサンプルのまま残る等）を仕様書側にリストアップしておく。
 
 ---
+
+<a id="ace-007"></a>
 
 ### ACE-007: Claude Code skill 内のツール参照は名称・subagent_type を実機 / system prompt で照合する
 
@@ -302,6 +322,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-008"></a>
+
 ### ACE-008: クロスリポジトリ操作する skill は全 gh コマンドに `--repo` 必須・mention は `@<assignee>` を使う
 
 | フィールド | 値                   |
@@ -321,6 +343,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-009"></a>
+
 ### ACE-009: 長時間 Orchestrator の失敗の真因は upstream Issue spec 曖昧さ — 探索型 refine が必要
 
 | フィールド | 値                   |
@@ -339,6 +363,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 **Action**: 「AI agent が信頼できない / 完遂率が低い」と感じたら、(1) agent 自体の改善より先に、与えている入力データ (Issue / spec / プロンプト) の品質を疑う、(2) upstream に「入力を磨く skill」を置けないか検討する、(3) ブレストで「真因が一段下のレイヤーにある」可能性を必ず一度は検証する、(4) MVP は upstream の単一 skill に絞り、Orchestrator ループ等は動作確認後に後付けする路線が安全（空回りを高速化するリスクを避ける）。
 
 ---
+
+<a id="ace-010"></a>
 
 ### ACE-010: Issue クローズ前は commit log でなく現在のファイル実体を grep 照合する — silent regression を検出する
 
@@ -363,6 +389,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 4. **AI エージェントが「クローズ判断」のような shared state 操作を行う前に advisor / 別 agent に検証させる** — 大規模リポジトリで commit メッセージだけで判断するのはハイリスク。
 
 ---
+
+<a id="ace-011"></a>
 
 ### ACE-011: Prettier × markdownlint MD060 衝突は当該テーブルだけに `<!-- prettier-ignore -->` を付与する局所抑制で解く
 
@@ -389,6 +417,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-012"></a>
+
 ### ACE-012: PR マージ・push 前は必ず `git status` でブランチを確認する（develop 直 push 事故防止）
 
 | フィールド | 値                             |
@@ -414,6 +444,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-013"></a>
+
 ### ACE-013: 並列 reviewer の指摘は古い snapshot 由来の誤検知を含む — 実態 grep で双方向検証する
 
 | フィールド | 値                             |
@@ -438,6 +470,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 5. **逆方向の罠も警戒**: 「Toolkit が指摘していないから OK」と思い込まず、自分の追記内容（特にテンプレート実態に関する主張）は `ls` / `cat` で実物を確認してから書く。**書きながら一度実物を見る**を習慣にする。
 
 ---
+
+<a id="ace-014"></a>
 
 ### ACE-014: 索引文書は SSOT を子に集約し、自身は誘導と 1 行サマリのみ — 数値の重複は持たない
 
@@ -465,6 +499,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-015"></a>
+
 ### ACE-015: 表を導入したら散文の主張を表に対して再読する — 「N 段階」「太字の領域」型の自己矛盾は人手レビューで見落とされる
 
 | フィールド | 値                    |
@@ -489,6 +525,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 5. **数値境界は排他的整数で書く**: 「200 行以下 / 200〜400 / 400 超」のような両端重複ではなく「200 行以下 / 201〜400 / 401 行以上」のように境界が排他になる書き方を使う（boundary inclusivity の曖昧さも自己矛盾の一種）。
 
 ---
+
+<a id="ace-016"></a>
 
 ### ACE-016: Markdown の anchor link は label と URL の両方にフラグメントを書く — `\[text#anchor\]\(url\)` 形式は無効
 
@@ -516,6 +554,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-017"></a>
+
 ### ACE-017: 並列 review agent は worktree を巻き戻す副作用を持ち得る — `git status` 監視と `git restore --source=HEAD` で復旧する
 
 | フィールド | 値                   |
@@ -540,6 +580,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 5. **`git reset --hard` を含む destructive 操作の禁止周知**: agent prompt に「**`git reset --hard` / `git restore --source=<base>` / `git checkout <base> -- .` は実行禁止。read-only 操作（`git diff`, `git show`, `git log`）に限定する**」と明記する。レビュー目的ならどの操作も destructive 不要。
 
 ---
+
+<a id="ace-018"></a>
 
 ### ACE-018: 横断的な番号・順序変更は着手前に grep で全 SSOT を列挙する
 
@@ -572,6 +614,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-019"></a>
+
 ### ACE-019: 既存ルール違反になる新パターンは「例外」として明示的に名乗らせる
 
 | フィールド | 値                   |
@@ -601,6 +645,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-020"></a>
+
 ### ACE-020: 自動コンテンツ生成ツールは自身のマーカー文字列を本文に含むドキュメントを破壊する
 
 | フィールド | 値                   |
@@ -626,6 +672,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 5. **post-merge / pre-commit など強制実行系に ship する前に dry-run モードを通す**: 自動化に組み込む前に、`--dry-run` で全対象ファイルへの想定変更を出力して目視レビューする。lint フックや husky に直接組み込んだ後はバグの被害が回復しにくい。
 
 ---
+
+<a id="ace-021"></a>
 
 ### ACE-021: テンプレ配布リポでは「リポ自身が使うインフラ」と「テンプレ利用者が受け取る成果物」を物理的に分離する
 
@@ -653,6 +701,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-022"></a>
+
 ### ACE-022: 機能削除時は consumer だけでなく定数・型・ユーティリティも grep して取り残しを防ぐ
 
 | フィールド | 値                   |
@@ -679,6 +729,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-023"></a>
+
 ### ACE-023: ドキュメント中の事実主張（PR/Issue 番号・ハッシュ・数値）は執筆時に 1 次情報で照合する
 
 | フィールド | 値                    |
@@ -702,6 +754,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 3. **数値**: `gh pr view <N> --json additions,deletions,changedFiles` で 1 次情報取得、または `git show --stat <merge-commit>`
 
 ---
+
+<a id="ace-024"></a>
 
 ### ACE-024: SSOT で確立した用語を再利用する前に既存定義との衝突を確認する
 
@@ -729,6 +783,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 
 ---
 
+<a id="ace-025"></a>
+
 ### ACE-025: スクリプトの「対象範囲」を文書化するときは glob 表現ではなく実装上の対象列挙方式まで踏み込む
 
 | フィールド | 値                    |
@@ -754,6 +810,8 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 5. **glob と固定リストの混在に注意**: 「対象は `docs/**/*.md` だが、一部除外あり」のようなパターンは特に誤解されやすいので除外ルールも明記
 
 ---
+
+<a id="ace-026"></a>
 
 ### ACE-026: 同名関数が複数ファイルに併存する場合は機能対応表で並列説明する
 
@@ -787,6 +845,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-027"></a>
+
 ### ACE-027: 配布対象ファイル内の行番号 hard-coded 参照は採用後に即陳腐化するため heading anchor 化する
 
 | フィールド | 値                    |
@@ -812,6 +872,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 5. **GitHub Markdown の anchor slug ルールを把握**: 日本語見出しは小文字化されず空白は `-` に変換、特殊文字は除去される。`#プロジェクト識別情報` のように見出し文字列そのままで動く
 
 ---
+
+<a id="ace-028"></a>
 
 ### ACE-028: 外部ツールの「現状」仕様を書くときは公式ドキュメントを WebFetch / WebSearch で必ず照合する
 
@@ -839,6 +901,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-029"></a>
+
 ### ACE-029: 外部ツール依存物（shell script の依存コマンド、shebang、インストーラオプション）を文書化するときは実体を読んで列挙する
 
 | フィールド | 値                    |
@@ -864,6 +928,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 5. **未検証の主張は弱める**: 「Windows + Git Bash で `/merge-cleanup` も動く」のような実機検証していない主張は、「⚠️ 大半は動作（未検証）」のように記号と注釈で正直に表現
 
 ---
+
+<a id="ace-030"></a>
 
 ### ACE-030: 対応表で `⚠️` を多用したら判定軸自体が間違っているサイン
 
@@ -891,6 +957,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-031"></a>
+
 ### ACE-031: ドキュメントを書くときは配布境界に基づいて「想定読者」を意識する（採用者向け / コントリビューター向け / リポメンテナ向け）
 
 | フィールド | 値                    |
@@ -916,6 +984,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 5. **採用者向けドキュメントは「採用後にも参照される運用ガイド」「採用前に読む手順書（frontmatter なし）」に分ける**: 後者は `docs-template/README.md:121` で「frontmatter を持たないテンプレ」として明示されている
 
 ---
+
+<a id="ace-032"></a>
 
 ### ACE-032: 機能撤去型の改稿後は、残った value 主張・周辺記述・論理連鎖が全て成立しているか改めて読み直す
 
@@ -943,6 +1013,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-033"></a>
+
 ### ACE-033: 対応表で全行 / 全 cell が uniform になったら、表自体が情報を持っていないサイン
 
 | フィールド | 値                    |
@@ -968,6 +1040,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 5. **撤去 PR で特に発生しやすい**: 機能撤去で表の行・列が減ったら、残った表が uniform になっていないか必ず確認（ACE-032 と連動）
 
 ---
+
+<a id="ace-034"></a>
 
 ### ACE-034: 実装中は implementation-notes.md を作業ブランチに並走させて spec 乖離・トレードオフ・判断理由を捕捉する
 
@@ -1000,6 +1074,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-035"></a>
+
 ### ACE-035: 新規 process パターンを Playbook に追加するときは「ドッグフード + advisor / second opinion」で運用上の構造問題を検出する
 
 | フィールド | 値                |
@@ -1024,6 +1100,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 4. **構造問題が見つかったら pivot 経緯を implementation-notes.md に記録**: pivot 自体が ACE Phase 1 の raw material になる（ACE-034 と組み合わせる）
 
 ---
+
+<a id="ace-036"></a>
 
 ### ACE-036: 外部知見（SNS / ブログ / 社内 wiki）を Playbook に取り込む前に既存 ACE エントリ全件と grep 照合する
 
@@ -1050,6 +1128,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-037"></a>
+
 ### ACE-037: ACE エントリの新規追加は対応する運用手順（workflow / self-review / ace-cycle）への組み込みを同 PR で済ませる
 
 | フィールド | 値                          |
@@ -1074,6 +1154,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 4. **PR レビューで「運用手順との整合性」指摘が出たら本 Insight の発動サイン**: 「組み込み忘れ」ではなく「組み込み計画段階の漏れ」として再発防止を考える（実装後の追記ではなく Issue 段階で判定する）
 
 ---
+
+<a id="ace-038"></a>
 
 ### ACE-038: 「データ収集待ち」を要求する受入基準でも、ロールバック容易な変更は先行実装 + 試行中ステータス明記でフィードバックループを早める
 
@@ -1100,6 +1182,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-039"></a>
+
 ### ACE-039: AI プロンプトテンプレに「分析観点リスト」と「分類カテゴリリスト」が並存する場合、新観点追加時はカテゴリ対応を観点側に明記する
 
 | フィールド | 値                |
@@ -1124,6 +1208,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-040"></a>
+
 ### ACE-040: AI プロンプトテンプレ内で同概念を複数の語で表現すると AI 出力品質が下がる — 一次定義（SSOT）の語彙に統一する
 
 | フィールド | 値                |
@@ -1147,6 +1233,8 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 3. **レビュー段階で表記揺れが検出されたら、変更箇所だけでなくファイル全体を grep で確認して同 commit で統一する**: 部分修正だとレビュー後に新たな揺れが入る
 
 ---
+
+<a id="ace-041"></a>
 
 ### ACE-041: マージ後 cleanup の未追跡ファイルガードに引っかかったら、独立した chore PR で .gitignore 追加して cleanup を継続する
 

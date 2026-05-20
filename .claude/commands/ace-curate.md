@@ -79,6 +79,8 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 エントリ一覧セクションの末尾（`## Changelog` の直前）に新エントリを追記:
 
 ```markdown
+<a id="ace-xxx"></a>
+
 ### ACE-XXX: [タイトル]
 
 | フィールド | 値           |
@@ -96,6 +98,8 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 
 **Action**: [推奨アクション]
 ```
+
+**anchor 規則**: 見出し直前に `<a id="ace-NNN"></a>` を 1 行付与（`NNN` は小文字 + ハイフン + 3 桁ゼロパディング、例: `ace-042`）。他ドキュメントから `[ACE-NNN](path/to/PLAYBOOK.md#ace-nnn)` 形式で直接ジャンプ可能にする（PLAYBOOK.md 1000 行超対応、Issue [#425](https://github.com/feel-flow/ai-spec-driven-development/issues/425)）。
 
 #### 4-c. Frontmatter の更新
 

@@ -122,7 +122,7 @@ git checkout -b "feature/${ISSUE_NUM}-user-auth"
 
 #### 作業中の判断ログ: `implementation-notes.md` を並走させる
 
-実装着手と同時に **作業ブランチ直下** に `implementation-notes.md` を作成し、コミットと一緒に追記する。コミット diff には残らない「なぜこの選択をしたか / spec から変えた点 / 捨てた選択肢」を保持することで、ステップ5（Self-Review）の精度とステップ10（ACE Generate）の入力品質が上がる。詳細根拠は [PLAYBOOK ACE-034](../../08-knowledge/PLAYBOOK.md)。
+実装着手と同時に **作業ブランチ直下** に `implementation-notes.md` を作成し、コミットと一緒に追記する。コミット diff には残らない「なぜこの選択をしたか / spec から変えた点 / 捨てた選択肢」を保持することで、ステップ5（Self-Review）の精度とステップ10（ACE Generate）の入力品質が上がる。詳細根拠は [ACE-034](../../08-knowledge/PLAYBOOK.md#ace-034)。
 
 最小ひな形（コピペして使う）:
 
@@ -148,7 +148,7 @@ git checkout -b "feature/${ISSUE_NUM}-user-auth"
 
 **運用ルール**:
 
-- **書くタイミングは「気付いた瞬間」**: 後で書こうとすると確実に忘れる（[ACE-032](../../08-knowledge/PLAYBOOK.md) の発見経緯と同じ構造）
+- **書くタイミングは「気付いた瞬間」**: 後で書こうとすると確実に忘れる（[ACE-032](../../08-knowledge/PLAYBOOK.md#ace-032) の発見経緯と同じ構造）
 - **粒度は 1〜3 行**: 「なぜ A ではなく B を選んだか」を短文で残す
 - **スコープ外発見は本ファイルではなく Issue 化**: implementation-notes は「現 PR の判断ログ」、Issue は「別タスクへの分岐」と役割を分ける（[ワークフロー運用原則 原則2](./workflow-principles.md)）
 - **PR 作成時に PR description に転記**: ステップ6 でレビュアーが「なぜ」を読みやすくなる
@@ -807,7 +807,7 @@ GitHub Discussions への記録に加え、ACE Playbook への構造化記録を
 
 **チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
 
-> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[PLAYBOOK.md ACE-012](../../08-knowledge/PLAYBOOK.md)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
+> **ACE-012 の例外として明示**: 通常 develop への直接 commit は禁止（[ACE-012](../../08-knowledge/PLAYBOOK.md#ace-012)）だが、**「個人開発（簡易）」パターンに限り PLAYBOOK.md 単独追記の直接 push を例外として許容する**。理由: (1) PLAYBOOK.md は append-only で構造化されており他コミッタの追記と競合しにくい、(2) 1 サイクル分の知見追加は履歴上独立 commit として読める、(3) `knowledge:` プレフィックスで他のコミットと識別可能。コミッタ 3 人以上のリポジトリでは「チーム開発（推奨）」パターンを必須とし、この例外は適用しない。
 
 ## タスク管理（Task Tracking）
 
