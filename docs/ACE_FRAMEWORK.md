@@ -157,7 +157,7 @@ ACE サイクルは以下の3フェーズで構成される：
 
 **実行手順**:
 
-1. 次のエントリID（`ACE-{連番3桁}`）を採番
+1. エントリID を PRスコープ式（`ACE-<PR番号>-<連番>`、例 `ACE-438-1`）で採番（採番ルールは [PLAYBOOK.md §エントリID規則](../docs-template/08-knowledge/PLAYBOOK.md#エントリid規則)）
 2. Playbook のエントリ一覧セクション末尾にエントリを追記
 3. Frontmatter を更新（`version`, `updated`, `ace_entry_count`）
 4. コミット: `knowledge: ACE-XXX [category] [summary]`
