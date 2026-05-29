@@ -19,6 +19,7 @@
 ## Task 1: ツールの正規表現を新旧両形式対応に緩和（TDD）
 
 **Files:**
+
 - Modify: `docs-template/scripts/ace/check-category-size.ts:13-14`
 - Test: `docs-template/scripts/ace/check-category-size.test.ts`
 
@@ -27,8 +28,8 @@
 `check-category-size.test.ts` の `describe` ブロック内、`"ACE-1000 のように…"` の `it` の直後に以下を追加する：
 
 ```typescript
-  it("PRスコープ式 ID（ACE-438-1）と Issue 式（ACE-i425-1）もエントリとして扱う", () => {
-    const md = `
+it("PRスコープ式 ID（ACE-438-1）と Issue 式（ACE-i425-1）もエントリとして扱う", () => {
+  const md = `
 ### ACE-438-1: PRスコープ式エントリ
 
 | フィールド | 値 |
@@ -48,15 +49,15 @@
 | Origin | Issue #425 |
 `;
 
-    const result = analyzePlaybookMarkdown(md);
-    expect(result.kind).toBe("ok");
-    if (result.kind === "ok") {
-      expect(result.totalEntries).toBe(3);
-      expect(result.histogram.coding).toBe(1);
-      expect(result.histogram.testing).toBe(1);
-      expect(result.histogram.process).toBe(1);
-    }
-  });
+  const result = analyzePlaybookMarkdown(md);
+  expect(result.kind).toBe("ok");
+  if (result.kind === "ok") {
+    expect(result.totalEntries).toBe(3);
+    expect(result.histogram.coding).toBe(1);
+    expect(result.histogram.testing).toBe(1);
+    expect(result.histogram.process).toBe(1);
+  }
+});
 ```
 
 - [ ] **Step 2: テストが失敗することを確認**
@@ -95,6 +96,7 @@ git commit -m "fix: #440 ACE category checker を新旧両ID形式対応に緩�
 ## Task 2: PLAYBOOK.md を ID 規則の SSOT にする
 
 **Files:**
+
 - Modify: `docs-template/08-knowledge/PLAYBOOK.md`（§エントリID規則 L38-42, anchor ガイドライン L97, 参照リンク形式 L98）
 
 - [ ] **Step 1: §エントリID規則を PRスコープ式に書き換え**
@@ -167,6 +169,7 @@ git commit -m "docs: #440 PLAYBOOK の ID 規則を PRスコープ式に変更(S
 ## Task 3: git-workflow.md をマージ方針の SSOT にする（ACE-012 再フレーム）
 
 **Files:**
+
 - Modify: `docs-template/05-operations/deployment/git-workflow.md`（#### 運用パターン L804-810）
 
 - [ ] **Step 1: 運用パターンを反転（develop 直マージを既定の推奨に）**
@@ -194,7 +197,7 @@ L804-810 の以下のブロック：
 
 **任意エスカレーション — chore PR**: 大人数チーム、または知見内容自体をレビューに残したい場合のみ、develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。
 
-> **ACE-012 との関係（混同しないこと）**: [ACE-012](../../08-knowledge/PLAYBOOK.md#ace-012) は *うっかり* feature 作業を develop に直接 push してしまう事故（ブランチ切り替わりの見落とし）を防ぐルール。一方、本セクションの「develop 直マージ」は `knowledge:` プレフィックス付きの **PLAYBOOK 単独コミット** に限定した *意図的・承認済み* のフローであり、両者は別物。ACE-012 は引き続き有効（deprecated にしない）。
+> **ACE-012 との関係（混同しないこと）**: [ACE-012](../../08-knowledge/PLAYBOOK.md#ace-012) は _うっかり_ feature 作業を develop に直接 push してしまう事故（ブランチ切り替わりの見落とし）を防ぐルール。一方、本セクションの「develop 直マージ」は `knowledge:` プレフィックス付きの **PLAYBOOK 単独コミット** に限定した _意図的・承認済み_ のフローであり、両者は別物。ACE-012 は引き続き有効（deprecated にしない）。
 ```
 
 - [ ] **Step 2: コミット**
@@ -209,6 +212,7 @@ git commit -m "docs: #440 ACE マージ方針を develop 直マージ既定に�
 ## Task 4: ace-cycle.md を SSOT へリンク・採番手順を更新
 
 **Files:**
+
 - Modify: `docs-template/05-operations/deployment/ace-cycle.md`（運用パターン L14-22, 採番 L136-142, Phase3 例 L148-169, anchor L169）
 
 - [ ] **Step 1: 運用パターン（L14-22）を git-workflow SSOT への要約リンクに**
@@ -223,7 +227,6 @@ ACE 知見コミットのマージ方針は **[git-workflow.md ステップ10 §
 - **既定（推奨）**: develop に直接 commit + push（PLAYBOOK.md は append-only ＋ PRスコープ式 ID で衝突しない）。
 - **任意エスカレーション**: 大人数チーム / 知見レビューを残したい場合のみ `chore/ace-from-pr-<PR番号>` の小 PR。
 - ここでの develop 直 push は `knowledge:` 付き PLAYBOOK 単独コミットに限った意図的フローであり、[ACE-012](../../08-knowledge/PLAYBOOK.md#ace-012)（うっかり develop 直 push の事故防止）とは別物。
-
 ```
 
 - [ ] **Step 2: 採番手順（L136-142）を PRスコープ式に**
@@ -287,6 +290,7 @@ git commit -m "docs: #440 ace-cycle を SSOT 参照＋PRスコープ式採番に
 ## Task 5: ace-curate.md を SSOT へリンク・採番手順を更新
 
 **Files:**
+
 - Modify: `.claude/commands/ace-curate.md`（4-a 採番 L73-76, anchor L102, 運用パターン L110-133）
 
 - [ ] **Step 1: 4-a 採番（L73-76）を PRスコープ式に**
@@ -388,6 +392,7 @@ git commit -m "docs: #440 ace-curate を SSOT 参照＋PRスコープ式採番�
 ## Task 6: ACE_FRAMEWORK.md の Phase 3 採番記述を更新
 
 **Files:**
+
 - Modify: `docs/ACE_FRAMEWORK.md:160`
 
 - [ ] **Step 1: Phase 3 採番の行を書き換え**
@@ -416,6 +421,7 @@ git commit -m "docs: #440 ACE_FRAMEWORK Phase3 採番を PRスコープ式に更
 ## Task 7: 残骸スイープと品質ゲート検証
 
 **Files:**
+
 - 検証のみ（必要に応じて該当ファイルを修正）
 
 - [ ] **Step 1: 連番・3桁の残骸を grep（保護対象＝既存エントリ本文/Changelog を除く）**

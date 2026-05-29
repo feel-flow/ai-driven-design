@@ -37,16 +37,16 @@ ACE (Agentic Context Engineering) の運用ルールを 2 点改善する。
 
 ### A. ID 体系（PRスコープ式）
 
-| 項目 | 新ルール |
-| --- | --- |
-| 新形式 | `ACE-<PR番号>-<連番>`（例 `ACE-438-1`, `ACE-438-2`） |
-| 非PR由来 fallback | `ACE-i<Issue番号>-<連番>`（例 `ACE-i425-1`） |
-| anchor | `<a id="ace-438-1"></a>`（小文字・ハイフン） |
-| 相互参照 | `[ACE-438-1](path/PLAYBOOK.md#ace-438-1)` |
-| 採番方法 | 同一 PR の既存 `ACE-<PR>-*` を確認し max+1（無ければ 1）。**全体の最新 ID を読まない** |
-| 既存 ID | `ACE-001`〜`ACE-046` は改名せず、旧 3 桁形式と新形式が恒久共存 |
-| `ace_entry_count` | フィールドは維持（deprecated 含む総数）。「次 ID ＝ count+1」のショートカットは廃止 |
-| コミット規則 | `knowledge: ACE-438-1 [category] [summary]`（形式は不変、ID 表記のみ更新） |
+| 項目              | 新ルール                                                                               |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| 新形式            | `ACE-<PR番号>-<連番>`（例 `ACE-438-1`, `ACE-438-2`）                                   |
+| 非PR由来 fallback | `ACE-i<Issue番号>-<連番>`（例 `ACE-i425-1`）                                           |
+| anchor            | `<a id="ace-438-1"></a>`（小文字・ハイフン）                                           |
+| 相互参照          | `[ACE-438-1](path/PLAYBOOK.md#ace-438-1)`                                              |
+| 採番方法          | 同一 PR の既存 `ACE-<PR>-*` を確認し max+1（無ければ 1）。**全体の最新 ID を読まない** |
+| 既存 ID           | `ACE-001`〜`ACE-046` は改名せず、旧 3 桁形式と新形式が恒久共存                         |
+| `ace_entry_count` | フィールドは維持（deprecated 含む総数）。「次 ID ＝ count+1」のショートカットは廃止    |
+| コミット規則      | `knowledge: ACE-438-1 [category] [summary]`（形式は不変、ID 表記のみ更新）             |
 
 **衝突しない理由（確率論ではなく構造保証）**: PR 番号は GitHub が全体で一意に採番する。別の人は別 PR で作業するため、`ACE-<PR番号>-*` の名前空間が PR 単位で分離される。同一 PR を curate するのは通常 1 人なので、その PR 内の `-連番` も単一所有者が決められる。
 
@@ -65,10 +65,10 @@ ACE (Agentic Context Engineering) の運用ルールを 2 点改善する。
 
 ### C. SSOT 統合
 
-| 対象ルール | 正本（SSOT） | 他ファイルの扱い |
-| --- | --- | --- |
-| ID 規則 | `PLAYBOOK.md §エントリID規則` | `ACE_FRAMEWORK.md` / `ace-cycle.md` / `ace-curate.md` は採番手順を簡潔化し SSOT へリンク |
-| マージ方針 | `git-workflow.md ステップ10` | `ace-cycle.md` / `ace-curate.md` の運用パターン記述はここへリンク |
+| 対象ルール | 正本（SSOT）                  | 他ファイルの扱い                                                                         |
+| ---------- | ----------------------------- | ---------------------------------------------------------------------------------------- |
+| ID 規則    | `PLAYBOOK.md §エントリID規則` | `ACE_FRAMEWORK.md` / `ace-cycle.md` / `ace-curate.md` は採番手順を簡潔化し SSOT へリンク |
+| マージ方針 | `git-workflow.md ステップ10`  | `ace-cycle.md` / `ace-curate.md` の運用パターン記述はここへリンク                        |
 
 ### D. ツール更新
 
@@ -80,15 +80,15 @@ ACE (Agentic Context Engineering) の運用ルールを 2 点改善する。
 
 ## 作成・変更ファイル一覧
 
-| ファイル | 種別 | 説明 |
-| --- | --- | --- |
-| `docs-template/08-knowledge/PLAYBOOK.md` | 変更 | §エントリID規則（SSOT 化）・anchor ガイドライン・エントリテンプレート |
-| `docs-template/05-operations/deployment/git-workflow.md` | 変更 | ステップ10 運用パターンの反転（SSOT 化）・ACE-012 注記の書き換え |
-| `docs-template/05-operations/deployment/ace-cycle.md` | 変更 | 採番手順・anchor・運用パターンを SSOT へリンク |
-| `.claude/commands/ace-curate.md` | 変更 | 4-a 採番・anchor・運用パターンを SSOT へリンク |
-| `docs/ACE_FRAMEWORK.md` | 変更 | Phase 3 の採番記述（`ACE-{連番3桁}` → PRスコープ式） |
-| `docs-template/scripts/ace/check-category-size.ts` | 変更 | 正規表現を新旧両形式対応に緩和 |
-| `docs-template/scripts/ace/check-category-size.test.ts` | 変更 | 新形式 fixture 追加 |
+| ファイル                                                 | 種別 | 説明                                                                  |
+| -------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
+| `docs-template/08-knowledge/PLAYBOOK.md`                 | 変更 | §エントリID規則（SSOT 化）・anchor ガイドライン・エントリテンプレート |
+| `docs-template/05-operations/deployment/git-workflow.md` | 変更 | ステップ10 運用パターンの反転（SSOT 化）・ACE-012 注記の書き換え      |
+| `docs-template/05-operations/deployment/ace-cycle.md`    | 変更 | 採番手順・anchor・運用パターンを SSOT へリンク                        |
+| `.claude/commands/ace-curate.md`                         | 変更 | 4-a 採番・anchor・運用パターンを SSOT へリンク                        |
+| `docs/ACE_FRAMEWORK.md`                                  | 変更 | Phase 3 の採番記述（`ACE-{連番3桁}` → PRスコープ式）                  |
+| `docs-template/scripts/ace/check-category-size.ts`       | 変更 | 正規表現を新旧両形式対応に緩和                                        |
+| `docs-template/scripts/ace/check-category-size.test.ts`  | 変更 | 新形式 fixture 追加                                                   |
 
 ## エラーハンドリング・互換性
 
