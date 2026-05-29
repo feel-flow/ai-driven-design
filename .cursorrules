@@ -79,6 +79,7 @@ Always start from an Issue and follow the full flow:
 6. **Commit** - `<type>: #<issue> <subject>`
 7. **Create PR** - `gh pr create --base develop`
 8. **Merge & Cleanup** - Squash merge, return to `develop`, delete feature branch
+9. **ACE (Knowledge)** - マージ・cleanup 後に PLAYBOOK.md へ知見を追記。エントリ ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（並行採番でも衝突しない）。採番ルールの SSOT は `docs-template/08-knowledge/PLAYBOOK.md` の §エントリID規則、運用ルールは `docs/ACE_SETUP.md` §4 テンプレート
 
 ### Branch Naming
 - `feature/#{issue}-{description}` for features

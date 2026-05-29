@@ -281,6 +281,7 @@ your-project/
 
 - [GETTING_STARTED_NEW_PROJECT.md](./GETTING_STARTED_NEW_PROJECT.md) - プロジェクト開始ガイド
 - [05-operations/DEPLOYMENT.md](./05-operations/DEPLOYMENT.md) - AI駆動Git Workflow
+- [ACE サイクル運用手順](./05-operations/deployment/ace-cycle.md) - マージ後の知見体系化。エントリ ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（採番ルールの SSOT は [エントリID規則](./08-knowledge/PLAYBOOK.md#エントリid規則)）
 
 ---
 

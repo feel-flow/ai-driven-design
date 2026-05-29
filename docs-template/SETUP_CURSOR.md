@@ -717,6 +717,7 @@ Cursor のセットアップは以下の4ステップ：
 1. ✅ Cursor のセットアップ完了
 2. → [GETTING_STARTED_NEW_PROJECT.md](./GETTING_STARTED_NEW_PROJECT.md) で実際のプロジェクト開始
 3. → [docs-template/MASTER.md](./MASTER.md) で詳細なプロジェクトルール確認
+4. → [ACE サイクル運用手順](./05-operations/deployment/ace-cycle.md) でマージ後の知見体系化を設定。エントリ ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（採番ルールの SSOT は [エントリID規則](./08-knowledge/PLAYBOOK.md#エントリid規則)）
 
 ### Cursorの強み
 
