@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.24.0"
+version: "1.25.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-05-20"
+updated: "2026-05-30"
 owner: "@fffokazaki"
-ace_entry_count: 46
+ace_entry_count: 48
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -540,7 +540,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #395 / Issue #296  |
 | Related    | ACE-013（補強）       |
 | Date       | 2026-05-06            |
-| Helpful    | 2                     |
+| Helpful    | 3                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -595,7 +595,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #397 / Issue #396  |
 | Related    | ACE-014 / ACE-015     |
 | Date       | 2026-05-06            |
-| Helpful    | 2                     |
+| Helpful    | 3                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1275,7 +1275,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #428 / Issue #425        |
 | Related    | ACE-014 / ACE-024 / ACE-040 |
 | Date       | 2026-05-20                  |
-| Helpful    | 0                           |
+| Helpful    | 1                           |
 | Harmful    | 0                           |
 | Status     | active                      |
 
@@ -1408,7 +1408,72 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-441-1"></a>
+
+### ACE-441-1: ドキュメントを走査するツールの正規表現を緩めるときは実ファイルで件数検証し、パターンを「実 ID の形」に制約する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | testing              |
+| Origin     | PR #441 / Issue #440 |
+| Related    | ACE-042 / ACE-028    |
+| Date       | 2026-05-30           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: ドキュメント（PLAYBOOK 等）を走査するスクリプトの見出し検出正規表現を緩めると、その doc 自身が含む **テンプレート/例の placeholder 見出し**（code fence 内の `### ACE-XXX:` 等）まで誤検出しうる。合成 fixture のユニットテストは green でも、実ファイルに対して走らせて初めて件数ズレが露見する。パターンは「拾いたい実体の形」（ID なら数字始まり / `i`＋数字始まり）に制約してテンプレ placeholder を構造的に除外し、緩和後は必ず**本物のファイル**に対して件数を検証する。
+
+**Context**: PR #441 で ACE エントリ ID を PR スコープ式に変える際、`check-category-size.ts` の検出正規表現を `/^### ACE-\d{3,}:/m` → `/^### ACE-[\w-]+:/m` に緩めた。ユニットテスト（合成 fixture）は通ったが、実 PLAYBOOK に `ace:check-playbook-categories` を走らせると総エントリ数が 46→47 になり `coding / architecture / testing / ...` という不自然なカテゴリが出現。原因は緩めた `[\w-]+` がエントリテンプレート（code fence 内）の `### ACE-XXX:` を実エントリとして拾ったこと。旧 `\d{3,}` は `XXX`（非数字）を弾いていたため顕在化していなかった。実装プランの正規表現案が緩すぎた欠陥を、プランの「実ファイル検証」ステップが捕捉した。
+
+**Action**:
+
+1. doc を parse するツールの正規表現を緩めたら、**合成 fixture だけでなく本物のファイルに対して走らせ、件数・カテゴリの妥当性を目視確認する**（プランに「実ファイル検証」ステップを必ず入れる）。
+2. パターンは拾いたい実体の形に制約する。ID 検出なら `/^### ACE-(?:\d[\w-]*|i\d[\w-]*):/m`（数字始まり / `i`＋数字始まり）で doc 内のテンプレ placeholder（`ACE-XXX`/`NNN`）を除外。
+3. placeholder 除外を回帰テストで固定する（`ACE-XXX` / `ACE-NNN` / `i`＋非数字 `ACE-iabc` を含めて「集計されない」ことを assert）。
+
+---
+
+<a id="ace-441-2"></a>
+
+### ACE-441-2: pre-commit hook は正式品質ゲート（quality:local）の軽量サブセット — pr-ready 前に必ず full ゲートを回す
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #441 / Issue #440 |
+| Related    | ACE-043              |
+| Date       | 2026-05-30           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: pre-commit hook が通っても、正式品質ゲート（`npm run quality:local`）が落ちうる。hook は速度優先で軽量サブセット（このリポジトリでは markdownlint のみ）しか実行しないため、prettier `--check`・MCP build/check・各テスト・docs 検証・spec-index などの追加チェックは hook を素通りする。**commit が通った＝ゲート通過、と錯覚しない。**
+
+**Context**: PR #441 で、commit 時の pre-commit hook（markdownlint のみ）は全 commit で 0 error だったが、`quality:local` を回すと `format:md:check`（prettier `--check`）が 3 ファイルで未整形を検出して落ちた。markdownlint は通すが prettier 整形は別ルールのため、hook だけを信じて pr-ready にすると CI 相当の `quality:local` で初めて落ちる。
+
+**Action**:
+
+1. **pr-ready の前に必ず `npm run quality:local` を通しで回す**（10 ステップ workflow の Step4）。hook 通過をゲート通過と同一視しない。
+2. doc/設定変更を含む PR では特に prettier 整形漏れに注意。`npx prettier --write <変更ファイル>` を pre-ready で一度かける。
+3. hook と full ゲートの差分（何が hook に無く full にあるか）を把握しておく。
+
+---
+
 ## Changelog
+
+### [1.25.0] - 2026-05-30
+
+#### 追加
+
+- ACE-441-1: ドキュメントを走査するツールの正規表現を緩めるときは実ファイルで件数検証し、パターンを「実 ID の形」に制約する — PR #441 で ACE 検出正規表現を緩めた際、code fence 内のエントリテンプレ `### ACE-XXX:` を誤検出して実 PLAYBOOK 集計が 46→47 になり、実ファイル検証ステップで捕捉した経験から抽出（PR スコープ式 ID の初適用エントリ）
+- ACE-441-2: pre-commit hook は正式品質ゲート（quality:local）の軽量サブセット — pr-ready 前に必ず full ゲートを回す — PR #441 で markdownlint hook は全 commit 0 error だったが `quality:local` の `format:md:check`（prettier）が 3 ファイルで落ちた経験から抽出
+
+#### 更新
+
+- ACE-016（anchor link は label と URL の両方に書く）Helpful: 2 → 3 — PR #441 でマージ方針 SSOT リンク（ace-cycle.md / ace-curate.md / AI_GIT_WORKFLOW.md の「§運用パターン（マージ方針）」）が `#` フラグメント無しのファイルリンクで先頭着地する欠陥を Toolkit comment-analyzer と Copilot が独立検出。全角括弧で auto-slug が脆いため explicit anchor `<a id="ace-merge-policy">` を付与して解消（ACE-016 の explicit anchor 適用の 2 例目）
+- ACE-018（横断 grep で SSOT 列挙）Helpful: 2 → 3 — PR #441 でマージ方針反転の残骸スイープを「編集した 5 ファイル」に限定したところ、advisor が AI_GIT_WORKFLOW.md / CLAUDE.md の取りこぼしを検出。元の ACE-012 carve-out が適用された 5 サイトと同じ全集合をリポジトリ全体 grep で列挙すべきだった事例（ACE-018 の指摘構造と完全一致）
+- ACE-042（テンプレ placeholder の符号統一）Helpful: 0 → 1 — PR #441 で参照リンク形式の「`XXX` はエントリ ID をそのまま使用。新規は `ace-438-1`」記述が `[ACE-ace-438-1](#ace-ace-438-1)` の接頭辞重複を招くと Gemini が指摘。placeholder `XXX` の置換対象（接頭辞 `ACE-`/`ace-` を除いた部分）を明示して解消
 
 ### [1.24.0] - 2026-05-20
 
