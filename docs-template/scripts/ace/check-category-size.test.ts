@@ -44,6 +44,71 @@ describe("analyzePlaybookMarkdown", () => {
     }
   });
 
+  it("PRスコープ式 ID（ACE-438-1）と Issue 式（ACE-i425-1）もエントリとして扱う", () => {
+    const md = `
+### ACE-438-1: PRスコープ式エントリ
+
+| フィールド | 値 |
+| Category | coding |
+| Origin | PR #438 |
+
+### ACE-438-2: 同一PRの2件目
+
+| フィールド | 値 |
+| Category | testing |
+| Origin | PR #438 |
+
+### ACE-i425-1: Issue 由来エントリ
+
+| フィールド | 値 |
+| Category | process |
+| Origin | Issue #425 |
+`;
+
+    const result = analyzePlaybookMarkdown(md);
+    expect(result.kind).toBe("ok");
+    if (result.kind === "ok") {
+      expect(result.totalEntries).toBe(3);
+      expect(result.histogram.coding).toBe(1);
+      expect(result.histogram.testing).toBe(1);
+      expect(result.histogram.process).toBe(1);
+    }
+  });
+
+  it("プレースホルダ見出し（ACE-XXX / ACE-NNN）と i の後が非数字（ACE-iabc）は集計しない", () => {
+    const md = `
+### ACE-XXX: [タイトル]
+
+| フィールド | 値 |
+| Category | coding / architecture / testing |
+
+### ACE-NNN: 別プレースホルダ
+
+| フィールド | 値 |
+| Category | testing |
+
+### ACE-iabc: i の後が数字でないため実IDではない
+
+| フィールド | 値 |
+| Category | security |
+
+### ACE-001: 実エントリ
+
+| フィールド | 値 |
+| Category | coding |
+| Origin | PR #1 |
+`;
+
+    const result = analyzePlaybookMarkdown(md);
+    expect(result.kind).toBe("ok");
+    if (result.kind === "ok") {
+      expect(result.totalEntries).toBe(1);
+      expect(result.histogram.coding).toBe(1);
+      expect(result.histogram.testing).toBeUndefined();
+      expect(result.histogram.security).toBeUndefined();
+    }
+  });
+
   it("ACE 見出しが無い場合は error を返す", () => {
     const result = analyzePlaybookMarkdown("# 見出しのみ\n");
     expect(result.kind).toBe("error");

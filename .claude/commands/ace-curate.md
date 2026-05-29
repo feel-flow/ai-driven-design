@@ -72,11 +72,11 @@ gh pr view $ARGUMENTS --json number,title,body,url,comments,reviews
 
 #### 4-a. エントリIDの採番
 
-PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を使用
+ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（例 `ACE-438-1`、非PR由来は `ACE-i<Issue番号>-<連番>`）。対象 PR の既存 `ACE-<PR番号>-*` を確認し最大連番 +1（既存が無ければ連番 `1`、すなわち `ACE-<PR番号>-1`）。全体の最新 ID は読まない。採番ルールの SSOT は [PLAYBOOK.md §エントリID規則](../../docs-template/08-knowledge/PLAYBOOK.md#エントリid規則)。
 
 #### 4-b. PLAYBOOK.md への追記
 
-エントリ一覧セクションの末尾（`## Changelog` の直前）に新エントリを追記:
+エントリ一覧セクションの末尾（`## Changelog` の直前）に新エントリを追記（`XXX` は 4-a の PRスコープ式 ID に置換。例 `ace-438-1` / `ACE-438-1`）:
 
 ```markdown
 <a id="ace-XXX"></a>
@@ -99,7 +99,7 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 **Action**: [推奨アクション]
 ```
 
-**anchor 命名規則**: 見出し直前に `<a id="ace-NNN"></a>` を 1 行付与（小文字 + ハイフン + 3 桁ゼロパディング）。詳細・根拠は SSOT である [PLAYBOOK.md 記述ガイドライン](../../docs-template/08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照。
+**anchor 命名規則**: 見出し直前に `<a id="ace-XXX"></a>` を 1 行付与（エントリ ID を小文字化、例 `ace-438-1`）。詳細・根拠は SSOT である [PLAYBOOK.md 記述ガイドライン](../../docs-template/08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照。
 
 #### 4-c. Frontmatter の更新
 
@@ -109,28 +109,28 @@ PLAYBOOK.md の既存エントリから最新のIDを確認し、次の連番を
 
 ### 5. コミット
 
-変更をコミットします（develop ブランチで実行している前提）:
+マージ方針の SSOT は [git-workflow.md ステップ10 §運用パターン（マージ方針）](../../docs-template/05-operations/deployment/git-workflow.md#ace-merge-policy)。
 
-**個人開発（簡易、コミッタ 1〜2 人）**: 直接 develop に commit + push する（ACE-012 の例外として許容、根拠は下記参照）。
+**既定（推奨）— develop 直マージ**: develop に直接 commit + push する。
 
 ```bash
 git add docs-template/08-knowledge/PLAYBOOK.md
-git commit -m "knowledge: ACE-XXX [category] [summary]"
+git commit -m "knowledge: ACE-<PR番号>-<連番> [category] [summary]"
 git push origin develop
 ```
 
-**チーム開発（推奨、コミッタ 3 人以上または ACE 内容のレビューを残したい）**: `chore/ace-from-pr-<PR番号>` ブランチを切って小さい PR を作成。
+**任意エスカレーション — chore PR**: 大人数チーム / 知見レビューを残したい場合のみ `chore/ace-from-pr-<PR番号>` ブランチで小さい PR を作成。
 
 ```bash
 git checkout -b chore/ace-from-pr-<PR番号>
 git add docs-template/08-knowledge/PLAYBOOK.md
-git commit -m "knowledge: ACE-XXX [category] [summary]"
+git commit -m "knowledge: ACE-<PR番号>-<連番> [category] [summary]"
 git push -u origin chore/ace-from-pr-<PR番号>
-gh pr create --base develop --title "knowledge: ACE-XXX [category]" --body "PR #<PR番号> から知見抽出"
+gh pr create --base develop --title "knowledge: ACE-<PR番号>-<連番> [category]" --body "PR #<PR番号> から知見抽出"
 # レビュー後 squash merge → /merge-cleanup
 ```
 
-判断基準と ACE-012 例外の根拠は [git-workflow.md ステップ10 ACE](../../docs-template/05-operations/deployment/git-workflow.md) を参照。
+> `knowledge:` 付き PLAYBOOK 単独コミットの develop 直 push は意図的フローであり、[ACE-012](../../docs-template/08-knowledge/PLAYBOOK.md#ace-012)（うっかり develop 直 push の事故防止）とは別物。
 
 ### 6. 結果レポート
 
@@ -141,13 +141,13 @@ gh pr create --base develop --title "knowledge: ACE-XXX [category]" --body "PR #
 
 **対象PR**: #[PR番号] [タイトル]
 **抽出知見数**: X 件
-**新規エントリ**: ACE-XXX, ACE-YYY
-**カウンター更新**: ACE-ZZZ (Helpful +1)
+**新規エントリ**: ACE-438-1, ACE-438-2
+**カウンター更新**: ACE-016 (Helpful +1)
 **スキップ**: X 件（低価値）
 
 ### 追加エントリ
-- ACE-XXX: [タイトル] ([カテゴリ])
-- ACE-YYY: [タイトル] ([カテゴリ])
+- ACE-438-1: [タイトル] ([カテゴリ])
+- ACE-438-2: [タイトル] ([カテゴリ])
 ```
 
 ## 注意事項
