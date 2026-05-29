@@ -75,12 +75,22 @@ describe("analyzePlaybookMarkdown", () => {
     }
   });
 
-  it("テンプレートのプレースホルダ見出し（ACE-XXX / ACE-NNN）は集計しない", () => {
+  it("プレースホルダ見出し（ACE-XXX / ACE-NNN）と i の後が非数字（ACE-iabc）は集計しない", () => {
     const md = `
 ### ACE-XXX: [タイトル]
 
 | フィールド | 値 |
 | Category | coding / architecture / testing |
+
+### ACE-NNN: 別プレースホルダ
+
+| フィールド | 値 |
+| Category | testing |
+
+### ACE-iabc: i の後が数字でないため実IDではない
+
+| フィールド | 値 |
+| Category | security |
 
 ### ACE-001: 実エントリ
 
@@ -94,6 +104,8 @@ describe("analyzePlaybookMarkdown", () => {
     if (result.kind === "ok") {
       expect(result.totalEntries).toBe(1);
       expect(result.histogram.coding).toBe(1);
+      expect(result.histogram.testing).toBeUndefined();
+      expect(result.histogram.security).toBeUndefined();
     }
   });
 

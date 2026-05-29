@@ -13,7 +13,7 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 
 ### 運用パターン
 
-ACE 知見コミットのマージ方針は **[git-workflow.md ステップ10 §運用パターン（マージ方針）](./git-workflow.md)** を SSOT とする。要約：
+ACE 知見コミットのマージ方針は **[git-workflow.md ステップ10 §運用パターン（マージ方針）](./git-workflow.md#ace-merge-policy)** を SSOT とする。要約：
 
 - **既定（推奨）**: develop に直接 commit + push（PLAYBOOK.md は append-only ＋ PRスコープ式 ID で衝突しない）。
 - **任意エスカレーション**: 大人数チーム / 知見レビューを残したい場合のみ `chore/ace-from-pr-<PR番号>` の小 PR。
@@ -138,7 +138,7 @@ ACE 知見コミットのマージ方針は **[git-workflow.md ステップ10 §
 ID は **PRスコープ式**（`ACE-<PR番号>-<連番>`）。採番ルールの SSOT は [PLAYBOOK.md §エントリID規則](../../08-knowledge/PLAYBOOK.md#エントリid規則)。
 
 ```bash
-# 対象 PR の既存エントリ ACE-<PR番号>-* を確認し、最大連番 +1（無ければ -1）
+# 対象 PR の既存エントリ ACE-<PR番号>-* を確認し、最大連番 +1（既存が無ければ連番 1 = ACE-<PR番号>-1）
 # 例: PR #438 で初回 → ACE-438-1、2 件目 → ACE-438-2
 # 非PR由来は ACE-i<Issue番号>-<連番>（例: ACE-i425-1）
 ```

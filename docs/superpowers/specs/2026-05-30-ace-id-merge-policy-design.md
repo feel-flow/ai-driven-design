@@ -73,8 +73,8 @@ ACE (Agentic Context Engineering) の運用ルールを 2 点改善する。
 ### D. ツール更新
 
 - `docs-template/scripts/ace/check-category-size.ts:14` の正規表現
-  `/^### ACE-\d{3,}:/m` → `/^### ACE-[\w-]+:/m`
-  （旧 3 桁 `ACE-046`・新 PR 式 `ACE-438-1`・Issue 式 `ACE-i425-1` すべてにマッチ）
+  `/^### ACE-\d{3,}:/m` → `/^### ACE-(?:\d[\w-]*|i\d[\w-]*):/m`
+  （旧 3 桁 `ACE-046`・新 PR 式 `ACE-438-1`・Issue 式 `ACE-i425-1` にマッチし、数字始まり / `i`＋数字始まり制約でテンプレートのプレースホルダ `ACE-XXX` を集計から除外）
 - `check-category-size.test.ts` に新形式エントリの fixture を追加し、両形式が集計対象になることを検証
 - `build-spec-index.mjs` と MCP `npm run check` が ID 形式に依存しないことを実装時に確認（依存していれば追加対応）
 

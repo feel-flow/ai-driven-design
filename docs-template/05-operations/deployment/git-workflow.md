@@ -801,6 +801,8 @@ GitHub Discussions への記録に加え、ACE Playbook への構造化記録を
 - **GitHub Discussions**: 人間向けナラティブ（物語的記録）
 - **ACE Playbook**: AIツール向け構造化知見（delta方式）
 
+<a id="ace-merge-policy"></a>
+
 #### 運用パターン（マージ方針）
 
 > このセクションが ACE 知見コミットのマージ方針の **SSOT**。ace-cycle.md / ace-curate.md はここを参照する。

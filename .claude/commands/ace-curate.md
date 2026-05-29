@@ -72,7 +72,7 @@ gh pr view $ARGUMENTS --json number,title,body,url,comments,reviews
 
 #### 4-a. エントリIDの採番
 
-ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（例 `ACE-438-1`、非PR由来は `ACE-i<Issue番号>-<連番>`）。対象 PR の既存 `ACE-<PR番号>-*` を確認し最大連番 +1（無ければ `-1`）。全体の最新 ID は読まない。採番ルールの SSOT は [PLAYBOOK.md §エントリID規則](../../docs-template/08-knowledge/PLAYBOOK.md#エントリid規則)。
+ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（例 `ACE-438-1`、非PR由来は `ACE-i<Issue番号>-<連番>`）。対象 PR の既存 `ACE-<PR番号>-*` を確認し最大連番 +1（既存が無ければ連番 `1`、すなわち `ACE-<PR番号>-1`）。全体の最新 ID は読まない。採番ルールの SSOT は [PLAYBOOK.md §エントリID規則](../../docs-template/08-knowledge/PLAYBOOK.md#エントリid規則)。
 
 #### 4-b. PLAYBOOK.md への追記
 
@@ -109,7 +109,7 @@ ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（例 `ACE-438-1`、非PR
 
 ### 5. コミット
 
-マージ方針の SSOT は [git-workflow.md ステップ10 §運用パターン（マージ方針）](../../docs-template/05-operations/deployment/git-workflow.md)。
+マージ方針の SSOT は [git-workflow.md ステップ10 §運用パターン（マージ方針）](../../docs-template/05-operations/deployment/git-workflow.md#ace-merge-policy)。
 
 **既定（推奨）— develop 直マージ**: develop に直接 commit + push する。
 
