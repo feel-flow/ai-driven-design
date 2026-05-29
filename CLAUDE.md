@@ -209,7 +209,7 @@ npm run quality:local
 - 全作業はIssueから開始する
 - ブランチ命名: `feature/#<issue-number>-<description>`
 - マージ先: develop（Squash merge）
-- ACEはマージ後・cleanup後に develop で実行する（個人開発: 直接commit可。チーム開発: `chore/ace-from-pr-<PR番号>` ブランチで小PR推奨）。詳細・ACE-012 例外の根拠は [docs/AI_GIT_WORKFLOW.md ステップ10](docs/AI_GIT_WORKFLOW.md) 参照
+- ACEはマージ後・cleanup後に develop で実行する（**既定（推奨）: develop 直マージ**＝知見追記を develop に直接 commit + push。大人数チーム/知見内容のレビューを残したい場合のみ `chore/ace-from-pr-<PR番号>` の小PRに切り替え）。エントリ ID は PRスコープ式（`ACE-<PR番号>-<連番>`）で衝突しない。詳細・ACE-012 との関係は [docs/AI_GIT_WORKFLOW.md ステップ10](docs/AI_GIT_WORKFLOW.md) 参照
 - 詳細: [docs/AI_GIT_WORKFLOW.md](docs/AI_GIT_WORKFLOW.md)
 
 ### Working with This Repository
