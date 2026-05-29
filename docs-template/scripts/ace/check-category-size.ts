@@ -10,8 +10,12 @@ const EXIT_THRESHOLD_EXCEEDED = 1;
 const EXIT_USAGE_ERROR = 2;
 
 const DEFAULT_MAX_ENTRIES_PER_CATEGORY = 130;
-/** PLAYBOOK の ID 規則（ACE-001 形式）。3 桁以上の連番にも対応する。 */
-const ACE_ENTRY_HEADER_PATTERN = /^### ACE-\d{3,}:/m;
+/**
+ * PLAYBOOK の ID 規則。旧 3 桁形式（ACE-001）と新 PRスコープ式（ACE-438-1 / ACE-i425-1）の両方に対応する。
+ * 実 ID は必ず数字始まり（旧 3 桁・PR 番号）か `i` ＋数字（Issue 由来）で始まるため、
+ * テンプレートのプレースホルダ見出し（### ACE-XXX: 等）はマッチさせず集計から除外する。
+ */
+const ACE_ENTRY_HEADER_PATTERN = /^### ACE-(?:\d[\w-]*|i\d[\w-]*):/m;
 const CATEGORY_TABLE_LINE_PATTERN = /^\|\s*Category\s*\|\s*([^|]+)\|/im;
 
 export type CategoryHistogram = Readonly<Record<string, number>>;
