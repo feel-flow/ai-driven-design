@@ -13,11 +13,11 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 
 ### 運用パターン
 
-**個人開発（簡易）**: マージ後 cleanup を済ませた develop で `/ace-curate <PR番号>` を実行し、PLAYBOOK.md 追記を直接 develop に commit + push する。PLAYBOOK.md は append-only でコンフリクトリスクが低く、ACE 1 サイクル分の小さい変更を毎回 PR 化するオーバーヘッドは過剰。
+ACE 知見コミットのマージ方針は **[git-workflow.md ステップ10 §運用パターン（マージ方針）](./git-workflow.md)** を SSOT とする。要約：
 
-**チーム開発（推奨）**: マージ後 cleanup を済ませた develop から `chore/ace-from-pr-<PR番号>` ブランチを切り、PLAYBOOK.md 追記を小さい chore PR として PR レビュー → squash merge する。複数人が並行で ACE を回す環境では PLAYBOOK.md の append-only 順序競合を防げる。
-
-> **ACE-012 の例外**: 「個人開発（簡易）」パターンの直接 develop push は、通常の `Never commit directly to develop` 禁則（[ACE-012](../../08-knowledge/PLAYBOOK.md#ace-012)）の**明示的な例外**として位置付ける。詳細な根拠は [git-workflow.md ステップ10 ACE](./git-workflow.md) 参照。
+- **既定（推奨）**: develop に直接 commit + push（PLAYBOOK.md は append-only ＋ PRスコープ式 ID で衝突しない）。
+- **任意エスカレーション**: 大人数チーム / 知見レビューを残したい場合のみ `chore/ace-from-pr-<PR番号>` の小 PR。
+- ここでの develop 直 push は `knowledge:` 付き PLAYBOOK 単独コミットに限った意図的フローであり、[ACE-012](../../08-knowledge/PLAYBOOK.md#ace-012)（うっかり develop 直 push の事故防止）とは別物。
 
 **autonomous（任意）**: subagent と専用 worktree で ACE キャプチャを非同期化するパターン。導入は [ace-autonomous.md](./ace-autonomous.md) と `docs-template/scripts/ace/` のテンプレートを参照（Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)）。
 
@@ -135,10 +135,12 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 
 #### 1. エントリID の採番
 
+ID は **PRスコープ式**（`ACE-<PR番号>-<連番>`）。採番ルールの SSOT は [PLAYBOOK.md §エントリID規則](../../08-knowledge/PLAYBOOK.md#エントリid規則)。
+
 ```bash
-# 現在の最新エントリIDを確認
-# PLAYBOOK.md の末尾エントリのIDを確認し、次の連番を使用
-# 例: 最新が ACE-005 → 次は ACE-006
+# 対象 PR の既存エントリ ACE-<PR番号>-* を確認し、最大連番 +1（無ければ -1）
+# 例: PR #438 で初回 → ACE-438-1、2 件目 → ACE-438-2
+# 非PR由来は ACE-i<Issue番号>-<連番>（例: ACE-i425-1）
 ```
 
 #### 2. PLAYBOOK.md への追記
@@ -146,9 +148,9 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 エントリ一覧セクションの末尾に追記：
 
 ```markdown
-<a id="ace-006"></a>
+<a id="ace-438-1"></a>
 
-### ACE-006: [タイトル]
+### ACE-438-1: [タイトル]
 
 | フィールド | 値               |
 | ---------- | ---------------- |
@@ -166,7 +168,7 @@ ACE (Agentic Context Engineering) サイクルは、マージ後・cleanup 後�
 **Action**: [推奨アクション]
 ```
 
-**anchor 命名規則**: 見出し直前に `<a id="ace-NNN"></a>` を 1 行付与（小文字 + ハイフン + 3 桁ゼロパディング）。詳細・根拠は SSOT である [PLAYBOOK.md 記述ガイドライン](../../08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照。
+**anchor 命名規則**: 見出し直前に `<a id="ace-XXX"></a>` を 1 行付与（エントリ ID を小文字化、例 `ace-438-1`）。詳細・根拠は SSOT である [PLAYBOOK.md 記述ガイドライン](../../08-knowledge/PLAYBOOK.md#記述ガイドライン) を参照。
 
 #### 3. Frontmatter の更新
 
@@ -180,10 +182,10 @@ ace_entry_count: N # 全エントリ数（deprecated含む）
 
 ```bash
 # コミットメッセージ規則
-git commit -m "knowledge: ACE-006 [performance] Prisma findMany の N+1 防止"
+git commit -m "knowledge: ACE-438-1 [performance] Prisma findMany の N+1 防止"
 
 # 複数エントリの場合
-git commit -m "knowledge: ACE-006,ACE-007 [performance,testing] Prisma N+1防止, モックの分離原則"
+git commit -m "knowledge: ACE-438-1,ACE-438-2 [performance,testing] Prisma N+1防止, モックの分離原則"
 ```
 
 ---
