@@ -341,7 +341,9 @@ Always reference MASTER.md for project-specific requirements.
 
 ### 4. Git Workflow・セルフレビュー
 
-**基本フロー**: Issue作成 → Branch作成 → 実装 → セルフレビュー → テスト → Commit → PR作成 → **@review-router でAIレビュー** → マージ後ブランチ削除
+**基本フロー**: Issue作成 → Branch作成 → 実装 → セルフレビュー → テスト → Commit → PR作成 → **@review-router でAIレビュー** → マージ → cleanup → **ACE 知見体系化**
+
+**ACE（知見体系化）**: マージ・cleanup 後に PR から知見を抽出し PLAYBOOK.md に追記する。エントリ ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（並行採番でも衝突しない）。採番ルールの SSOT は [PLAYBOOK.md §エントリID規則](docs-template/08-knowledge/PLAYBOOK.md#エントリid規則)、運用ルール本体は [ACE_SETUP.md §4 テンプレート](docs/ACE_SETUP.md#ace-ops-template)。
 
 **ブランチ命名**: `feature/#{issue}-{description}` / `fix/#{issue}-{description}` / `chore/#{issue}-{description}`
 

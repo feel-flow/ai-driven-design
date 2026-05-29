@@ -30,7 +30,7 @@ changeImpact: medium
 1. [前提条件](#1-前提条件)
 2. [対話型セットアップフロー](#2-対話型セットアップフロー)
 3. [テンプレート参照情報](#3-テンプレート参照情報)
-4. [Copilot用ACE運用ルール テンプレート](#4-copilot用ace運用ルール-テンプレート)
+4. [AIツール向け ACE 運用ルール テンプレート（Copilot / Cursor / Codex 等共通）](#ace-ops-template)
 5. [トラブルシューティング](#5-トラブルシューティング)
 
 ---
@@ -91,11 +91,12 @@ changeImpact: medium
 
 ### Step 4: AIツール固有の設定
 
-ユーザーに以下の選択肢を提示してください:
+ユーザーに対象 AI ツールを確認してください（複数選択可）:
 
-- **(a) Claude Code のみ**
-- **(b) GitHub Copilot のみ**
-- **(c) 両方**
+- **(a) Claude Code** — `/ace-curate` コマンドを使う
+- **(b) GitHub Copilot** — `.github/copilot-instructions.md` に追記
+- **(c) Cursor** — `.cursorrules` に追記
+- **(d) Codex / その他の AI エージェント** — `AGENTS.md` に追記
 
 #### Claude Code の設定
 
@@ -106,13 +107,17 @@ changeImpact: medium
   - **(a) スキップ** — 既存ファイルを維持する
   - **(b) 上書き** — テンプレートで上書きする
 
-#### GitHub Copilot の設定
+#### 指示ファイルへの ACE 運用ルール追記（GitHub Copilot / Cursor / Codex / その他）
 
-`.github/copilot-instructions.md` に ACE 運用ルールを追記します。
+利用する AI ツールの指示ファイルに [§4 AIツール向け ACE 運用ルール テンプレート](#ace-ops-template) を追記します。配置先:
 
-- **ファイルが存在しない場合**: `.github/copilot-instructions.md` を新規作成する
+- GitHub Copilot → `.github/copilot-instructions.md`
+- Cursor → `.cursorrules`
+- Codex / その他の AI エージェント（Gemini 等）→ `AGENTS.md`
+
+- **ファイルが存在しない場合**: 対象の指示ファイルを新規作成する
 - **既存ファイルの場合**: 追記前に既存内容を確認し、`## ACE` や `## ACE (Agentic Context Engineering) 運用ルール` といった ACE 関連セクションが既に存在する場合は**スキップ**する
-- 追記する内容は [4. Copilot用ACE運用ルール テンプレート](#4-copilot用ace運用ルール-テンプレート) を参照
+- 採番は **PRスコープ式**（`ACE-<PR番号>-<連番>`）。ルールの SSOT はテンプレート §4 と PLAYBOOK.md の §エントリID規則
 
 ### Step 5: 完了確認
 
@@ -156,9 +161,11 @@ changeImpact: medium
 
 ---
 
-## 4. Copilot用ACE運用ルール テンプレート
+<a id="ace-ops-template"></a>
 
-以下のテンプレートを `.github/copilot-instructions.md` に追記してください。
+## 4. AIツール向け ACE 運用ルール テンプレート（Copilot / Cursor / Codex 等共通）
+
+以下のテンプレートを、利用する AI ツールの指示ファイルに追記してください（GitHub Copilot → `.github/copilot-instructions.md`、Cursor → `.cursorrules`、Codex / その他の AI エージェント → `AGENTS.md`）。テンプレート本文はツール非依存です。
 `{{PLAYBOOK_PATH}}` は Step 2 で確認した PLAYBOOK.md のパスに置換してください。
 
 ````markdown
@@ -254,9 +261,9 @@ PLAYBOOK.md のエントリ一覧セクション末尾に新エントリを追�
 
 #### コミットメッセージ規則
 
-- 形式: `knowledge: ACE-XXX [category] [summary]`
-- 複数エントリ: `knowledge: ACE-XXX,ACE-YYY [category1,category2] [summary]`
-- カウンター更新のみ: `knowledge: ACE-XXX [category] helpful+1`
+- 形式: `knowledge: ACE-<PR番号>-<連番> [category] [summary]`（例 `knowledge: ACE-441-1 [testing] ...`）
+- 複数エントリ: `knowledge: ACE-441-1,ACE-441-2 [category1,category2] [summary]`
+- カウンター更新のみ: `knowledge: ACE-016 [category] helpful+1`
 
 ### 既存エントリ照合手順
 
