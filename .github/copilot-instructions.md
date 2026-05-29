@@ -196,7 +196,7 @@ When reviewing pull requests, GitHub Copilot MUST follow these rules:
 
 PR作成後、マージ前に `@review-router` エージェントを呼び出して包括的なレビューを実施します。
 
-**ワークフロー**: Issue → Branch → Commit → Self-Review → PR → **@review-router** → Review → Merge
+**ワークフロー**: Issue → Branch → Commit → Self-Review → PR → **@review-router** → Review → Merge → cleanup → **ACE（知見体系化）**
 
 **使用方法**:
 
@@ -213,6 +213,10 @@ PR作成後、マージ前に `@review-router` エージェントを呼び出し
 - Code Simplification（複雑なコード検出時）
 
 詳細は `.github/agents/review-router.agent.md` を参照。
+
+### ACE（知見体系化）
+
+マージ・cleanup 後に PR から知見を抽出し PLAYBOOK.md に追記します。エントリ ID は **PRスコープ式** `ACE-<PR番号>-<連番>`（並行採番でも衝突しない）。採番ルールの SSOT は `docs-template/08-knowledge/PLAYBOOK.md` の §エントリID規則、運用ルール本体は `docs/ACE_SETUP.md` §4 テンプレート。
 
 ## Code Review Checklist
 - [ ] AGENTS.md common rules followed

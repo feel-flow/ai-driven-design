@@ -1,10 +1,10 @@
 ---
 id: ace-setup
 title: ACE セットアップガイド
-version: 1.0.0
+version: 1.1.0
 status: active
 created: 2026-03-13
-updated: 2026-03-13
+updated: 2026-05-30
 owner: feel-flow
 tags: [ace, setup, knowledge-management, playbook]
 references:
@@ -128,18 +128,18 @@ changeImpact: medium
 
 以下のファイルを配置しました:
 
-| ファイル                | パス                                       | 状態     |
-| ----------------------- | ------------------------------------------ | -------- |
-| PLAYBOOK.md             | docs/08-knowledge/PLAYBOOK.md              | 新規作成 |
-| ace-cycle.md            | docs/05-operations/deployment/ace-cycle.md | 新規作成 |
-| ace-curate.md           | .claude/commands/ace-curate.md             | 新規作成 |
-| copilot-instructions.md | .github/copilot-instructions.md            | 追記     |
+| ファイル                   | パス                                                       | 状態     |
+| -------------------------- | ---------------------------------------------------------- | -------- |
+| PLAYBOOK.md                | docs/08-knowledge/PLAYBOOK.md                              | 新規作成 |
+| ace-cycle.md               | docs/05-operations/deployment/ace-cycle.md                 | 新規作成 |
+| ace-curate.md              | .claude/commands/ace-curate.md                             | 新規作成 |
+| 指示ファイル（選択ツール） | .github/copilot-instructions.md / .cursorrules / AGENTS.md | 追記     |
 
 ## 次のステップ
 
-1. PRマージ後に ACE サイクルを実行してみましょう:
+1. PRマージ・cleanup 後に ACE サイクルを実行してみましょう:
    - Claude Code: `/ace-curate` コマンドを実行
-   - Copilot: 「ACEサイクルを実行してください」と指示
+   - Copilot / Cursor / Codex 等: 指示ファイルの ACE 運用ルールに従い「ACEサイクルを実行してください」と指示
 2. ACE フレームワークの詳細は [ACE_FRAMEWORK.md](./ACE_FRAMEWORK.md) を参照
 ```
 
@@ -291,11 +291,11 @@ PLAYBOOK.md のエントリ一覧セクション末尾に新エントリを追�
 
 **対応**: Step 1 の選択肢に従い、中止またはバックアップ後に続行してください。既存の PLAYBOOK.md にエントリが蓄積されている場合は、中止を推奨します。
 
-### `.github/copilot-instructions.md` が存在しない
+### 指示ファイル（copilot-instructions.md / .cursorrules / AGENTS.md）が存在しない
 
-**原因**: GitHub Copilot の設定ファイルが未作成
+**原因**: 対象 AI ツールの指示ファイルが未作成
 
-**対応**: Step 4 で自動的に新規作成されます。特別な対応は不要です。
+**対応**: Step 4 で対象の指示ファイル（Copilot → `.github/copilot-instructions.md` / Cursor → `.cursorrules` / Codex 他 → `AGENTS.md`）が自動的に新規作成されます。特別な対応は不要です。
 
 ### ace-curate.md が既に存在する
 
@@ -312,6 +312,12 @@ PLAYBOOK.md のエントリ一覧セクション末尾に新エントリを追�
 ---
 
 ## Changelog
+
+### [1.1.0] - 2026-05-30
+
+#### 変更
+
+- §4 を tool-agnostic な「AIツール向け ACE 運用ルール テンプレート（Copilot / Cursor / Codex 等共通）」に一般化（explicit anchor `#ace-ops-template` 付与）。Step 4・Step 5・トラブルシューティングを全ツール対応に。エントリ ID の採番例・コミットメッセージ例を **PRスコープ式**（`ACE-<PR番号>-<連番>`）に更新（Issue #442 / PR #443）
 
 ### [1.0.0] - 2026-03-13
 
