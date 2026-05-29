@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.25.0"
+version: "1.26.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-05-30"
 owner: "@fffokazaki"
-ace_entry_count: 48
+ace_entry_count: 49
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -485,7 +485,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #391 / PR #393 / Issue #295 |
 | Related    | ACE-005（補強）                |
 | Date       | 2026-05-06                     |
-| Helpful    | 3                              |
+| Helpful    | 4                              |
 | Harmful    | 0                              |
 | Status     | active                         |
 
@@ -540,7 +540,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #395 / Issue #296  |
 | Related    | ACE-013（補強）       |
 | Date       | 2026-05-06            |
-| Helpful    | 3                     |
+| Helpful    | 4                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -595,7 +595,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Origin     | PR #397 / Issue #396  |
 | Related    | ACE-014 / ACE-015     |
 | Date       | 2026-05-06            |
-| Helpful    | 3                     |
+| Helpful    | 4                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1460,7 +1460,45 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-443-1"></a>
+
+### ACE-443-1: framework リポは自テンプレをドッグフードするため知見ベースは `docs-template/` 配下 — AI レビュアーの「docs-template→docs」パス提案は実在確認してから採否を決める
+
+| フィールド | 値                          |
+| ---------- | --------------------------- |
+| Category   | documentation-quality       |
+| Origin     | PR #443 / Issue #442        |
+| Related    | ACE-027 / ACE-031 / ACE-001 |
+| Date       | 2026-05-30                  |
+| Helpful    | 0                           |
+| Harmful    | 0                           |
+| Status     | active                      |
+
+**Insight**: 本フレームワークは自分のドキュメントテンプレート（`docs-template/`）を**自リポでもドッグフード**しているため、アクティブな ACE 知見ベース（PLAYBOOK.md 等）は `docs-template/08-knowledge/` に存在し、`docs/08-knowledge/` は**存在しない**。AI レビュアー（特に Gemini Code Assist）は「採用先プロジェクトでは `docs-template/` は削除され `docs/` がアクティブ」という一般則から、リポ自身の設定ファイル（`.cursorrules` / `AGENTS.md`）の `docs-template/...` 参照を `docs/...` に変えるよう提案するが、framework リポ自身ではこれを適用すると**リンク切れになる**。レビュー提案のパス変更は、提案先パスが実在するか（`ls`）を確認してから採否を決める。
+
+**Context**: PR #443 で `.cursorrules` / `AGENTS.md` に ACE 採番 SSOT へのポインタ（`docs-template/08-knowledge/PLAYBOOK.md#エントリid規則`）を追加したところ、Gemini が medium 2 件で「採用先で `docs-template/` 削除時にリンク切れ → `docs/08-knowledge/PLAYBOOK.md` に変更」を提案。だが本リポには `docs/08-knowledge/` が無く（実 PLAYBOOK は `docs-template/` 側）、提案適用は逆にリンク切れを生むため不採用とし、根拠を PR にコメントで残した。一方、配布対象の `SETUP_*.md`（`docs-template/` 配下）はテンプレ相対パス `./08-knowledge/...` を使っており採用先コピー後も解決するため、Gemini の懸念は配布側では既に回避済みだった。
+
+**Action**:
+
+1. AI レビュアーがパス変更（特に `docs-template/` ↔ `docs/`）を提案したら、**提案先パスの実在を `ls` で確認**してから採否を決める。framework リポ自身では `docs-template/` がアクティブ知見ベース。
+2. リポ自身の設定ファイル（root の `.cursorrules` / `AGENTS.md` / `.github/copilot-instructions.md`）は `docs-template/...` を指す。配布対象テンプレ（`docs-template/SETUP_*.md` 等）はテンプレ相対パス `./...` を使い、採用先コピー後も解決するようにする。
+3. 不採用のレビュー提案は根拠（実在確認結果）を PR コメントに残す。
+
+---
+
 ## Changelog
+
+### [1.26.0] - 2026-05-30
+
+#### 追加
+
+- ACE-443-1: framework リポは自テンプレをドッグフードするため知見ベースは `docs-template/` 配下 — AI レビュアーの「docs-template→docs」パス提案は実在確認してから採否を決める — PR #443 で Gemini が `.cursorrules`/`AGENTS.md` の `docs-template/...` 参照を `docs/...` に変更提案したが、本リポに `docs/08-knowledge/` が不在でリンク切れになるため `ls` 確認の上で不採用とした経験から抽出
+
+#### 更新
+
+- ACE-018（横断変更は着手前に grep で全 SSOT を列挙）Helpful: 3 → 4 — PR #443 で ACE 採番ポインタを `.cursorrules`/`AGENTS.md` に追加したが repo 自身の `.github/copilot-instructions.md` を取りこぼし、Toolkit code-reviewer が Warning 検出。同セッション内で advisor（#441 で AI_GIT_WORKFLOW/CLAUDE.md）・user（Codex/AGENTS.md）に続く 3 度目の「全サーフェス列挙漏れ」で、着手前 grep 列挙の運用徹底の重要性を再確認
+- ACE-016（anchor link は label と URL の両方に書く / explicit anchor で slug 変更耐性）Helpful: 3 → 4 — PR #443 で §4 見出しリネームに伴う inbound link 切れを explicit anchor `<a id="ace-ops-template">` 付与で予防（全角括弧で auto-slug が脆いケース、explicit anchor 適用の 3 例目）。advisor が編集前に予防的指摘
+- ACE-014（索引文書は SSOT を子に集約）Helpful: 3 → 4 — PR #443 で採番メカニクスを ACE_SETUP §4 + PLAYBOOK §エントリID規則 の SSOT のみに置き、AGENTS.md/.cursorrules/SETUP\_\* はポインタに統一。grep で新規ポインタファイルへの非重複（DRY）を検証
 
 ### [1.25.0] - 2026-05-30
 
