@@ -1,5 +1,8 @@
 /**
- * ACE Playbook の Category ごとのエントリ件数を数え、閾値超過で終了コード 1 を返すテンプレート（Issue #367）。
+ * ACE Playbook の健全性チェック（Issue #367, #444）。
+ * - Category ごとのエントリ件数を数え、閾値超過で終了コード 1 を返す（ゲート）。
+ * - Playbook の総行数を報告し、閾値（ACE_MAX_PLAYBOOK_LINES、既定 800）超過時は
+ *   警告のみ出力する（終了コードは変えない）。
  * 実行例: npx --yes tsx scripts/ace/check-category-size.ts path/to/PLAYBOOK.md
  */
 import * as fs from "node:fs";
@@ -10,6 +13,7 @@ const EXIT_THRESHOLD_EXCEEDED = 1;
 const EXIT_USAGE_ERROR = 2;
 
 const DEFAULT_MAX_ENTRIES_PER_CATEGORY = 130;
+const DEFAULT_MAX_PLAYBOOK_LINES = 800;
 /**
  * PLAYBOOK の ID 規則。旧 3 桁形式（ACE-001）と新 PRスコープ式（ACE-438-1 / ACE-i425-1）の両方に対応する。
  * 実 ID は必ず数字始まり（旧 3 桁・PR 番号）か `i` ＋数字（Issue 由来）で始まるため、
@@ -43,6 +47,22 @@ function incrementHistogram(
 ): void {
   const next = (histogram[categoryKey] ?? 0) + 1;
   histogram[categoryKey] = next;
+}
+
+/**
+ * Playbook の総行数を数える。wc -l 準拠で改行文字（\n）の出現回数を返す。
+ * 末尾に改行が無い最終行は数えない（wc -l と同じ挙動）。
+ */
+export function countPlaybookLines(content: string): number {
+  const matches = content.match(/\n/gu);
+  return matches ? matches.length : 0;
+}
+
+/**
+ * 行数が閾値を超過しているか。境界（ちょうど）は超過扱いしない。
+ */
+export function isOverLineThreshold(lineCount: number, max: number): boolean {
+  return lineCount > max;
 }
 
 function stripHtmlBlockComments(source: string): string {
@@ -83,20 +103,43 @@ export function analyzePlaybookMarkdown(content: string): AnalyzeResult {
   };
 }
 
-function parseMaxPerCategory(): number {
-  const raw = process.env.ACE_MAX_ENTRIES_PER_CATEGORY;
-  if (raw === undefined || raw.trim() === "") {
-    return DEFAULT_MAX_ENTRIES_PER_CATEGORY;
+/**
+ * 正の整数を表す環境変数を厳密に解釈する。`"800abc"` や `"1e3"` のような
+ * 曖昧な値・0 以下・空値は無効として既定値にフォールバックし、stderr に警告を出す。
+ * rawValue を引数で受け取り、副作用なくユニットテストできるようにしている。
+ */
+export function parsePositiveIntEnv(
+  rawValue: string | undefined,
+  defaultValue: number,
+  envName: string,
+): number {
+  if (rawValue === undefined || rawValue.trim() === "") {
+    return defaultValue;
   }
-  const trimmed = raw.trim();
-  const parsed = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
+  const trimmed = rawValue.trim();
+  if (!/^[0-9]+$/u.test(trimmed) || Number.parseInt(trimmed, 10) < 1) {
     console.warn(
-      `ace-check: ACE_MAX_ENTRIES_PER_CATEGORY="${trimmed}" は無効のため、既定値 ${String(DEFAULT_MAX_ENTRIES_PER_CATEGORY)} を使います。`,
+      `ace-check: ${envName}="${trimmed}" は無効のため、既定値 ${String(defaultValue)} を使います。`,
     );
-    return DEFAULT_MAX_ENTRIES_PER_CATEGORY;
+    return defaultValue;
   }
-  return parsed;
+  return Number.parseInt(trimmed, 10);
+}
+
+function parseMaxPerCategory(): number {
+  return parsePositiveIntEnv(
+    process.env.ACE_MAX_ENTRIES_PER_CATEGORY,
+    DEFAULT_MAX_ENTRIES_PER_CATEGORY,
+    "ACE_MAX_ENTRIES_PER_CATEGORY",
+  );
+}
+
+function parseMaxPlaybookLines(): number {
+  return parsePositiveIntEnv(
+    process.env.ACE_MAX_PLAYBOOK_LINES,
+    DEFAULT_MAX_PLAYBOOK_LINES,
+    "ACE_MAX_PLAYBOOK_LINES",
+  );
 }
 
 function resolvePlaybookPath(argv: readonly string[]): string | undefined {
@@ -117,7 +160,7 @@ function formatHistogram(histogram: CategoryHistogram): string {
     .join("\n");
 }
 
-function main(): number {
+export function main(): number {
   const playbookPath = resolvePlaybookPath(process.argv);
   if (!playbookPath) {
     console.error(
@@ -150,8 +193,17 @@ function main(): number {
     }
   }
 
+  const lineCount = countPlaybookLines(content);
+  const maxLines = parseMaxPlaybookLines();
+
   console.log(`Playbook: ${playbookPath}`);
   console.log(`総エントリ数: ${String(analyzed.totalEntries)}`);
+  console.log(`総行数: ${String(lineCount)} (閾値 ${String(maxLines)})`);
+  if (isOverLineThreshold(lineCount, maxLines)) {
+    console.error(
+      `⚠ 行数が閾値を超過しています（${String(lineCount)} > ${String(maxLines)}）。分割・アーカイブを検討してください（別 Issue 起票を推奨）。`,
+    );
+  }
   console.log("カテゴリ別件数:\n" + formatHistogram(analyzed.histogram));
 
   if (overCategories.length > 0) {
@@ -165,4 +217,8 @@ function main(): number {
   return EXIT_OK;
 }
 
-process.exitCode = main();
+// 直接実行（tsx 経由の CLI）のときのみ自動実行する。テストから import した
+// ときは副作用なく関数だけを取り込めるようにする。
+if ((process.argv[1] ?? "").includes("check-category-size")) {
+  process.exitCode = main();
+}

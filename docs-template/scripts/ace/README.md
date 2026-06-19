@@ -4,11 +4,11 @@ Issue [#367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)
 
 ## 含まれるファイル
 
-| ファイル                                      | 説明                                                              |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| `run-subagent.sh`                             | ロック取得、`git worktree` 作成、`claude -p` 起動、後片付けの骨子 |
-| `check-category-size.ts`                      | Playbook 内の Category ごとの件数を数え、閾値超過で非ゼロ終了     |
-| `docs-template/.claude/agents/ace-capture.md` | Subagent 用プロンプト（コピー先は `.claude/agents/`）             |
+| ファイル                                      | 説明                                                                                      |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `run-subagent.sh`                             | ロック取得、`git worktree` 作成、`claude -p` 起動、後片付けの骨子                         |
+| `check-category-size.ts`                      | Playbook の Category 件数（閾値超過で非ゼロ終了）と総行数（閾値超過で警告のみ）をチェック |
+| `docs-template/.claude/agents/ace-capture.md` | Subagent 用プロンプト（コピー先は `.claude/agents/`）                                     |
 
 post-merge からの呼び出し例は `docs-template/.claude/hooks/post-merge.ace.sample.sh` を参照してください。
 
@@ -29,6 +29,8 @@ npx --yes tsx scripts/ace/check-category-size.ts docs/08-knowledge/PLAYBOOK.md
 ```
 
 環境変数 `ACE_MAX_ENTRIES_PER_CATEGORY`（省略時は `130`）で閾値を変更できます。値が **非数値または 1 未満**のときは既定値 `130` にフォールバックし、標準エラーに警告を出します。
+
+環境変数 `ACE_MAX_PLAYBOOK_LINES`（省略時は `800`）で総行数の警告閾値を変更できます。総行数が閾値を超えると標準エラーに警告を出しますが、**終了コードは変えません（警告のみ・非ブロック）**。値が **非数値または 1 未満**のときは既定値 `800` にフォールバックし警告します。
 
 ### post-merge 用の環境変数ファイル
 
