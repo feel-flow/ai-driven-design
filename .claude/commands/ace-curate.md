@@ -156,4 +156,4 @@ gh pr create --base develop --title "knowledge: ACE-<PR番号>-<連番> [categor
 - 既存エントリの Helpful/Harmful カウンター更新と Status 変更（active → deprecated）は許可
 - カウンターの更新は **インクリメントのみ**（減算しない）
 - 知見が抽出されない場合（typo修正のみ等）は「知見なし」と報告して終了
-- PLAYBOOK.md が 800 行を超えている場合は分割を提案
+- PLAYBOOK.md の総行数は `npm run ace:check-playbook-categories`（`check-category-size.ts`）が報告する。`ACE_MAX_PLAYBOOK_LINES`（既定 800）を超えると警告が出る（**警告のみ・追記はブロックしない**）。超過時は分割・アーカイブを別 Issue で検討する

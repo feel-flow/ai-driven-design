@@ -62,13 +62,14 @@ GUI の Git クライアントや一部の CI では、マージ実行時に **`
 
 **デフォルトは無効**とし、`.claude/settings.local.json` の env や CI のシークレットで **明示 opt-in** してください。
 
-| 変数                           | 意味                                              | 推奨初期値                                                                                   |
-| ------------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `ACE_SUBAGENT_ENABLED`         | post-merge 等から subagent 起動を行うか           | `0`（無効）                                                                                  |
-| `ACE_SUBAGENT_AUTO_MERGE`      | ガード通過後に squash マージまで自動で行うか      | `0`（無効）                                                                                  |
-| `ACE_GARDEN_WALL_PATHS`        | 編集を許可するパス（カンマ区切り）                | プロジェクト固有（必須で設定）                                                               |
-| `ACE_PLAYBOOK_PATH`            | `check-category-size.ts` が読む Playbook ファイル | 例: `docs/08-knowledge/PLAYBOOK.md`                                                          |
-| `ACE_MAX_ENTRIES_PER_CATEGORY` | カテゴリあたりの最大エントリ件数                  | 省略時は `130`。**非数値や 0 以下は無効**として既定値にフォールバックし、stderr に警告を出す |
+| 変数                           | 意味                                                  | 推奨初期値                                                                                   |
+| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `ACE_SUBAGENT_ENABLED`         | post-merge 等から subagent 起動を行うか               | `0`（無効）                                                                                  |
+| `ACE_SUBAGENT_AUTO_MERGE`      | ガード通過後に squash マージまで自動で行うか          | `0`（無効）                                                                                  |
+| `ACE_GARDEN_WALL_PATHS`        | 編集を許可するパス（カンマ区切り）                    | プロジェクト固有（必須で設定）                                                               |
+| `ACE_PLAYBOOK_PATH`            | `check-category-size.ts` が読む Playbook ファイル     | 例: `docs/08-knowledge/PLAYBOOK.md`                                                          |
+| `ACE_MAX_ENTRIES_PER_CATEGORY` | カテゴリあたりの最大エントリ件数                      | 省略時は `130`。**非数値や 0 以下は無効**として既定値にフォールバックし、stderr に警告を出す |
+| `ACE_MAX_PLAYBOOK_LINES`       | Playbook 総行数の警告閾値（**警告のみ・非ブロック**） | 省略時は `800`。**非数値や 0 以下は無効**として既定値にフォールバックし、stderr に警告を出す |
 
 ## Shadow 運用（段階導入）
 
@@ -79,6 +80,8 @@ GUI の Git クライアントや一部の CI では、マージ実行時に **`
 ## Playbook 肥大化と別 Issue 起票
 
 カテゴリあたりのエントリ数が閾値を超えた場合、**subagent 内で分割作業を続けない**方針を推奨します。`check-category-size.ts` が検知し、**別 Issue の起票**（手動または `gh issue create`）に委ねることで責務を分離します。
+
+あわせて `check-category-size.ts` は Playbook の**総行数**も報告し、`ACE_MAX_PLAYBOOK_LINES`（既定 800）を超えると**警告のみ**（exit code は変えない）を出す。件数ゲート（exit 1）とは独立しており、行数超過は ACE の追記を止めず、分割・アーカイブの判断を別 Issue に委ねる。
 
 実行例:
 
