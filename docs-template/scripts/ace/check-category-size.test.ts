@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { analyzePlaybookMarkdown } from "./check-category-size";
+import {
+  analyzePlaybookMarkdown,
+  countPlaybookLines,
+  isOverLineThreshold,
+} from "./check-category-size";
 
 describe("analyzePlaybookMarkdown", () => {
   it("HTML コメント内の ACE 見出しは無視し、実エントリのみ数える", () => {
@@ -112,5 +116,37 @@ describe("analyzePlaybookMarkdown", () => {
   it("ACE 見出しが無い場合は error を返す", () => {
     const result = analyzePlaybookMarkdown("# 見出しのみ\n");
     expect(result.kind).toBe("error");
+  });
+});
+
+describe("countPlaybookLines", () => {
+  it("末尾に改行がある場合は改行数を数える（wc -l 準拠）", () => {
+    expect(countPlaybookLines("a\nb\nc\n")).toBe(3);
+  });
+
+  it("末尾に改行が無い最終行は数えない（wc -l 準拠）", () => {
+    expect(countPlaybookLines("a\nb\nc")).toBe(2);
+  });
+
+  it("空文字は 0 行", () => {
+    expect(countPlaybookLines("")).toBe(0);
+  });
+
+  it("改行のみは 1 行", () => {
+    expect(countPlaybookLines("\n")).toBe(1);
+  });
+});
+
+describe("isOverLineThreshold", () => {
+  it("閾値ちょうどは超過しない（境界は > 判定）", () => {
+    expect(isOverLineThreshold(800, 800)).toBe(false);
+  });
+
+  it("閾値+1 は超過する", () => {
+    expect(isOverLineThreshold(801, 800)).toBe(true);
+  });
+
+  it("閾値未満は超過しない", () => {
+    expect(isOverLineThreshold(10, 800)).toBe(false);
   });
 });
