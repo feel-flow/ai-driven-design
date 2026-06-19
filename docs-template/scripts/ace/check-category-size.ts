@@ -103,36 +103,43 @@ export function analyzePlaybookMarkdown(content: string): AnalyzeResult {
   };
 }
 
-function parseMaxPerCategory(): number {
-  const raw = process.env.ACE_MAX_ENTRIES_PER_CATEGORY;
-  if (raw === undefined || raw.trim() === "") {
-    return DEFAULT_MAX_ENTRIES_PER_CATEGORY;
+/**
+ * 正の整数を表す環境変数を厳密に解釈する。`"800abc"` や `"1e3"` のような
+ * 曖昧な値・0 以下・空値は無効として既定値にフォールバックし、stderr に警告を出す。
+ * rawValue を引数で受け取り、副作用なくユニットテストできるようにしている。
+ */
+export function parsePositiveIntEnv(
+  rawValue: string | undefined,
+  defaultValue: number,
+  envName: string,
+): number {
+  if (rawValue === undefined || rawValue.trim() === "") {
+    return defaultValue;
   }
-  const trimmed = raw.trim();
-  const parsed = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
+  const trimmed = rawValue.trim();
+  if (!/^[0-9]+$/u.test(trimmed) || Number.parseInt(trimmed, 10) < 1) {
     console.warn(
-      `ace-check: ACE_MAX_ENTRIES_PER_CATEGORY="${trimmed}" は無効のため、既定値 ${String(DEFAULT_MAX_ENTRIES_PER_CATEGORY)} を使います。`,
+      `ace-check: ${envName}="${trimmed}" は無効のため、既定値 ${String(defaultValue)} を使います。`,
     );
-    return DEFAULT_MAX_ENTRIES_PER_CATEGORY;
+    return defaultValue;
   }
-  return parsed;
+  return Number.parseInt(trimmed, 10);
+}
+
+function parseMaxPerCategory(): number {
+  return parsePositiveIntEnv(
+    process.env.ACE_MAX_ENTRIES_PER_CATEGORY,
+    DEFAULT_MAX_ENTRIES_PER_CATEGORY,
+    "ACE_MAX_ENTRIES_PER_CATEGORY",
+  );
 }
 
 function parseMaxPlaybookLines(): number {
-  const raw = process.env.ACE_MAX_PLAYBOOK_LINES;
-  if (raw === undefined || raw.trim() === "") {
-    return DEFAULT_MAX_PLAYBOOK_LINES;
-  }
-  const trimmed = raw.trim();
-  const parsed = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    console.warn(
-      `ace-check: ACE_MAX_PLAYBOOK_LINES="${trimmed}" は無効のため、既定値 ${String(DEFAULT_MAX_PLAYBOOK_LINES)} を使います。`,
-    );
-    return DEFAULT_MAX_PLAYBOOK_LINES;
-  }
-  return parsed;
+  return parsePositiveIntEnv(
+    process.env.ACE_MAX_PLAYBOOK_LINES,
+    DEFAULT_MAX_PLAYBOOK_LINES,
+    "ACE_MAX_PLAYBOOK_LINES",
+  );
 }
 
 function resolvePlaybookPath(argv: readonly string[]): string | undefined {
@@ -153,7 +160,7 @@ function formatHistogram(histogram: CategoryHistogram): string {
     .join("\n");
 }
 
-function main(): number {
+export function main(): number {
   const playbookPath = resolvePlaybookPath(process.argv);
   if (!playbookPath) {
     console.error(
@@ -210,4 +217,8 @@ function main(): number {
   return EXIT_OK;
 }
 
-process.exitCode = main();
+// 直接実行（tsx 経由の CLI）のときのみ自動実行する。テストから import した
+// ときは副作用なく関数だけを取り込めるようにする。
+if ((process.argv[1] ?? "").includes("check-category-size")) {
+  process.exitCode = main();
+}
