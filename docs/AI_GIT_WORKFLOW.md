@@ -121,6 +121,8 @@ release/*     ← リリース準備（developから分岐）
 | **Test**（どう検証する）     | ユニット／統合／手動の判定基準                 |
 
 > **運用**: 本リポジトリでは [`.github/ISSUE_TEMPLATE/feature.md`](../.github/ISSUE_TEMPLATE/feature.md) に 6 観点チェックリストを組み込んでいます。1 つでも空欄のまま着手すると、AI は「もっともらしい仮定」で穴埋めするため、必ず Issue 着手前に埋めてください。空欄のまま走らせると後工程で手戻りが発生します。
+>
+> なお feature/docs はユーザーストーリー、bug/refactor/infra はジョブストーリーを最上位に置き、6 観点（how）の上位に「誰のために・なぜ」（why/what）を明示する構成にしています。従来型テンプレは [`docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md`](../docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md) に集約しています。
 
 ```bash
 # GitHub CLIでIssue作成

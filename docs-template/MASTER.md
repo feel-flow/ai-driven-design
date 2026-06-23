@@ -521,6 +521,7 @@ metrics:
 - [00-planning/POC_WORKFLOW.md](./00-planning/POC_WORKFLOW.md) - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
 - [06-reference/DECISION_MATRIX.md](./06-reference/DECISION_MATRIX.md) - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
 - [06-reference/COPILOT_AGENTS.md](./06-reference/COPILOT_AGENTS.md) - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
+- [06-reference/ISSUE_TEMPLATE_PATTERNS.md](./06-reference/ISSUE_TEMPLATE_PATTERNS.md) - Issue テンプレ設計パターン（ストーリー型=推奨 / 従来型=代替）
 - [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md) - 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）
 
 ## ドキュメント構造ガイド（AIツール向け）

@@ -27,9 +27,11 @@
 ## Task 1: 従来型を参考パターン化する `ISSUE_TEMPLATE_PATTERNS.md` を作成
 
 **Files:**
+
 - Create: `docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md`
 
 **Interfaces:**
+
 - Produces: `06-reference/ISSUE_TEMPLATE_PATTERNS.md`（Task 7 の索引・MASTER 参照網が参照する）
 
 **Why first:** 従来型テンプレ全文を先に保存しておくことで、Task 2〜4 でライブテンプレを上書きしても参考形が失われない。
@@ -47,27 +49,27 @@
 ## なぜストーリーベースを推奨するか
 
 本リポジトリの思想は「AI が苦手なのは "コーディング" ではなく "心を読むこと"」。
-ストーリー形式は「誰のために・なぜ」という *意図* を起票者に強制的に言語化させる。
+ストーリー形式は「誰のために・なぜ」という _意図_ を起票者に強制的に言語化させる。
 これは AI が推測で穴埋めしがちな部分を着手前に埋める装置であり、
 このプロジェクトの思想の実装そのものである。
 
 ## 2 軸の使い分け
 
-| 軸 | 対象種別 | 形式 |
-| --- | --- | --- |
-| ユーザーストーリー | feature, docs | 「**[ペルソナ]** として、**[実現したいこと]** をしたい。なぜなら **[価値]** だから。」 |
-| ジョブストーリー | bug, refactor, infra, chore | 「**[状況]** のとき、**[どうしたい]** したい。その結果 **[得たい結果]** が得られる。」 |
+| 軸                 | 対象種別                    | 形式                                                                                   |
+| ------------------ | --------------------------- | -------------------------------------------------------------------------------------- |
+| ユーザーストーリー | feature, docs               | 「**[ペルソナ]** として、**[実現したいこと]** をしたい。なぜなら **[価値]** だから。」 |
+| ジョブストーリー   | bug, refactor, infra, chore | 「**[状況]** のとき、**[どうしたい]** したい。その結果 **[得たい結果]** が得られる。」 |
 
 技術系（bug/refactor/infra）は人格を立てにくい。状況（トリガー）で語る
 ジョブストーリーのほうが嘘になりにくい。
 
 ## ストーリー型 vs 従来型 — 選択ガイド
 
-| 状況 | 推奨 |
-| --- | --- |
-| エンドユーザー価値がある機能 | ユーザーストーリー型（feature） |
-| 技術的負債・内部改善 | ジョブストーリー型（refactor 等） |
-| 意図より手順が本質（定型作業・依存更新） | 従来型でも可 |
+| 状況                                           | 推奨                                 |
+| ---------------------------------------------- | ------------------------------------ |
+| エンドユーザー価値がある機能                   | ユーザーストーリー型（feature）      |
+| 技術的負債・内部改善                           | ジョブストーリー型（refactor 等）    |
+| 意図より手順が本質（定型作業・依存更新）       | 従来型でも可                         |
 | 教材・サンプルとして conventional 型を見せたい | 従来型（本ドキュメントの全文を参照） |
 
 ## 従来型テンプレート（代替パターン・全文）
@@ -152,17 +154,19 @@ refactor / infra / docs の従来型は git 履歴（本 PR 以前の
 Run: `cd /Users/futoshi/GitHub/FEEL-FLOW/ai-spec-driven-development && git add docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md && git commit -m "docs: #446 従来型Issueテンプレを参考パターンとして集約"`
 Expected: `Linting: ... Summary: 0 error(s)` と表示されコミット成功
 
-> markdownlint がネストしたコードフェンス（``` 内に ```）でエラーを出す場合、外側を 4 連バッククォート（````）に変更して再コミット。
+> markdownlint がネストしたコードフェンス（`内に`）でエラーを出す場合、外側を 4 連バッククォート（````）に変更して再コミット。
 
 ---
 
 ## Task 2: ドッグフード — ユーザーストーリー型テンプレ（feature / docs）
 
 **Files:**
+
 - Modify: `.github/ISSUE_TEMPLATE/feature.md`（全面書き換え）
 - Modify: `.github/ISSUE_TEMPLATE/docs.md`（全面書き換え）
 
 **Interfaces:**
+
 - Consumes: なし（独立）
 - Produces: ストーリー型 feature.md / docs.md（Task 5・6 のスキルが生成する body の手本）
 
@@ -358,12 +362,14 @@ Expected: `Summary: 0 error(s)` でコミット成功
 ## Task 3: ドッグフード — ジョブストーリー型テンプレ（bug / refactor / infra / general_task）
 
 **Files:**
+
 - Modify: `.github/ISSUE_TEMPLATE/bug.md`
 - Modify: `.github/ISSUE_TEMPLATE/refactor.md`
 - Modify: `.github/ISSUE_TEMPLATE/infra.md`
 - Modify: `.github/ISSUE_TEMPLATE/general_task.md`
 
 **Interfaces:**
+
 - Produces: ジョブストーリー型の 4 テンプレ
 
 - [ ] **Step 1: `.github/ISSUE_TEMPLATE/bug.md` を以下で全置換**
@@ -618,13 +624,13 @@ assignees: ""
 
 > 新ツール・新インフラを導入する場合、**「採用しないことになった場合に削除対象となる範囲」を着手前に見積もる**。インフラ系は依存が広がりやすく、撤退コストが大きくなりがち。
 
-| 項目                          | 試算値                                     |
-| ----------------------------- | ------------------------------------------ |
-| 新規設定・スクリプト数        | [N ファイル予定]                           |
-| 編集ファイル数                | [N ファイル予定]                           |
-| 特定ツール依存物の有無        | [あり: ツール名 ... / なし]                |
-| `docs-template/` への影響     | [N ファイル混入 / 影響なし]                |
-| 撤退判断のしきい値            | [例: 月次運用コストが N 円超過したら撤退]  |
+| 項目                      | 試算値                                    |
+| ------------------------- | ----------------------------------------- |
+| 新規設定・スクリプト数    | [N ファイル予定]                          |
+| 編集ファイル数            | [N ファイル予定]                          |
+| 特定ツール依存物の有無    | [あり: ツール名 ... / なし]               |
+| `docs-template/` への影響 | [N ファイル混入 / 影響なし]               |
+| 撤退判断のしきい値        | [例: 月次運用コストが N 円超過したら撤退] |
 
 ## リスク
 
@@ -715,6 +721,7 @@ Expected: `Summary: 0 error(s)` でコミット成功
 ## Task 4: 配布テンプレ（`docs-template/.github/ISSUE_TEMPLATE/`）をストーリー型に同期
 
 **Files:**
+
 - Modify: `docs-template/.github/ISSUE_TEMPLATE/feature.md`
 - Modify: `docs-template/.github/ISSUE_TEMPLATE/docs.md`
 - Modify: `docs-template/.github/ISSUE_TEMPLATE/bug.md`
@@ -722,6 +729,7 @@ Expected: `Summary: 0 error(s)` でコミット成功
 - Modify: `docs-template/.github/ISSUE_TEMPLATE/infra.md`
 
 **Interfaces:**
+
 - Consumes: Task 2/3 のドッグフード版（構造を一致させる）
 - Produces: 配布版ストーリー型テンプレ（**相対リンク `../../` を使用**、general_task は作らない）
 
@@ -735,6 +743,7 @@ Expected: `Summary: 0 error(s)` でコミット成功
 - [ ] **Step 1: `docs-template/.github/ISSUE_TEMPLATE/feature.md` を全置換**
 
 Task 2 Step 1 の feature.md と同一。ただし参照リンクを相対形に:
+
 - `[MASTER.md](../../MASTER.md)`
 - `[ARCHITECTURE.md](../../02-design/ARCHITECTURE.md)`
 - `[DOMAIN.md](../../02-design/DOMAIN.md)`
@@ -747,17 +756,20 @@ Task 2 Step 1 の feature.md と同一。ただし参照リンクを相対形に
 - [ ] **Step 2: `docs-template/.github/ISSUE_TEMPLATE/docs.md` を全置換**
 
 Task 2 Step 2 の docs.md と同一。リンクのみ相対形:
+
 - `[MASTER.md](../../MASTER.md)`
 
 - [ ] **Step 3: `docs-template/.github/ISSUE_TEMPLATE/bug.md` を全置換**
 
 Task 3 Step 1 の bug.md と同一。リンクのみ相対形:
+
 - `[PATTERNS.md#エラーハンドリング](../../03-implementation/PATTERNS.md#エラーハンドリング)`
 - `[TESTING.md](../../04-quality/TESTING.md)`
 
 - [ ] **Step 4: `docs-template/.github/ISSUE_TEMPLATE/refactor.md` を全置換**
 
 Task 3 Step 2 の refactor.md と同一。リンクのみ相対形:
+
 - `[ARCHITECTURE.md](../../02-design/ARCHITECTURE.md)`
 - `[PATTERNS.md](../../03-implementation/PATTERNS.md)`
 - `[TESTING.md](../../04-quality/TESTING.md)`
@@ -765,6 +777,7 @@ Task 3 Step 2 の refactor.md と同一。リンクのみ相対形:
 - [ ] **Step 5: `docs-template/.github/ISSUE_TEMPLATE/infra.md` を全置換**
 
 Task 3 Step 3 の infra.md と同一。リンクのみ相対形:
+
 - `[MASTER.md](../../MASTER.md)`
 - `[DEPLOYMENT.md](../../05-operations/DEPLOYMENT.md)`
 - `[ARCHITECTURE.md#インフラ](../../02-design/ARCHITECTURE.md#インフラ)`
@@ -798,9 +811,11 @@ Expected: `Summary: 0 error(s)` でコミット成功
 ## Task 5: create-issue スキルをストーリー＋GWT 検証に更新
 
 **Files:**
+
 - Modify: `.claude/commands/create-issue.md`
 
 **Interfaces:**
+
 - Consumes: Task 2〜4 のテンプレ構造（生成 body の手本）
 
 - [ ] **Step 1: 手順 1（種別確認）に chore を追加し、手順 3 をストーリー収集に書き換え**
@@ -884,6 +899,7 @@ Expected: 両 grep が 1 以上、`Summary: 0 error(s)` でコミット成功
 ## Task 6: refine-issue スキルに第5観点「ストーリー有無」と GWT チェックを追加
 
 **Files:**
+
 - Modify: `.claude/commands/refine-issue.md`
 
 - [ ] **Step 1: 手順 4 のバリデーション 4 観点に第 5 観点を追加**
@@ -924,11 +940,13 @@ Expected: 両 grep が 1 以上、コミット成功
 ## Task 7: ドキュメント整合と最終検証
 
 **Files:**
+
 - Modify: `docs/AI_GIT_WORKFLOW.md`（L123 付近）
 - Modify: `docs-template/MASTER.md`（参照網に `ISSUE_TEMPLATE_PATTERNS.md` を追加）
 - Modify: `docs-template/06-reference/` の索引（README 相当があれば。無ければ skip）
 
 **Interfaces:**
+
 - Consumes: Task 1 の `ISSUE_TEMPLATE_PATTERNS.md`
 
 - [ ] **Step 1: `docs/AI_GIT_WORKFLOW.md` の 6観点運用記述にストーリー層を追記**
