@@ -25,7 +25,7 @@ assignees: ""
 
 > **推奨参照**: ARCHITECTURE
 
-- [ ] [ARCHITECTURE.md#インフラ](../../02-design/ARCHITECTURE.md#インフラ)
+- [ ] [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md)
 
 ## 関連Issue
 
@@ -76,7 +76,7 @@ assignees: ""
 
 [問題が発生した場合の切り戻し方法]
 
-## 撤退コスト試算（[docs/DESIGN_PRINCIPLES.md](../../../docs/DESIGN_PRINCIPLES.md) P5）
+## 撤退コスト試算（採用しないことになった場合の削除範囲を着手前に見積もる）
 
 > 新ツール・新インフラを導入する場合、**「採用しないことになった場合に削除対象となる範囲」を着手前に見積もる**。インフラ系は依存が広がりやすく、撤退コストが大きくなりがち。
 

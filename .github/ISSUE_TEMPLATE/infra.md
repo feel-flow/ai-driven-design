@@ -25,7 +25,7 @@ assignees: ""
 
 > **推奨参照**: ARCHITECTURE
 
-- [ ] [ARCHITECTURE.md#インフラ](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md#インフラ)
+- [ ] [ARCHITECTURE.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md)
 
 ## 関連Issue
 

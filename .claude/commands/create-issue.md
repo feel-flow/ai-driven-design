@@ -49,7 +49,7 @@ Issue を作成する際に、仕様の粒度チェックとタスク種別に�
 
 加えて以下を収集します:
 
-- **タイトル**: conventional-commit プレフィックス（`feat:`/`fix:` 等）+ ストーリー要約
+- **タイトル**: conventional-commit プレフィックス（`feat:`/`fix:` 等）+ ストーリー要約（汎用タスクのみ `【タスク】` 形式）
 - **受け入れ条件**: 振る舞い（Given-When-Then）+ Definition of Done
 
 ### 4. 受け入れ条件（AC）の粒度チェック
