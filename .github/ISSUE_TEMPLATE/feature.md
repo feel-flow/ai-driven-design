@@ -1,14 +1,16 @@
 ---
 name: 新機能追加
-about: 新しい機能を追加する
+about: ユーザー価値のある新機能を追加する
 title: "feat: "
 labels: enhancement
 assignees: ""
 ---
 
-## 概要
+## ユーザーストーリー
 
-[この機能が何を実現するか、1〜2文で説明]
+> **[ペルソナ]** として、
+> **[実現したいこと]** をしたい。
+> なぜなら **[得られる価値／理由]** だから。
 
 ## 背景
 
@@ -19,8 +21,8 @@ assignees: ""
 > **必須参照**: MASTER, ARCHITECTURE, DOMAIN
 
 - [ ] [MASTER.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/MASTER.md)
-- [ ] [ARCHITECTURE.md#該当セクション](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md)
-- [ ] [DOMAIN.md#該当セクション](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/DOMAIN.md)
+- [ ] [ARCHITECTURE.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md)
+- [ ] [DOMAIN.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/DOMAIN.md)
 
 > **推奨参照**: PATTERNS, TESTING
 
@@ -42,17 +44,18 @@ assignees: ""
 - [ ] **Format**（入出力の形式は）: 引数・戻り値・スキーマ・エラー型
 - [ ] **Test**（どう検証する）: ユニット／統合／手動の判定基準
 
-## 受け入れ基準
+## 受け入れ条件（AC）
 
-- [ ] [具体的な動作1]
-- [ ] [具体的な動作2]
-- [ ] [具体的な動作3]
+### 振る舞い（Given-When-Then）
 
-## 技術的制約
+- [ ] **Given** [前提状態] **When** [操作] **Then** [期待結果]
+- [ ] **Given** [前提状態] **When** [操作] **Then** [期待結果]
 
-- [使用すべきライブラリ/パターン]
-- [既存コードとの接続点]
-- [パフォーマンス要件]
+### Definition of Done
+
+- [ ] ユニット／統合テストを追加し、既存テストもパスする
+- [ ] markdownlint / lint エラーなし
+- [ ] 関連ドキュメント更新（該当時）
 
 ## スコープ外（今回は対象外）
 

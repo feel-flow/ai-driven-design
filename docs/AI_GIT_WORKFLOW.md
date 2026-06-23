@@ -121,17 +121,24 @@ release/*     ← リリース準備（developから分岐）
 | **Test**（どう検証する）     | ユニット／統合／手動の判定基準                 |
 
 > **運用**: 本リポジトリでは [`.github/ISSUE_TEMPLATE/feature.md`](../.github/ISSUE_TEMPLATE/feature.md) に 6 観点チェックリストを組み込んでいます。1 つでも空欄のまま着手すると、AI は「もっともらしい仮定」で穴埋めするため、必ず Issue 着手前に埋めてください。空欄のまま走らせると後工程で手戻りが発生します。
+>
+> なお feature/docs はユーザーストーリー、bug/refactor/infra はジョブストーリーを最上位に置き、「誰のために・なぜ」（why/what）を着手前に言語化する構成にしています（6 観点フレームワークは feature のみ）。従来型テンプレは [`docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md`](../docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md) に集約しています。
 
 ```bash
 # GitHub CLIでIssue作成
 gh issue create \
-  --title "feat: ユーザー認証機能を実装" \
-  --body "## 概要
-[実装内容の説明]
+  --title "feat: 利用者がメール+パスワードでログインできる" \
+  --body "## ユーザーストーリー
+利用者として、メール+パスワードでログインしたい。なぜなら自分のデータに安全にアクセスしたいから。
 
-## 受入基準
-- [ ] 基準1
-- [ ] 基準2" \
+## 受け入れ条件（AC）
+
+### 振る舞い（Given-When-Then）
+- [ ] **Given** 登録済み利用者が **When** 正しい資格情報でログインすると **Then** ダッシュボードへ遷移する
+
+### Definition of Done
+- [ ] テスト追加・既存パス
+- [ ] lint エラーなし" \
   --label "enhancement"
 ```
 

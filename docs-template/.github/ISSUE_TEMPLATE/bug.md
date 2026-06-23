@@ -6,9 +6,11 @@ labels: bug
 assignees: ""
 ---
 
-## 概要
+## ジョブストーリー
 
-[バグの概要を1〜2文で説明]
+> **[どんな状況・操作の]** とき、
+> **[実現したいこと]** をしたい。
+> その結果 **[得たい結果]** が得られる。
 
 ## 再現手順
 
@@ -29,7 +31,7 @@ assignees: ""
 > **必須参照**: 関連Issue, PATTERNS
 
 - [ ] #XX [関連する過去のIssue]
-- [ ] [PATTERNS.md#エラーハンドリング](../../03-implementation/PATTERNS.md)
+- [ ] [PATTERNS.md](../../03-implementation/PATTERNS.md)
 
 > **推奨参照**: TESTING
 
@@ -58,6 +60,17 @@ assignees: ""
 ```
 [エラーメッセージがあれば貼り付け]
 ```
+
+## 受け入れ条件（AC）
+
+### 回帰シナリオ（Given-When-Then）
+
+- [ ] **Given** [バグ発生条件] **When** [操作] **Then** [修正後の正しい挙動]
+
+### Definition of Done
+
+- [ ] このバグを再現する回帰テストを追加し、修正後にパスする
+- [ ] lint エラーなし
 
 ## その他
 

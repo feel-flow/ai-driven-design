@@ -1,14 +1,16 @@
 ---
 name: インフラ変更
 about: インフラ・デプロイ設定の変更
-title: 'infra: '
+title: "infra: "
 labels: infrastructure
-assignees: ''
+assignees: ""
 ---
 
-## 概要
+## ジョブストーリー
 
-[インフラ変更の目的を1〜2文で説明]
+> **[どんな運用・デプロイの]** とき、
+> **[実現したいこと]** をしたい。
+> その結果 **[得たい結果（自動化・安定化など）]** が得られる。
 
 ## 背景
 
@@ -23,7 +25,7 @@ assignees: ''
 
 > **推奨参照**: ARCHITECTURE
 
-- [ ] [ARCHITECTURE.md#インフラ](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md#インフラ)
+- [ ] [ARCHITECTURE.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/02-design/ARCHITECTURE.md)
 
 ## 関連Issue
 
@@ -51,10 +53,17 @@ assignees: ''
 - `docker-compose.yml`
 - [その他]
 
-## 受け入れ基準
+## 受け入れ条件（AC）
 
-- [ ] [具体的な確認項目1]
-- [ ] [具体的な確認項目2]
+### 振る舞い（Given-When-Then）
+
+- [ ] **Given** [トリガー条件] **When** [パイプライン／設定が走ると] **Then** [期待される結果状態]
+
+### Definition of Done
+
+- [ ] 対象環境で動作確認済み
+- [ ] ロールバック手順が記載されている
+- [ ] lint エラーなし
 
 ## スコープ外（今回は参照不要）
 
