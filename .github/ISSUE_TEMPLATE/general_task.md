@@ -1,9 +1,15 @@
 ---
 name: 汎用タスク (General Task)
 about: プロジェクト全般のタスク（テンプレート改善、CI、ドキュメント整備など）
-title: '【タスク】[タスクの概要]'
-labels: 'enhancement'
+title: "【タスク】[タスクの概要]"
+labels: "enhancement"
 ---
+
+## ジョブストーリー（軽量）
+
+> **[このタスクに着手する]** とき、
+> **[何をしたい]** したい。
+> その結果 **[得たい結果]** が得られる。
 
 ## 📌 スコープ確認
 
@@ -31,6 +37,13 @@ labels: 'enhancement'
 - （例: `CLAUDE.md`）
 - （例: `docs-template/MASTER.md`）
 
-## 受け入れ条件
+## 受け入れ条件（AC）
+
+### 振る舞い（Given-When-Then）
+
+- [ ] **Given** [前提] **When** [操作/確認] **Then** [期待結果]
+
+### Definition of Done
 
 - [ ] （具体的な完了条件を記載）
+- [ ] lint エラーなし（該当時）
