@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.27.0"
+version: "1.28.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-06-19"
+updated: "2026-06-23"
 owner: "@fffokazaki"
-ace_entry_count: 50
+ace_entry_count: 53
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1496,7 +1496,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #445 / Issue #444 |
 | Related    | ACE-005              |
 | Date       | 2026-06-19           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1512,7 +1512,97 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-447-1"></a>
+
+### ACE-447-1: 別ドキュメントへの anchor 付きリンクは実見出しの slug と一致させる — label↔URL ミラー（ACE-016）だけでは壊れたアンカーを作りうる
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #447 / Issue #446  |
+| Related    | ACE-016               |
+| Date       | 2026-06-23            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: ACE-016（anchor は label と URL の両方に書く）を満たしても、フラグメントが参照先ドキュメントの**実見出しの GitHub slug と一致していなければリンクは解決しない**。番号付き見出し `## 3. エラーハンドリング` の slug は `#3-エラーハンドリング` で、`#エラーハンドリング` は 404 になる。label↔URL ミラーリングは「壊れたアンカーを両方に等しく書く」ことすら起こす。ACE-016 は presence（両方に書く）、本エントリは validity（実 slug と一致）。
+
+**Context**: PR #447 で Issue テンプレの参照リンクを ACE-016 準拠（URL 側にもフラグメント付与）に整えた際、bug.md の `PATTERNS.md#エラーハンドリング` が実見出し `## 3. エラーハンドリング`（slug `#3-エラーハンドリング`）と不一致でリンク切れになり Codex code-reviewer が検出。さらに ARCHITECTURE.md は `## 5. インフラストラクチャ` と `#### インフラ` が併存し `#インフラ` は後者に解決する曖昧ケースもあった。
+
+**Action**:
+
+1. 別ドキュメントへ anchor 付きリンクを張るときは、参照先の実見出しを開いて GitHub slug 規則（小文字化・記号除去・空白→ハイフン、`3.`→`3-`）で slug を確定してから書く。
+2. slug が番号付き・全角括弧などで脆い、または同名見出しが複数あって曖昧なときは、フラグメントを label と URL の両方から除去してファイルトップへのリンクにする（曖昧さ回避を優先）。
+3. ACE-016（presence）と本エントリ（validity）の両方を満たして初めて anchor リンクは健全。
+
+---
+
+<a id="ace-447-2"></a>
+
+### ACE-447-2: 配布物（docs-template/）内のリンクは配布ツリー外を指さない — ドッグフード絶対URLの相対化で `../../../` がツリーを脱出する
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #447 / Issue #446  |
+| Related    | ACE-046, ACE-443-1    |
+| Date       | 2026-06-23            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: 配布テンプレ（`docs-template/`、利用者がコピーする）内のリンクが配布ツリー外（リポジトリ直下 `docs/` 等）を指すと、コピーした下流プロジェクトでリンク切れになり「自己完結した配布物」でなくなる。ドッグフード側の絶対 URL（`blob/HEAD/...`）を配布側の相対パスへ機械変換するとき、ツリー外参照は `../../../docs/...` となって配布ツリーを脱出する。「URL 形式の差分のみ」の同期に見えて、実は到達範囲の差（絶対は常に解決、相対はツリー境界に縛られる）になっている。
+
+**Context**: PR #447 で Issue テンプレを2セット（`.github/`=ドッグフード絶対URL / `docs-template/.github/`=配布相対パス）で同期した際、撤退コスト試算の `[docs/DESIGN_PRINCIPLES.md]` 参照を配布側で `../../../docs/DESIGN_PRINCIPLES.md` に相対化してしまい、Codex code-reviewer が「配布物が自己完結しない」と検出。配布側はプレーンテキスト化（外部参照を落とす）、ドッグフード側は絶対 URL を維持して解消。
+
+**Action**:
+
+1. 配布物を編集したら `grep -rn '\.\./\.\./\.\./' docs-template/` 等でツリー脱出リンクを検出する。
+2. 配布ツリー外への参照は、配布側ではプレーンテキスト化するか配布ツリー内の等価ドキュメントへ張り替える。ドッグフード側のみ絶対 URL（`blob/HEAD/`、[ACE-046](#ace-046)）を保持。
+3. ドッグフード→配布の同期は「URL 形式の差分のみ」を原則としつつ、その差が到達範囲の差でもある点を常に確認する。
+
+---
+
+<a id="ace-447-3"></a>
+
+### ACE-447-3: 大規模 doc PR の cross-model レビューは clean verdict に収束しない — ゲートは「Critical 不在＋実 Important 全対応」、green を待ってループしない
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #447 / Issue #446 |
+| Related    | ACE-445-1, ACE-005   |
+| Date       | 2026-06-23           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 多数ファイルのドキュメント PR では、LLM cross-model レビュー（Codex 等）は毎ラウンド新しい言い回し・整合性 nit を出し、REJECTED 判定が green に収束しにくい。マージ可否のゲートは「verdict が PASS になること」ではなく「**Critical がゼロ＋検出された実 Important を全対応したこと**」に置く。clean verdict を待って無限ループしない。ただし cross-model 自体は省略しない（[ACE-445-1](#ace-445-1)）。
+
+**Context**: PR #447（Issue テンプレ刷新、15+ ファイルの Markdown）で Codex を3ラウンド実行し、いずれも REJECTED（Critical=0、毎回 doc 整合の Important を2〜4件検出）。各ラウンドで実指摘を fix commit に束ねて対応し、silent-failure/type/test は2ラウンド目以降安定 PASS、code-reviewer/comment-analyzer は新しい nit を出し続けた。ユーザーの「Critical 指摘がなければマージを止めない」ポリシーに従い、実 Important 全対応・Critical 不在を確認して merge した。
+
+**Action**:
+
+1. cross-model レビューは必ず回す（[ACE-445-1](#ace-445-1)）が、ループ終了条件は「Critical=0 かつ実 Important 全対応」。green verdict は終了条件にしない。
+2. 各ラウンドの指摘は「実バグ/不整合」と「誤検知/好みの言い回し」を切り分け、前者のみ fix。誤検知は根拠付きで却下し記録する（例: `#インフラ` は実在見出しに解決＝誤検知）。
+3. 収束しない兆候（毎回 Critical=0 で新規 nit のみ）が出たら、ループを打ち切りマージ判断をユーザーに提示する。
+
+---
+
 ## Changelog
+
+### [1.28.0] - 2026-06-23
+
+#### 追加
+
+- ACE-447-1: 別ドキュメントへの anchor 付きリンクは実見出しの slug と一致させる — label↔URL ミラー（ACE-016）だけでは壊れたアンカーを作りうる — PR #447 で Issue テンプレの `PATTERNS.md#エラーハンドリング` が実見出し `## 3. エラーハンドリング`（slug `#3-エラーハンドリング`）と不一致でリンク切れになり Codex code-reviewer が検出した経験から抽出
+- ACE-447-2: 配布物（docs-template/）内のリンクは配布ツリー外を指さない — ドッグフード絶対URLの相対化で `../../../` がツリーを脱出する — PR #447 で配布側 Issue テンプレの撤退コスト参照が `../../../docs/DESIGN_PRINCIPLES.md` となり「配布物が自己完結しない」と Codex が検出した経験から抽出
+- ACE-447-3: 大規模 doc PR の cross-model レビューは clean verdict に収束しない — ゲートは「Critical 不在＋実 Important 全対応」、green を待ってループしない — PR #447 で Codex を3ラウンド回し毎回 REJECTED（Critical=0・doc 整合 nit のみ）だった経験から抽出
+
+#### 更新
+
+- ACE-445-1（同系列レビュアーの全員一致こそ cross-model の出番）Helpful: 0 → 1 — PR #447 で「5 観点」表記が実 6 項目という数え違いが opus 全ブランチレビュー（同系列）を通過した一方、Codex cross-model の comment-analyzer / code-reviewer が独立検出した事例として補強
 
 ### [1.27.0] - 2026-06-19
 
