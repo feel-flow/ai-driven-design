@@ -127,13 +127,18 @@ release/*     ← リリース準備（developから分岐）
 ```bash
 # GitHub CLIでIssue作成
 gh issue create \
-  --title "feat: ユーザー認証機能を実装" \
-  --body "## 概要
-[実装内容の説明]
+  --title "feat: 利用者がメール+パスワードでログインできる" \
+  --body "## ユーザーストーリー
+利用者として、メール+パスワードでログインしたい。なぜなら自分のデータに安全にアクセスしたいから。
 
-## 受入基準
-- [ ] 基準1
-- [ ] 基準2" \
+## 受け入れ条件（AC）
+
+### 振る舞い（Given-When-Then）
+- [ ] **Given** 登録済み利用者が **When** 正しい資格情報でログインすると **Then** ダッシュボードへ遷移する
+
+### Definition of Done
+- [ ] テスト追加・既存パス
+- [ ] lint エラーなし" \
   --label "enhancement"
 ```
 
