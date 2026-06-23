@@ -2,7 +2,7 @@
 
 - **日付**: 2026-06-23
 - **関連 Issue**: [#446](https://github.com/feel-flow/ai-spec-driven-development/issues/446)
-- **ステータス**: 設計承認済み（実装プラン未作成）
+- **ステータス**: 実装完了（PR #447）
 
 ## 1. 目的
 

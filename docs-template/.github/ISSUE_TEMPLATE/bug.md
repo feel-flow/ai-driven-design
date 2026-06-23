@@ -9,7 +9,7 @@ assignees: ""
 ## ジョブストーリー
 
 > **[どんな状況・操作の]** とき、
-> **[どう動いてほしい]** したい。
+> **[実現したいこと]** をしたい。
 > その結果 **[得たい結果]** が得られる。
 
 ## 再現手順
@@ -31,7 +31,7 @@ assignees: ""
 > **必須参照**: 関連Issue, PATTERNS
 
 - [ ] #XX [関連する過去のIssue]
-- [ ] [PATTERNS.md#エラーハンドリング](../../03-implementation/PATTERNS.md#エラーハンドリング)
+- [ ] [PATTERNS.md](../../03-implementation/PATTERNS.md)
 
 > **推奨参照**: TESTING
 
