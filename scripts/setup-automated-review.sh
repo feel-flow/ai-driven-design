@@ -323,7 +323,7 @@ for entry in $CLI_ENTRIES; do
     fi
 done
 
-echo "Warning: No AI CLI found. Install one of: claude, codex, copilot, gemini, cursor-agent"
+echo "Warning: No AI CLI found. Install one of: claude, codex, gemini, cursor-agent (copilot is metered - opt in: bash scripts/copilot-review.sh)"
 echo "To skip review: git commit --no-verify"
 exit 0
 PRE_COMMIT

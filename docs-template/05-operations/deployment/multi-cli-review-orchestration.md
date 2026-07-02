@@ -70,7 +70,7 @@ bash scripts/codex-review.sh --branch
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Entry Points                           │
-│  Terminal │ Claude Code │ Codex │ CI/CD │ Husky Hook   │
+│  Terminal │ Claude Code │ CI/CD │ Husky Hook           │
 └─────┬───────────┬──────────┬────────┬────────┬──────────┘
       │           │          │        │        │
       └───────────┴──────────┴────┬───┴────────┘
@@ -161,6 +161,8 @@ chmod +x scripts/adapters/*.sh
 
 `scripts/review-config.yaml` を環境に合わせて編集します。
 
+> **Note**: 現行の `multi-agent.sh` が config から読み込むのは `mode` / `parallel` / `tasks.*`（cost_strategy / timeout / output_dir）のみで、**パースペクティブ割り当てとフォールバックはスクリプト内（`get_cli_perspectives_review()` 等）にハードコード**されています。割り当てを変更する場合は YAML とスクリプトの両方を同期して編集してください。
+
 ```yaml
 version: "1.0"
 mode: distributed
@@ -180,8 +182,8 @@ agents:
 
   copilot-cli:
     command: copilot
-    cost_tier: metered # 従量課金 — review 既定ラインナップから除外（オプトイン）
-    default_perspectives: []
+    cost_tier: metered # 従量課金 — 既定プランには載らない（--cli copilot-cli 明示時のみ実行）
+    default_perspectives: [test-analysis, comment-analysis]
 
   gemini-cli:
     command: gemini

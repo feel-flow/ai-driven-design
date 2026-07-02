@@ -19,22 +19,22 @@
 
 ### 主要AIツールの特徴比較（5 CLI）
 
-| 特徴                      | Claude Code                     | Codex CLI                  | GitHub Copilot               | Gemini CLI           | Cursor                 |
-| ------------------------- | ------------------------------- | -------------------------- | ---------------------------- | -------------------- | ---------------------- |
-| **Git統合度**             | ⭐⭐⭐⭐⭐                      | ⭐⭐⭐⭐                   | ⭐⭐⭐                       | ⭐⭐⭐               | ⭐⭐⭐⭐               |
-| **カスタム設定**          | CLAUDE.md, .claude/             | codex.md, AGENTS.md        | .vscode/settings.json        | settings.json        | .cursorrules           |
-| **CLI非インタラクティブ** | `claude -p`                     | `codex exec`               | `copilot -p`                 | `gemini -p`          | `cursor-agent --print` |
-| **安全性制御**            | `--allowed-tools`（ツール制限） | `--sandbox read-only`      | `--allow-tool`/`--deny-tool` | `--sandbox`          | N/A                    |
-| **PR自動化**              | ネイティブサポート              | ネイティブサポート         | VS Code Tasks必要            | 手動スクリプト実行   | 手動スクリプト実行     |
-| **ドキュメント参照**      | 自動読み込み                    | 自動読み込み               | 手動指定                     | 自動読み込み         | contextFiles設定       |
-| **無料版の充実度**        | ⭐⭐⭐⭐                        | ⭐⭐⭐                     | ❌                           | ⭐⭐⭐⭐⭐           | ⭐⭐⭐⭐               |
-| **コスト**                | 無料/Pro $20                    | トークン課金               | $10/月                       | 無料枠大             | 無料/Pro $20           |
-| **コストティア**          | Premium                         | Standard                   | Flat-rate                    | Free-tier            | Flat-rate              |
-| **推奨レビュー用途**      | 型設計・アーキテクチャ          | コードレビュー・エラー検出 | テスト・コメント分析         | セキュリティスキャン | コード簡素化           |
+| 特徴                      | Claude Code                     | Codex CLI                  | GitHub Copilot               | Gemini CLI                 | Cursor                 |
+| ------------------------- | ------------------------------- | -------------------------- | ---------------------------- | -------------------------- | ---------------------- |
+| **Git統合度**             | ⭐⭐⭐⭐⭐                      | ⭐⭐⭐⭐                   | ⭐⭐⭐                       | ⭐⭐⭐                     | ⭐⭐⭐⭐               |
+| **カスタム設定**          | CLAUDE.md, .claude/             | codex.md, AGENTS.md        | .vscode/settings.json        | settings.json              | .cursorrules           |
+| **CLI非インタラクティブ** | `claude -p`                     | `codex exec`               | `copilot -p`                 | `gemini -p`                | `cursor-agent --print` |
+| **安全性制御**            | `--allowed-tools`（ツール制限） | `--sandbox read-only`      | `--allow-tool`/`--deny-tool` | `--sandbox`                | N/A                    |
+| **PR自動化**              | ネイティブサポート              | ネイティブサポート         | VS Code Tasks必要            | 手動スクリプト実行         | 手動スクリプト実行     |
+| **ドキュメント参照**      | 自動読み込み                    | 自動読み込み               | 手動指定                     | 自動読み込み               | contextFiles設定       |
+| **無料版の充実度**        | ⭐⭐⭐⭐                        | ⭐⭐⭐                     | ❌                           | ⭐⭐⭐⭐⭐                 | ⭐⭐⭐⭐               |
+| **コスト**                | 無料/Pro $20                    | トークン課金               | $10/月＋従量課金             | 無料枠大                   | 無料/Pro $20           |
+| **コストティア**          | Premium                         | Standard                   | Metered（従量課金）          | Free-tier                  | Flat-rate              |
+| **推奨レビュー用途**      | 型設計・アーキテクチャ          | コードレビュー・テスト分析 | レビュー既定外（オプトイン） | セキュリティ・コメント分析 | コード簡素化           |
 
 ### AI消費分散（Multi-CLI Orchestration）
 
-5つのAI CLIをオーケストレーションし、各CLIの得意分野とコスト特性を活かした包括的レビューを実現します。
+複数のAI CLI（レビュー既定は Claude / Codex / Gemini / Cursor の4 CLI）をオーケストレーションし、各CLIの得意分野とコスト特性を活かした包括的レビューを実現します。
 詳細は [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md) を参照してください。
 
 ```
@@ -48,7 +48,7 @@
 **分散戦略の使い分け**:
 
 - `balanced`: コストと品質のバランス（デフォルト）
-- `minimize_cost`: Gemini/Cursorを優先（予算制約時）
+- `minimize_cost`: Claude の担当観点を Cursor に振り替え（予算制約時）
 - `maximize_quality`: Claude/Codexに多く割当（リリース前）
 
 > **Note**: GitHub Copilot（Copilot CLI）は従量課金へ移行したため、レビューの既定ラインナップから除外（オプトイン）。

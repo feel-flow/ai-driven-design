@@ -304,9 +304,9 @@ bash scripts/codex-review.sh --branch
 コミット時に自動でAIレビューを実行するシステムを導入できます。
 詳細は [自動コードレビュー](./automated-code-review.md) を参照してください。
 
-**Multi-CLI 分散レビュー（5 CLI統合）**:
+**Multi-CLI 分散レビュー**:
 
-5つのAI CLIを統一的にオーケストレーションする包括的レビューも利用可能です。
+複数のAI CLI（レビュー既定は Claude / Codex / Gemini / Cursor の4 CLI）を統一的にオーケストレーションする包括的レビューも利用可能です。
 詳細は [Multi-CLI Review Orchestration](./multi-cli-review-orchestration.md) を参照してください。
 
 **ベストプラクティス**:
@@ -418,7 +418,8 @@ Closes #${ISSUE_NUM}
 /pr-review-toolkit:review-pr
 
 # クロスモデルレビュー（GPT系の観点、read-only）
-bash scripts/codex-review.sh --base develop
+# 基準ブランチは REVIEW_BASE_BRANCH で上書き可（デフォルト: develop）
+bash scripts/codex-review.sh --branch
 ```
 
 さらに多観点で確認したい場合は、Multi-CLI 分散レビュー（オプション）を併用します：

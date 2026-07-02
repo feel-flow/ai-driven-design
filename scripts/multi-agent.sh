@@ -77,7 +77,7 @@ get_cli_perspectives_review() {
   case "$1" in
     claude-code) echo "type-design-analysis" ;;
     codex-cli)   echo "code-review error-handler-hunt test-analysis" ;;
-    copilot-cli) echo "" ;;  # metered — opt in with --cli copilot-cli --perspective <name>
+    copilot-cli) echo "test-analysis comment-analysis" ;;  # metered — runs ONLY with explicit --cli copilot-cli (see build_distributed_plan)
     gemini-cli)  echo "security-analysis comment-analysis" ;;
     cursor-cli)  echo "code-simplification" ;;
     *) echo "" ;;
@@ -315,6 +315,7 @@ load_config() {
   else
     echo "ℹ️  yq not found — using defaults. Install yq for config file support." >&2
   fi
+  return 0  # last &&-list may legitimately be false — don't let set -e kill the script
 }
 
 # ── Apply task-type defaults (after config + CLI args) ──
@@ -365,6 +366,12 @@ build_distributed_plan() {
   for cli_name in $ALL_CLIS; do
     perspectives="$(get_cli_perspectives "$cli_name")"
     [[ -z "$perspectives" ]] && continue
+
+    # Copilot CLI is metered — include in review plans only when explicitly requested via --cli
+    if [[ "$cli_name" == "copilot-cli" && "$TASK_TYPE" == "review" && -z "$CLI_FILTER" ]]; then
+      echo "  ⏭  copilot-cli skipped (metered). Opt in with --cli copilot-cli." >&2
+      continue
+    fi
 
     if [[ -n "$CLI_FILTER" ]] && ! list_contains "$CLI_FILTER" "$cli_name"; then
       continue
@@ -832,6 +839,13 @@ main() {
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "🏁 Dry run complete. No tasks executed." >&2
     exit 0
+  fi
+
+  # Fail loudly on an empty plan — never report success when nothing ran
+  if [[ -z "$EXECUTION_PLAN" ]]; then
+    echo "ERROR: Execution plan is empty — no CLI/perspective matched the given filters." >&2
+    echo "       Check --cli / --perspective / --mode combinations." >&2
+    exit 1
   fi
 
   local task_failed=false
