@@ -32,9 +32,11 @@ set -euo pipefail
 DEFAULT_LIGHT_MAX_LINES=50
 DEFAULT_STANDARD_MAX_LINES=400
 
-# センシティブパス: レビュー・品質ゲート・配布テンプレの実行系に触れる変更は
-# 行数によらず Level 3（PR #449 / #456 でこの領域の潜伏バグが実証されたため）
-SENSITIVE_PATH_PATTERN='^(scripts/|\.husky/|\.github/|mcp/src/|docs-template/scripts/)|(^|/)package\.json$|\.(sh|yaml|yml)$'
+# センシティブパス: 行数によらず Level 3（PR #449 / #456 でこの領域の潜伏バグが実証されたため）
+# 対象: (a) 実行系ディレクトリ（scripts/ .husky/ .github/ mcp/src/ docs-template/scripts/）、
+#       (b) すべてのシェルスクリプト（*.sh — 配置場所を問わず実行リスクを持つ）、
+#       (c) package.json（どの階層でも）、(d) ルート直下の設定・コードファイル
+SENSITIVE_PATH_PATTERN='^(scripts/|\.husky/|\.github/|mcp/src/|docs-template/scripts/)|\.sh$|(^|/)package\.json$|^[^/]+\.(json|jsonc|yaml|yml|ts|mjs|cjs|js)$'
 
 # 生成物・lockfile は規模判定から除外（review-common.sh と同基準）
 GENERATED_PATH_PATTERN='(^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$|\.generated\.'
@@ -95,7 +97,9 @@ fi
 LIGHT_MAX="$(parse_positive_int_env "${REVIEW_LEVEL_LIGHT_MAX_LINES:-}" "$DEFAULT_LIGHT_MAX_LINES" "REVIEW_LEVEL_LIGHT_MAX_LINES")"
 STANDARD_MAX="$(parse_positive_int_env "${REVIEW_LEVEL_STANDARD_MAX_LINES:-}" "$DEFAULT_STANDARD_MAX_LINES" "REVIEW_LEVEL_STANDARD_MAX_LINES")"
 
-if ! NUMSTAT="$(git diff --numstat "${BASE_BRANCH}...HEAD" 2>&1)"; then
+# --no-renames: リネームを add+delete に分解する。リネーム表記（docs/{old.md => new.md}）は
+# 拡張子分類とセンシティブパス前方一致の両方をすり抜けるため（行数は増えるが判定は安全側）
+if ! NUMSTAT="$(git diff --numstat --no-renames "${BASE_BRANCH}...HEAD" 2>&1)"; then
   echo "ERROR: ${BASE_BRANCH} との diff 取得に失敗しました: ${NUMSTAT}" >&2
   exit 2
 fi

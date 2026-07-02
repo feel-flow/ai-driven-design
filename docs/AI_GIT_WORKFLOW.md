@@ -287,6 +287,7 @@ bash scripts/review-level.sh --base develop
 | **2（標準）** | 上記以外で 合計 ≤ 400 行                                                | Toolkit + Codex cross-model（現行標準）                              |
 | **3（重点）** | 合計 > 400 行、またはセンシティブパス（scripts/・.husky/・.github/ 等） | Toolkit + Codex 必須。multi-review の併用を推奨                      |
 
+- **センシティブパス**（行数によらず Level 3）: (a) 実行系ディレクトリ（`scripts/`・`.husky/`・`.github/`・`mcp/src/`・`docs-template/scripts/`）、(b) すべてのシェルスクリプト（`*.sh`）、(c) `package.json`、(d) ルート直下の設定・コードファイル（`vitest.config.ts` 等）
 - 閾値は `REVIEW_LEVEL_LIGHT_MAX_LINES` / `REVIEW_LEVEL_STANDARD_MAX_LINES` で上書き可
 - 判定は**推奨**であり機械的にはブロックしない（強制ゲートは pre-push の `quality:local` が担う）
 - センシティブパスが行数によらず重点になるのは、レビュー・品質ゲートの実行系に潜伏バグが実在した教訓（[ACE-449-1](../docs-template/08-knowledge/PLAYBOOK.md#ace-449-1)）による

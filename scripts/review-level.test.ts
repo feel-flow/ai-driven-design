@@ -23,8 +23,15 @@ function sanitizedGitEnv(): Record<string, string> {
   return env;
 }
 
-/** develop + feature ブランチを持つ使い捨てリポジトリ。files を feature 側にコミットする */
-function makeRepoWithChanges(files: Record<string, string>): string {
+/**
+ * develop + feature ブランチを持つ使い捨てリポジトリ。
+ * baseFiles は develop 側、files は feature 側にコミットする。
+ * files の値: string | Buffer = 書き込み / null = 削除（rename は削除+追加で表現）
+ */
+function makeRepoWithChanges(
+  files: Record<string, string | Buffer | null>,
+  baseFiles: Record<string, string> = {},
+): string {
   const dir = mkdtempSync(join(tmpdir(), "review-level-"));
   const git = (...args: string[]) => {
     const r = spawnSync("git", args, { cwd: dir, encoding: "utf8", env: sanitizedGitEnv() });
@@ -34,12 +41,20 @@ function makeRepoWithChanges(files: Record<string, string>): string {
   git("config", "user.email", "test@example.com");
   git("config", "user.name", "test");
   writeFileSync(join(dir, "README.md"), "# base\n");
+  for (const [path, content] of Object.entries(baseFiles)) {
+    mkdirSync(dirname(join(dir, path)), { recursive: true });
+    writeFileSync(join(dir, path), content);
+  }
   git("add", ".");
   git("commit", "-m", "init");
   git("checkout", "-b", "feature/x");
   for (const [path, content] of Object.entries(files)) {
-    mkdirSync(dirname(join(dir, path)), { recursive: true });
-    writeFileSync(join(dir, path), content);
+    if (content === null) {
+      git("rm", "-q", path);
+    } else {
+      mkdirSync(dirname(join(dir, path)), { recursive: true });
+      writeFileSync(join(dir, path), content);
+    }
   }
   git("add", ".");
   git("commit", "-m", "feat: changes");
@@ -58,8 +73,11 @@ function runLevel(cwd: string, args: string[] = [], env: Record<string, string> 
 
 const repos: string[] = [];
 
-function fixture(files: Record<string, string>): string {
-  const dir = makeRepoWithChanges(files);
+function fixture(
+  files: Record<string, string | Buffer | null>,
+  baseFiles: Record<string, string> = {},
+): string {
+  const dir = makeRepoWithChanges(files, baseFiles);
   repos.push(dir);
   return dir;
 }
@@ -117,6 +135,84 @@ describe("review-level.sh のレベル判定", () => {
     const r = runLevel(dir);
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("Review Level: 3");
+  });
+
+  it("Level 3: 実行系ディレクトリ外でも *.sh は重点（実行リスク）", () => {
+    const dir = fixture({ "tools/helper.sh": "#!/bin/sh\nexit 0\n" });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 3");
+  });
+
+  it("Level 3: ルート直下の設定ファイル（vitest.config.ts）は重点", () => {
+    const dir = fixture({ "vitest.config.ts": "export default {};\n" });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 3");
+  });
+
+  it("Level 2: 実行系ディレクトリ外・非ルートの YAML はセンシティブ扱いしない", () => {
+    const dir = fixture({ "docs-template/sample/config.yaml": "key: value\n" });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 2");
+  });
+
+  it("境界値: ドキュメントのみ LIGHT_MAX ちょうど（50行）は Level 1（≤ 判定）", () => {
+    const dir = fixture({ "docs/exact.md": lines(50) });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 1");
+  });
+
+  it("境界値: コード STANDARD_MAX ちょうど（400行）は Level 2（≤ 判定）", () => {
+    const dir = fixture({ "src/exact.ts": lines(400) });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 2");
+  });
+
+  it("境界値: 401行は Level 3（> 判定）", () => {
+    const dir = fixture({ "src/over.ts": lines(401) });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 3");
+  });
+
+  it("STANDARD_MAX も環境変数で上書きできる（100 で 200 行コードが Level 3 に）", () => {
+    const dir = fixture({ "src/mid.ts": lines(200) });
+    const r = runLevel(dir, [], { REVIEW_LEVEL_STANDARD_MAX_LINES: "100" });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 3");
+  });
+
+  it("バイナリファイル（numstat の \"-\"）は行数 0 として扱われクラッシュしない", () => {
+    const dir = fixture({ "assets/img.png": Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x00, 0x01]) });
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 2");
+  });
+
+  it("docs のリネームは rename 表記にならず docs として分類される（--no-renames）", () => {
+    const dir = fixture(
+      { "docs/old.md": null, "docs/new.md": lines(3) },
+      { "docs/old.md": lines(3) },
+    );
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 1");
+    expect(r.stdout).toContain("docs: 2 / code: 0");
+  });
+
+  it("センシティブディレクトリを跨ぐ移動は Level 3 をすり抜けない（--no-renames）", () => {
+    const dir = fixture(
+      { "lib/util.ts": null, "mcp/src/util.ts": lines(3) },
+      { "lib/util.ts": lines(3) },
+    );
+    const r = runLevel(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("Review Level: 3");
+    expect(r.stdout).toContain("センシティブパス");
   });
 
   it("lockfile のみの変更は規模から除外され差分なし扱い（Level 1）", () => {
