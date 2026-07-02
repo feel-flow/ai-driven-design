@@ -35,16 +35,30 @@ const SCRIPTS: ReviewScript[] = [
 // git 等の基本コマンドだけを含む最小 PATH（実 CLI を確実に見えなくする）
 const BASE_PATH = "/usr/bin:/bin";
 
-let passStubDir: string;
-let failStubDir: string;
-let fixtureRepo: string;
+let passStubDir: string | undefined;
+let failStubDir: string | undefined;
+let fixtureRepo: string | undefined;
+let cleanRepo: string | undefined;
 
 function makeStubDir(verdict: "PASS" | "FAIL"): string {
   const dir = mkdtempSync(join(tmpdir(), `review-stub-${verdict.toLowerCase()}-`));
   for (const { cli } of SCRIPTS) {
     const stub = join(dir, cli);
-    // stdin（diff）を読み捨てて verdict 行のみ出力する偽 CLI
-    writeFileSync(stub, `#!/bin/sh\ncat >/dev/null 2>&1 || true\necho "Verdict: ${verdict}"\n`);
+    // stdin（diff）のバイト数を検証してから verdict を出す偽 CLI。
+    // diff の受け渡しが壊れている（空 stdin）のに PASS するサイレント成功を防ぐ。
+    writeFileSync(
+      stub,
+      [
+        "#!/bin/sh",
+        'bytes=$(cat | wc -c)',
+        'if [ "$bytes" -eq 0 ]; then',
+        '  echo "stub: no diff received on stdin" >&2',
+        "  exit 1",
+        "fi",
+        `echo "Verdict: ${verdict}"`,
+        "",
+      ].join("\n"),
+    );
     chmodSync(stub, 0o755);
   }
   // cursor-review.sh は timeout コマンド必須（ハング対策）なので、
@@ -55,11 +69,14 @@ function makeStubDir(verdict: "PASS" | "FAIL"): string {
   return dir;
 }
 
-/** develop ブランチ + 差分ありの feature ブランチを持つ使い捨て git リポジトリ */
-function makeFixtureRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), "review-fixture-"));
+function initGitRepo(dir: string): (...args: string[]) => void {
   const git = (...args: string[]) => {
-    const r = spawnSync("git", args, { cwd: dir, encoding: "utf8" });
+    const r = spawnSync("git", args, {
+      cwd: dir,
+      encoding: "utf8",
+      // ユーザーのグローバル設定（gpgsign / hooksPath 等）を遮断して決定論化
+      env: { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_SYSTEM: "/dev/null" },
+    });
     if (r.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${r.stderr}`);
   };
   git("init", "-b", "develop");
@@ -68,11 +85,25 @@ function makeFixtureRepo(): string {
   writeFileSync(join(dir, "base.txt"), "base\n");
   git("add", ".");
   git("commit", "-m", "init");
+  return git;
+}
+
+/** develop ブランチ + 差分ありの feature ブランチを持つ使い捨て git リポジトリ */
+function makeFixtureRepo(): string {
+  const dir = mkdtempSync(join(tmpdir(), "review-fixture-"));
+  const git = initGitRepo(dir);
   git("checkout", "-b", "feature/test");
   mkdirSync(join(dir, "src"), { recursive: true });
   writeFileSync(join(dir, "src", "change.ts"), "export const x = 1;\n");
   git("add", ".");
   git("commit", "-m", "feat: change");
+  return dir;
+}
+
+/** develop のみ（差分なし）の使い捨て git リポジトリ — 「変更なし」テスト専用（共有状態を持たない） */
+function makeCleanRepo(): string {
+  const dir = mkdtempSync(join(tmpdir(), "review-clean-"));
+  initGitRepo(dir);
   return dir;
 }
 
@@ -87,6 +118,9 @@ function runReview(
     timeout: 60_000,
     env: {
       HOME: process.env.HOME,
+      // TMPDIR を落とすと macOS の git が confstr 警告を stderr に出し、
+      // review-common.sh の `git diff ... 2>&1` に混入して誤判定するため引き継ぐ
+      TMPDIR: process.env.TMPDIR,
       PATH: opts.path ?? BASE_PATH,
       // Claude Code セッション検出による early-skip を無効化（明示テスト以外）
       CLAUDECODE: "",
@@ -100,11 +134,14 @@ beforeAll(() => {
   passStubDir = makeStubDir("PASS");
   failStubDir = makeStubDir("FAIL");
   fixtureRepo = makeFixtureRepo();
+  cleanRepo = makeCleanRepo();
 });
 
 afterAll(() => {
-  for (const dir of [passStubDir, failStubDir, fixtureRepo]) {
-    rmSync(dir, { recursive: true, force: true });
+  for (const dir of [passStubDir, failStubDir, fixtureRepo, cleanRepo]) {
+    if (dir) {
+      rmSync(dir, { recursive: true, force: true });
+    }
   }
 });
 
@@ -168,21 +205,159 @@ describe.each(SCRIPTS)("$script のレビュー実行（スタブ CLI）", ({ sc
     expect(r.output).toContain("Overall: REJECTED");
   });
 
-  it(`変更なし（develop 上）では ${cli} を呼ばず exit 0`, () => {
-    const r = spawnSync("bash", ["-c", `cd "$1" && git checkout -q develop && bash "$2" --branch`, "--", fixtureRepo, join(REPO_ROOT, "scripts", script)], {
-      encoding: "utf8",
-      timeout: 60_000,
-      env: {
-        HOME: process.env.HOME,
-        PATH: `${passStubDir}:${BASE_PATH}`,
-        CLAUDECODE: "",
-        REVIEW_BASE_BRANCH: "develop",
-      },
+  it(`変更なし（差分ゼロの専用リポジトリ）では ${cli} を呼ばず exit 0`, () => {
+    const r = runReview(script, ["--branch"], {
+      cwd: cleanRepo,
+      path: `${passStubDir}:${BASE_PATH}`,
+      env: { REVIEW_BASE_BRANCH: "develop" },
     });
     expect(r.status).toBe(0);
-    const output = `${r.stdout}\n${r.stderr}`;
-    expect(output).toMatch(/No changes found/i);
-    // 後続テストのため feature ブランチへ戻す
-    spawnSync("git", ["checkout", "-q", "feature/test"], { cwd: fixtureRepo });
+    expect(r.output).toMatch(/No changes found/i);
+  });
+});
+
+// review-common.sh のフェイルセーフ分岐は全スクリプト共通なので代表1本（claude）で検証する
+describe("review-common.sh のフェイルセーフ（代表: claude-review.sh）", () => {
+  function makeBrokenStubDir(body: string): string {
+    const dir = mkdtempSync(join(tmpdir(), "review-stub-broken-"));
+    writeFileSync(join(dir, "claude"), `#!/bin/sh\n${body}\n`);
+    chmodSync(join(dir, "claude"), 0o755);
+    const timeoutStub = join(dir, "timeout");
+    writeFileSync(timeoutStub, `#!/bin/sh\nshift\nexec "$@"\n`);
+    chmodSync(timeoutStub, 0o755);
+    return dir;
+  }
+
+  it("Verdict 行のない出力は ERROR 扱いで REJECTED（exit 1）— 誤 APPROVED を出さない", () => {
+    const dir = makeBrokenStubDir('cat >/dev/null\necho "I could not review this."');
+    try {
+      const r = runReview("claude-review.sh", ["--branch"], {
+        cwd: fixtureRepo,
+        path: `${dir}:${BASE_PATH}`,
+        env: { REVIEW_BASE_BRANCH: "develop" },
+      });
+      expect(r.status).toBe(1);
+      expect(r.output).toContain("Overall: REJECTED");
+      expect(r.output).toMatch(/ERROR/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("CLI が非ゼロ終了したら ERROR 扱いで REJECTED（exit 1）", () => {
+    const dir = makeBrokenStubDir("cat >/dev/null\nexit 3");
+    try {
+      const r = runReview("claude-review.sh", ["--branch"], {
+        cwd: fixtureRepo,
+        path: `${dir}:${BASE_PATH}`,
+        env: { REVIEW_BASE_BRANCH: "develop" },
+      });
+      expect(r.status).toBe(1);
+      expect(r.output).toContain("Overall: REJECTED");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("timeout（exit 124）は TIMEOUT 扱いで REJECTED（exit 1）", () => {
+    const dir = makeBrokenStubDir("cat >/dev/null\nexit 124");
+    try {
+      const r = runReview("claude-review.sh", ["--branch"], {
+        cwd: fixtureRepo,
+        path: `${dir}:${BASE_PATH}`,
+        env: { REVIEW_BASE_BRANCH: "develop" },
+      });
+      expect(r.status).toBe(1);
+      expect(r.output).toContain("TIMEOUT");
+      expect(r.output).toContain("Overall: REJECTED");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("--staged: ステージ済み変更をレビューして APPROVED（pre-commit の本番経路）", () => {
+    const dir = mkdtempSync(join(tmpdir(), "review-staged-"));
+    try {
+      const git = initGitRepo(dir);
+      writeFileSync(join(dir, "staged.ts"), "export const staged = true;\n");
+      git("add", "staged.ts");
+      const r = runReview("claude-review.sh", ["--staged"], {
+        cwd: dir,
+        path: `${passStubDir}:${BASE_PATH}`,
+      });
+      expect(r.status).toBe(0);
+      expect(r.output).toContain("Overall: APPROVED");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("引数なし（auto）: ステージなしならブランチ diff に fallback して APPROVED", () => {
+    const r = runReview("claude-review.sh", [], {
+      cwd: fixtureRepo,
+      path: `${passStubDir}:${BASE_PATH}`,
+      env: { REVIEW_BASE_BRANCH: "develop" },
+    });
+    expect(r.status).toBe(0);
+    expect(r.output).toContain("Overall: APPROVED");
+  });
+
+  it("lockfile のみの変更はレビュー対象外としてスキップ（exit 0）", () => {
+    const dir = mkdtempSync(join(tmpdir(), "review-lockfile-"));
+    try {
+      const git = initGitRepo(dir);
+      git("checkout", "-b", "feature/lockfile");
+      writeFileSync(join(dir, "package-lock.json"), "{}\n");
+      git("add", ".");
+      git("commit", "-m", "chore: lockfile update");
+      const r = runReview("claude-review.sh", ["--branch"], {
+        cwd: dir,
+        path: `${passStubDir}:${BASE_PATH}`,
+        env: { REVIEW_BASE_BRANCH: "develop" },
+      });
+      expect(r.status).toBe(0);
+      expect(r.output).toMatch(/Only auto-generated files/i);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe(".husky/pre-push の品質ゲート分岐（スタブ npm）", () => {
+  function runPrePush(npmExitCode: number | null, env: Record<string, string> = {}) {
+    const dir = mkdtempSync(join(tmpdir(), "prepush-stub-"));
+    try {
+      if (npmExitCode !== null) {
+        const npmStub = join(dir, "npm");
+        writeFileSync(npmStub, `#!/bin/sh\necho "stub npm $*"\nexit ${npmExitCode}\n`);
+        chmodSync(npmStub, 0o755);
+      }
+      const r = spawnSync("sh", [join(REPO_ROOT, ".husky", "pre-push")], {
+        cwd: REPO_ROOT,
+        encoding: "utf8",
+        timeout: 30_000,
+        env: { PATH: `${dir}:${BASE_PATH}`, ...env },
+      });
+      return { ...r, output: `${r.stdout}\n${r.stderr}` };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  it("SKIP_QUALITY_GATE=1 は警告を表示して exit 0（quality:local を実行しない）", () => {
+    const r = runPrePush(null, { SKIP_QUALITY_GATE: "1" });
+    expect(r.status).toBe(0);
+    expect(r.output).toContain("スキップ");
+  });
+
+  it("quality:local 成功で exit 0（push 続行）", () => {
+    const r = runPrePush(0);
+    expect(r.status).toBe(0);
+  });
+
+  it("quality:local 失敗で exit 1（push ブロック）", () => {
+    const r = runPrePush(1);
+    expect(r.status).toBe(1);
+    expect(r.output).toContain("品質ゲート失敗");
   });
 });
