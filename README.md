@@ -84,7 +84,7 @@ PR マージ後の `/ace-curate` 手動実行を、**別プロセスの subagent
 
 ### Multi-CLI Review Agent
 
-5つのAI CLI を並列実行し、異なるモデルの観点からコードレビューを行うオーケストレーションシステム。
+複数のAI CLI を並列実行し、異なるモデルの観点からコードレビューを行うオーケストレーションシステム。標準レビュー体制は **Claude Code（一次）+ Codex CLI（クロスモデル）** の2本柱で、GitHub Copilot は従量課金化に伴い既定ラインナップから除外（オプトイン）。
 
 ```bash
 # セットアップ（yq インストール、CLI検出、動作確認）
@@ -104,13 +104,13 @@ Claude Code からはスラッシュコマンドで実行できます:
 /multi-review --cli codex-cli              # 特定CLIのみ
 ```
 
-| CLI          | コスト    | デフォルト観点                     |
-| ------------ | --------- | ---------------------------------- |
-| Claude Code  | Premium   | 型設計分析                         |
-| Codex CLI    | Standard  | コードレビュー、エラーハンドリング |
-| Copilot CLI  | Flat-rate | テスト分析、コメント分析           |
-| Gemini CLI   | Free-tier | セキュリティ分析                   |
-| Cursor Agent | Flat-rate | コード簡素化                       |
+| CLI          | コスト    | デフォルト観点                                              |
+| ------------ | --------- | ----------------------------------------------------------- |
+| Claude Code  | Premium   | 型設計分析                                                  |
+| Codex CLI    | Standard  | コードレビュー、エラーハンドリング、テスト分析              |
+| Gemini CLI   | Free-tier | セキュリティ分析、コメント分析                              |
+| Cursor Agent | Flat-rate | コード簡素化                                                |
+| Copilot CLI  | Metered   | —（従量課金のため既定外。`--cli copilot-cli` でオプトイン） |
 
 設定: [`scripts/review-config.yaml`](./scripts/review-config.yaml) | 詳細: [`multi-cli-review-orchestration.md`](./docs-template/05-operations/deployment/multi-cli-review-orchestration.md)
 

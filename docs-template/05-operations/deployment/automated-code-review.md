@@ -4,8 +4,10 @@
 
 ## 概要
 
-5つのAI CLI（Claude Code、Codex、Copilot、Gemini、Cursor）を統一的にオーケストレーションする Multi-CLI レビューフレームワークです。
+複数のAI CLI（Claude Code、Codex、Gemini、Cursor）を統一的にオーケストレーションする Multi-CLI レビューフレームワークです。
 `git commit` 時に AI が自動でコードをレビューし、問題があればコミットをブロックします。各CLIの得意分野とコスト特性を活かした包括的レビューを実行できます。
+
+> **標準レビュー体制**: 一次レビューは Claude Code（pr-review-toolkit）、クロスモデルレビューは Codex CLI の2本柱を標準とします。GitHub Copilot（Copilot CLI / Copilot code review）は従量課金への移行に伴い**既定のレビューラインナップから除外**しました。アダプタ（`scripts/copilot-review.sh`）は残置しており、課金を許容する場合のみオプトインで利用できます。
 
 ### システム構成
 
@@ -19,7 +21,7 @@
                                                             │
                            CLI バイナリの存在を確認し          │
                            優先順位で選択:                    │
-                           Claude > Codex > Copilot          │
+                           Claude > Codex                    │
                            > Gemini > Cursor                 │
                                                             ▼
                                               ┌──────────────────────┐
@@ -57,15 +59,15 @@
 
 ### 主な機能
 
-| 機能               | 説明                                                      |
-| ------------------ | --------------------------------------------------------- |
-| 自動レビュー       | `git commit` 時に自動でコードレビューを実行               |
-| Multi-CLI対応      | Claude Code、Codex、Copilot、Gemini、Cursor の5 CLIを統合 |
-| コスト最適化       | 固定料金/無料CLIを優先するコスト戦略を選択可能            |
-| 優先度分類         | Critical / Important / Quality の3段階で問題を分類        |
-| ブロック機能       | Criticalな問題があればコミットをブロック                  |
-| スラッシュコマンド | `/code-review` で手動レビューも可能                       |
-| スキップ機能       | 緊急時は `--no-verify` でスキップ可能                     |
+| 機能               | 説明                                                                     |
+| ------------------ | ------------------------------------------------------------------------ |
+| 自動レビュー       | `git commit` 時に自動でコードレビューを実行                              |
+| Multi-CLI対応      | Claude Code、Codex、Gemini、Cursor の4 CLIを統合（Copilot はオプトイン） |
+| コスト最適化       | 固定料金/無料CLIを優先するコスト戦略を選択可能                           |
+| 優先度分類         | Critical / Important / Quality の3段階で問題を分類                       |
+| ブロック機能       | Criticalな問題があればコミットをブロック                                 |
+| スラッシュコマンド | `/code-review` で手動レビューも可能                                      |
+| スキップ機能       | 緊急時は `--no-verify` でスキップ可能                                    |
 
 ---
 
@@ -75,7 +77,7 @@
 
 - **Git**: 任意のバージョン
 - **Node.js**: >= 18.0.0（npm使用時）
-- **AI CLI**: Claude Code、Codex、Copilot、Gemini、Cursor のうち1つ以上がインストール済み
+- **AI CLI**: Claude Code、Codex、Gemini、Cursor のうち1つ以上がインストール済み
 
 ### 自動セットアップ（推奨）
 
@@ -122,7 +124,7 @@ project-root/
 │   ├── review-prompts.sh         # 5種レビュワーのプロンプト定義
 │   ├── claude-review.sh          # Claude Code アダプタ
 │   ├── codex-review.sh           # Codex CLI アダプタ
-│   ├── copilot-review.sh         # Copilot CLI アダプタ
+│   ├── copilot-review.sh         # Copilot CLI アダプタ（従量課金・オプトイン）
 │   ├── gemini-review.sh          # Gemini CLI アダプタ
 │   ├── cursor-review.sh          # Cursor Agent アダプタ
 │   ├── setup-automated-review.sh # セットアップスクリプト（Husky + CLI アダプタ）
@@ -331,18 +333,18 @@ npx husky init
 
 ## コマンドリファレンス
 
-| コマンド                          | 説明                                    |
-| --------------------------------- | --------------------------------------- |
-| `git commit`                      | 自動レビュー実行（pre-commit hook）     |
-| `/code-review`                    | Claude Code内で手動レビュー             |
-| `npm run code-review`             | ステージ済み変更をClaude Codeでレビュー |
-| `npm run code-review:branch`      | ブランチ全体をClaude Codeでレビュー     |
-| `npm run code-review:codex`       | Codex CLIでレビュー                     |
-| `npm run code-review:copilot`     | Copilot CLIでレビュー                   |
-| `npm run code-review:gemini`      | Gemini CLIでレビュー                    |
-| `npm run code-review:cursor`      | Cursor Agentでレビュー                  |
-| `git commit --no-verify`          | レビューをスキップ                      |
-| `SKIP_CLAUDE_REVIEW=1 git commit` | 環境変数でスキップ                      |
+| コマンド                          | 説明                                          |
+| --------------------------------- | --------------------------------------------- |
+| `git commit`                      | 自動レビュー実行（pre-commit hook）           |
+| `/code-review`                    | Claude Code内で手動レビュー                   |
+| `npm run code-review`             | ステージ済み変更をClaude Codeでレビュー       |
+| `npm run code-review:branch`      | ブランチ全体をClaude Codeでレビュー           |
+| `npm run code-review:codex`       | Codex CLIでレビュー                           |
+| `npm run code-review:copilot`     | Copilot CLIでレビュー（従量課金・オプトイン） |
+| `npm run code-review:gemini`      | Gemini CLIでレビュー                          |
+| `npm run code-review:cursor`      | Cursor Agentでレビュー                        |
+| `git commit --no-verify`          | レビューをスキップ                            |
+| `SKIP_CLAUDE_REVIEW=1 git commit` | 環境変数でスキップ                            |
 
 ---
 

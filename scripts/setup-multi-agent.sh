@@ -100,7 +100,7 @@ Multi-CLI Agent Orchestrator の依存ツールを確認・インストールし
 対応するAI CLI:
   - Claude Code (claude)      — Premium tier
   - Codex CLI (codex)         — Standard tier
-  - Copilot CLI (copilot)     — Flat-rate tier
+  - Copilot CLI (copilot)     — Metered（従量課金。review 既定ラインナップ外）
   - Gemini CLI (gemini)       — Free tier
   - Cursor Agent (cursor-agent) — Flat-rate tier
 
@@ -233,7 +233,7 @@ detect_ai_clis() {
 
     local clis="claude-code:claude:Premium
 codex-cli:codex:Standard
-copilot-cli:copilot:Flat-rate
+copilot-cli:copilot:Metered
 gemini-cli:gemini:Free-tier
 cursor-cli:cursor-agent:Flat-rate"
 
@@ -294,7 +294,7 @@ show_install_guides() {
     if ! command -v copilot &>/dev/null; then
         all_installed=false
         echo ""
-        echo -e "  ${BOLD}Copilot CLI (Flat-rate — 月額固定で何度でも実行可能)${NC}"
+        echo -e "  ${BOLD}Copilot CLI (Metered — 従量課金。review 既定ラインナップ外・オプトイン)${NC}"
         print_info "  gh extension install github/gh-copilot"
         print_info "  https://docs.github.com/en/copilot/github-copilot-in-the-cli"
     fi

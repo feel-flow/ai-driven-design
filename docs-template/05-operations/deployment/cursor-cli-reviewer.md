@@ -97,7 +97,7 @@ agents:
 
 ### フォールバック時の動作
 
-Cursor CLIが利用不可の場合、`code-simplification` パースペクティブは `copilot-cli` にフォールバックします（同じ固定料金ティア）。
+Cursor CLIが利用不可の場合、`code-simplification` パースペクティブは `codex-cli` にフォールバックします。
 
 ---
 
@@ -166,7 +166,7 @@ Cursor チームはCLIの安定性改善に継続的に取り組んでいます�
 
 ### レビューでの消費
 
-月額固定料金のため、実行回数によるコスト増はありません。`minimize_cost` 戦略では、Cursor CLI（および Copilot CLI）が優先的に使用されます。
+月額固定料金のため、実行回数によるコスト増はありません。`minimize_cost` 戦略では、Claude Code の担当観点が Cursor CLI に振り替えられます。
 
 ---
 

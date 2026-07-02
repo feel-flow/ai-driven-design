@@ -5,6 +5,9 @@
 # Orchestrates 5 AI CLIs (Claude Code, Codex, Copilot, Gemini, Cursor)
 # for review, explore, and implement tasks using tool-agnostic perspectives.
 #
+# NOTE: Copilot CLI is metered (premium requests) — excluded from the
+# default review lineup. Opt in explicitly with --cli copilot-cli.
+#
 # Compatible with bash 3.2+ (macOS default).
 #
 # Usage:
@@ -73,9 +76,9 @@ get_cli_adapter() {
 get_cli_perspectives_review() {
   case "$1" in
     claude-code) echo "type-design-analysis" ;;
-    codex-cli)   echo "code-review error-handler-hunt" ;;
-    copilot-cli) echo "test-analysis comment-analysis" ;;
-    gemini-cli)  echo "security-analysis" ;;
+    codex-cli)   echo "code-review error-handler-hunt test-analysis" ;;
+    copilot-cli) echo "test-analysis comment-analysis" ;;  # metered — runs ONLY with explicit --cli copilot-cli (see build_distributed_plan)
+    gemini-cli)  echo "security-analysis comment-analysis" ;;
     cursor-cli)  echo "code-simplification" ;;
     *) echo "" ;;
   esac
@@ -116,10 +119,10 @@ get_cli_perspectives() {
 get_cli_fallback() {
   case "$1" in
     claude-code) echo "codex-cli" ;;
-    codex-cli)   echo "copilot-cli" ;;
+    codex-cli)   echo "claude-code" ;;
     copilot-cli) echo "codex-cli" ;;
-    gemini-cli)  echo "copilot-cli" ;;
-    cursor-cli)  echo "copilot-cli" ;;
+    gemini-cli)  echo "codex-cli" ;;
+    cursor-cli)  echo "codex-cli" ;;
     *) echo "" ;;
   esac
 }
@@ -128,7 +131,7 @@ get_cli_cost_tier() {
   case "$1" in
     claude-code) echo "premium" ;;
     codex-cli)   echo "standard" ;;
-    copilot-cli) echo "flat-rate" ;;
+    copilot-cli) echo "metered" ;;
     gemini-cli)  echo "free-tier" ;;
     cursor-cli)  echo "flat-rate" ;;
     *) echo "unknown" ;;
@@ -312,6 +315,7 @@ load_config() {
   else
     echo "ℹ️  yq not found — using defaults. Install yq for config file support." >&2
   fi
+  return 0  # last &&-list may legitimately be false — don't let set -e kill the script
 }
 
 # ── Apply task-type defaults (after config + CLI args) ──
@@ -319,6 +323,7 @@ apply_task_defaults() {
   [[ -z "$OUTPUT_DIR" ]] && OUTPUT_DIR="$(get_default_output_dir "$TASK_TYPE")"
   [[ -z "$TIMEOUT" ]] && TIMEOUT="$(get_default_timeout "$TASK_TYPE")"
   [[ -z "$STRATEGY" ]] && STRATEGY="$(get_default_strategy "$TASK_TYPE")"
+  return 0  # last &&-list may legitimately be false — don't let set -e kill the script
 }
 
 # ── CLI Detection ──
@@ -360,6 +365,13 @@ build_distributed_plan() {
 
   for cli_name in $ALL_CLIS; do
     perspectives="$(get_cli_perspectives "$cli_name")"
+    [[ -z "$perspectives" ]] && continue
+
+    # Copilot CLI is metered — include in review plans only when explicitly requested via --cli
+    if [[ "$cli_name" == "copilot-cli" && "$TASK_TYPE" == "review" && -z "$CLI_FILTER" ]]; then
+      echo "  ⏭  copilot-cli skipped (metered). Opt in with --cli copilot-cli." >&2
+      continue
+    fi
 
     if [[ -n "$CLI_FILTER" ]] && ! list_contains "$CLI_FILTER" "$cli_name"; then
       continue
@@ -399,10 +411,10 @@ build_distributed_plan() {
       [[ -z "$entry" ]] && continue
       local cli="${entry%%:*}"
       local persp="${entry#*:}"
-      if [[ "$cli" == "claude-code" ]] && list_contains "$AVAILABLE_CLIS" "copilot-cli"; then
-        echo "  💰 minimize_cost: ${persp}: claude-code → copilot-cli" >&2
+      if [[ "$cli" == "claude-code" ]] && list_contains "$AVAILABLE_CLIS" "cursor-cli"; then
+        echo "  💰 minimize_cost: ${persp}: claude-code → cursor-cli" >&2
         new_plan="${new_plan:+$new_plan
-}copilot-cli:${persp}"
+}cursor-cli:${persp}"
       else
         new_plan="${new_plan:+$new_plan
 }${entry}"
@@ -422,6 +434,11 @@ build_cross_model_plan() {
 
   for cli_name in $AVAILABLE_CLIS; do
     if [[ -n "$CLI_FILTER" ]] && ! list_contains "$CLI_FILTER" "$cli_name"; then
+      continue
+    fi
+    # Copilot CLI is metered — include only when explicitly requested via --cli
+    if [[ "$cli_name" == "copilot-cli" && -z "$CLI_FILTER" ]]; then
+      echo "  ⏭  copilot-cli skipped (metered). Opt in with --cli copilot-cli." >&2
       continue
     fi
     add_to_plan "$cli_name" "$perspective"
@@ -822,6 +839,13 @@ main() {
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "🏁 Dry run complete. No tasks executed." >&2
     exit 0
+  fi
+
+  # Fail loudly on an empty plan — never report success when nothing ran
+  if [[ -z "$EXECUTION_PLAN" ]]; then
+    echo "ERROR: Execution plan is empty — no CLI/perspective matched the given filters." >&2
+    echo "       Check --cli / --perspective / --mode combinations." >&2
+    exit 1
   fi
 
   local task_failed=false

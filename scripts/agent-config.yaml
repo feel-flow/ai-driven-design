@@ -46,6 +46,7 @@ agents:
       review:
         - code-review
         - error-handler-hunt
+        - test-analysis
       explore:
         - dependency-mapping
       implement:
@@ -57,9 +58,9 @@ agents:
 
   copilot-cli:
     command: copilot
-    cost_tier: flat-rate
+    cost_tier: metered  # 従量課金（premium requests）— review 既定ラインナップから除外
     perspectives:
-      review:
+      review:  # 既定プランには載らない。--cli copilot-cli 明示時のみ実行（オプトイン）
         - test-analysis
         - comment-analysis
       explore:
@@ -77,6 +78,7 @@ agents:
     perspectives:
       review:
         - security-analysis
+        - comment-analysis
       explore:
         - tech-debt-assessment
       implement:
@@ -104,16 +106,16 @@ agents:
 # ── Graceful Degradation ──
 fallback:
   claude-code: codex-cli
-  codex-cli: copilot-cli
+  codex-cli: claude-code
   copilot-cli: codex-cli
-  gemini-cli: copilot-cli
-  cursor-cli: copilot-cli
+  gemini-cli: codex-cli
+  cursor-cli: codex-cli
 
 # ── pr-review-toolkit Delegation Mapping ──
 toolkit_delegation:
   code-reviewer: codex-cli
   silent-failure-hunter: codex-cli
   type-design-analyzer: claude-code
-  pr-test-analyzer: copilot-cli
-  comment-analyzer: copilot-cli
+  pr-test-analyzer: codex-cli
+  comment-analyzer: gemini-cli
   code-simplifier: cursor-cli

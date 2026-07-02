@@ -530,6 +530,8 @@ Claude Skillsは、特定のタスクやワークフローを自動化するた�
 
 ## 6. GitHub Copilot Review Routerによるコードレビュー自動化
 
+> **⚠️ ステータス（オプトイン）**: GitHub Copilot（Copilot CLI / Copilot code review）は従量課金へ移行したため、本節の Review Router 構成は**既定のレビュー体制から除外**されました。標準レビュー体制は Claude Code（pr-review-toolkit）+ Codex CLI のクロスモデルレビューです（[AI_GIT_WORKFLOW.md ステップ5](./AI_GIT_WORKFLOW.md)、[multi-cli-review-orchestration.md](../docs-template/05-operations/deployment/multi-cli-review-orchestration.md) 参照）。本節は、課金を許容して Copilot をレビューに組み込む場合の参考アーキテクチャとして残しています。
+
 ### 6.1 背景と課題
 
 GitHub Copilot の `.agent.md` 宣言的モデルには、設計上の重要な制約があります。

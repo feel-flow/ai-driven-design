@@ -4,9 +4,11 @@
 
 ## 概要
 
-5つのAI CLI（Claude Code、Codex、Copilot、Gemini、Cursor）をレビュワーとしてオーケストレーションし、設定駆動で統一的に管理する運用ガイドです。
+複数のAI CLI（Claude Code、Codex、Gemini、Cursor）をレビュワーとしてオーケストレーションし、設定駆動で統一的に管理する運用ガイドです。
 
 **目的**: 各CLIの得意分野とコスト特性を活かし、高品質かつコスト効率の良いコードレビューを実現する
+
+> **標準レビュー体制**: 一次レビューは Claude Code（pr-review-toolkit）、クロスモデルレビューは Codex CLI の2本柱が標準です。GitHub Copilot（Copilot CLI / Copilot code review）は従量課金への移行に伴い**既定のレビューラインナップから除外**しました（アダプタは残置、`--cli copilot-cli` でオプトイン可能）。
 
 ---
 
@@ -68,7 +70,7 @@ bash scripts/codex-review.sh --branch
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   Entry Points                           │
-│  Terminal │ Claude Code │ Copilot │ CI/CD │ Husky Hook  │
+│  Terminal │ Claude Code │ CI/CD │ Husky Hook           │
 └─────┬───────────┬──────────┬────────┬────────┬──────────┘
       │           │          │        │        │
       └───────────┴──────────┴────┬───┴────────┘
@@ -159,6 +161,8 @@ chmod +x scripts/adapters/*.sh
 
 `scripts/review-config.yaml` を環境に合わせて編集します。
 
+> **Note**: 現行の `multi-agent.sh` が config から読み込むのは `mode` / `parallel` / `tasks.*`（cost_strategy / timeout / output_dir）のみで、**パースペクティブ割り当てとフォールバックはスクリプト内（`get_cli_perspectives_review()` 等）にハードコード**されています。割り当てを変更する場合は YAML とスクリプトの両方を同期して編集してください。
+
 ```yaml
 version: "1.0"
 mode: distributed
@@ -174,17 +178,17 @@ agents:
   codex-cli:
     command: codex
     cost_tier: standard
-    default_perspectives: [code-review, error-handler-hunt]
+    default_perspectives: [code-review, error-handler-hunt, test-analysis]
 
   copilot-cli:
     command: copilot
-    cost_tier: flat-rate
+    cost_tier: metered # 従量課金 — 既定プランには載らない（--cli copilot-cli 明示時のみ実行）
     default_perspectives: [test-analysis, comment-analysis]
 
   gemini-cli:
     command: gemini
     cost_tier: free-tier
-    default_perspectives: [security-analysis]
+    default_perspectives: [security-analysis, comment-analysis]
 
   cursor-cli:
     command: cursor-agent
@@ -193,17 +197,17 @@ agents:
 
 fallback:
   claude-code: codex-cli
-  codex-cli: copilot-cli
+  codex-cli: claude-code
   copilot-cli: codex-cli
-  gemini-cli: copilot-cli
-  cursor-cli: copilot-cli
+  gemini-cli: codex-cli
+  cursor-cli: codex-cli
 
 toolkit_delegation:
   code-reviewer: codex-cli
   silent-failure-hunter: codex-cli
   type-design-analyzer: claude-code
-  pr-test-analyzer: copilot-cli
-  comment-analyzer: copilot-cli
+  pr-test-analyzer: codex-cli
+  comment-analyzer: gemini-cli
   code-simplifier: cursor-cli
 ```
 
@@ -214,7 +218,7 @@ toolkit_delegation:
 bash scripts/multi-review.sh --dry-run
 
 # 特定のCLIだけでテスト
-bash scripts/multi-review.sh --cli copilot-cli --perspective test-analysis
+bash scripts/multi-review.sh --cli codex-cli --perspective test-analysis
 ```
 
 ---
@@ -238,13 +242,13 @@ bash scripts/multi-review.sh --cli copilot-cli --perspective test-analysis
 
 ### よくあるカスタマイズ例
 
-#### 例1: Copilot + Gemini のみで運用（完全無料/固定料金）
+#### 例1: Cursor + Gemini のみで運用（固定料金/無料）
 
 ```yaml
 cost_strategy: minimize_cost
 agents:
-  copilot-cli:
-    command: copilot
+  cursor-cli:
+    command: cursor-agent
     cost_tier: flat-rate
     default_perspectives:
       [code-review, test-analysis, comment-analysis, error-handler-hunt]
@@ -300,10 +304,10 @@ agents:
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Multi-CLI レビュー（固定料金CLIのみ、高速）
+# Multi-CLI レビュー（固定料金/無料CLIのみ、高速）
 bash scripts/multi-review.sh \
   --strategy minimize_cost \
-  --cli copilot-cli \
+  --cli cursor-cli \
   --cli gemini-cli \
   --sequential
 
@@ -369,8 +373,8 @@ bash scripts/multi-review.sh --mode cross-model --perspective code-review
 ### 特定CLI/パースペクティブのみ
 
 ```bash
-# Codex + Copilot だけ
-bash scripts/multi-review.sh --cli codex-cli --cli copilot-cli
+# Claude + Codex だけ（標準の2本柱）
+bash scripts/multi-review.sh --cli claude-code --cli codex-cli
 
 # セキュリティ分析だけ
 bash scripts/multi-review.sh --perspective security-analysis
@@ -405,7 +409,7 @@ ERROR: codex is not installed
 **対応**: フォールバック設定に従い、自動的に別のCLIに再分配されます。手動で特定CLIをスキップするには：
 
 ```bash
-bash scripts/multi-review.sh --cli copilot-cli --cli gemini-cli
+bash scripts/multi-review.sh --cli claude-code --cli gemini-cli
 ```
 
 ### タイムアウト
@@ -425,7 +429,7 @@ Cursor CLI (`cursor-agent -p`) は非インタラクティブモードでハン�
 **回避策**:
 
 - `timeout` コマンドでラップ: `timeout 120 cursor-agent -p "..."`
-- Cursor CLIをスキップ: `--cli copilot-cli` で代替
+- Cursor CLIをスキップ: `--cli codex-cli` で代替
 
 ### 結果の不整合
 
@@ -444,4 +448,4 @@ Cross-Modelモードで異なるCLIが矛盾する結果を返した場合：
 - [git-workflow.md](./git-workflow.md) — AI駆動Git Workflow
 - [gemini-cli-reviewer.md](./gemini-cli-reviewer.md) — Gemini CLI セットアップ
 - [cursor-cli-reviewer.md](./cursor-cli-reviewer.md) — Cursor CLI セットアップ
-- [COPILOT_AGENTS.md](../../06-reference/COPILOT_AGENTS.md) — Copilot エージェント定義
+- [COPILOT_AGENTS.md](../../06-reference/COPILOT_AGENTS.md) — Copilot エージェント定義（従量課金・オプトイン）

@@ -194,6 +194,8 @@ When reviewing pull requests, GitHub Copilot MUST follow these rules:
 
 ### Review Router Workflow
 
+> **⚠️ ステータス（オプトイン）**: GitHub Copilot の従量課金化に伴い、`@review-router` は既定のレビュー体制から除外されました。標準は Claude Code（pr-review-toolkit）+ Codex CLI のクロスモデルレビューです。本節は課金を許容して Copilot でレビューする場合の参考手順です。
+
 PR作成後、マージ前に `@review-router` エージェントを呼び出して包括的なレビューを実施します。
 
 **ワークフロー**: Issue → Branch → Commit → Self-Review → PR → **@review-router** → Review → Merge → cleanup → **ACE（知見体系化）**

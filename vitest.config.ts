@@ -3,6 +3,6 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["docs-template/scripts/ace/**/*.test.ts"],
+    include: ["docs-template/scripts/ace/**/*.test.ts", "scripts/**/*.test.ts"],
   },
 });

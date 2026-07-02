@@ -12,7 +12,7 @@
 # 対応AI CLI:
 #   - Claude Code (claude)       — Premium tier
 #   - Codex CLI (codex)          — Standard tier
-#   - Copilot CLI (copilot)      — Flat-rate tier
+#   - Copilot CLI (copilot)      — Metered（従量課金。pre-commit 自動選択からは除外、オプトインのみ）
 #   - Gemini CLI (gemini)        — Free tier
 #   - Cursor Agent (cursor-agent) — Flat-rate tier
 #
@@ -301,8 +301,9 @@ fi
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 
 # Run the first available AI CLI review script (check CLI binary, not just file)
-# Priority: Claude > Codex > Copilot > Gemini > Cursor
-CLI_ENTRIES="claude:claude-review.sh codex:codex-review.sh copilot:copilot-review.sh gemini:gemini-review.sh cursor-agent:cursor-review.sh"
+# Priority: Claude > Codex > Gemini > Cursor
+# (Copilot CLI is metered — excluded from auto-selection. Opt in: bash scripts/copilot-review.sh)
+CLI_ENTRIES="claude:claude-review.sh codex:codex-review.sh gemini:gemini-review.sh cursor-agent:cursor-review.sh"
 
 for entry in $CLI_ENTRIES; do
     cmd="${entry%%:*}"
@@ -322,7 +323,7 @@ for entry in $CLI_ENTRIES; do
     fi
 done
 
-echo "Warning: No AI CLI found. Install one of: claude, codex, copilot, gemini, cursor-agent"
+echo "Warning: No AI CLI found. Install one of: claude, codex, gemini, cursor-agent (copilot is metered - opt in: bash scripts/copilot-review.sh)"
 echo "To skip review: git commit --no-verify"
 exit 0
 PRE_COMMIT
@@ -382,8 +383,10 @@ bash scripts/claude-review.sh --staged
 
 # Use a different AI CLI
 bash scripts/codex-review.sh --branch
-bash scripts/copilot-review.sh --branch
 bash scripts/gemini-review.sh --branch
+
+# Copilot CLI is metered — opt in only if you accept the cost
+bash scripts/copilot-review.sh --branch
 ```
 COMMAND
 
@@ -477,7 +480,7 @@ print_summary() {
     echo -e "${GREEN}CLIアダプタ:${NC}"
     echo "  scripts/claude-review.sh       Claude Code"
     echo "  scripts/codex-review.sh        Codex CLI"
-    echo "  scripts/copilot-review.sh      Copilot CLI"
+    echo "  scripts/copilot-review.sh      Copilot CLI（従量課金・オプトイン）"
     echo "  scripts/gemini-review.sh       Gemini CLI"
     echo "  scripts/cursor-review.sh       Cursor Agent"
     echo ""
@@ -491,7 +494,7 @@ print_summary() {
     echo "  npm run code-review            # ステージ済み変更をレビュー"
     echo "  npm run code-review:branch     # ブランチ全体をレビュー"
     echo "  npm run code-review:codex      # Codex CLI でレビュー"
-    echo "  npm run code-review:copilot    # Copilot CLI でレビュー"
+    echo "  npm run code-review:copilot    # Copilot CLI でレビュー（従量課金・オプトイン）"
     echo "  npm run code-review:gemini     # Gemini CLI でレビュー"
     echo ""
     echo -e "${YELLOW}スキップ方法:${NC}"

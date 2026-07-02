@@ -98,7 +98,7 @@ agents:
   gemini-cli:
     command: gemini
     cost_tier: free-tier
-    default_perspectives: [security-analysis]
+    default_perspectives: [security-analysis, comment-analysis]
 ```
 
 ### 推奨パースペクティブ
@@ -111,7 +111,7 @@ agents:
 
 ### フォールバック時の動作
 
-Gemini CLIが利用不可の場合、`security-analysis` パースペクティブは `copilot-cli` にフォールバックします（固定料金でコスト増なし）。
+Gemini CLIが利用不可の場合、担当パースペクティブ（`security-analysis`、`comment-analysis`）は `codex-cli` にフォールバックします。
 
 ---
 

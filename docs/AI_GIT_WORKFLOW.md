@@ -361,7 +361,7 @@ bash scripts/codex-review.sh --branch
 **運用**:
 
 - PR 作成時は [`.github/pull_request_template.md`](../.github/pull_request_template.md) の **PR Size Check** チェックリストで該当区分を選択する
-- 大型 refactor などやむを得ず 400 行を超える場合は、Cross-Model Review（Toolkit + Copilot review、必要なら Codex CLI）を必ず併用する
+- 大型 refactor などやむを得ず 400 行を超える場合は、Cross-Model Review（Toolkit + Codex CLI）を必ず併用する
 - ファイルの単純な移動・rename・自動生成物が大半を占める場合は、その旨を Summary に明記すれば 400 行超でも分割不要
 
 ```bash
