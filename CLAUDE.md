@@ -198,7 +198,7 @@ npm run quality:local
 4. Test        ─ `npm run quality:local`（PR 前。手順の全体像: [docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md)）
 5. Self-Review ─ 5観点チェック＋Review Toolkit（/pre-commit-check）
 6. PR          ─ develop ベースでPR作成
-7. Review      ─ @review-router＋レビュー対応（修正ループ）
+7. Review      ─ Claude Code + Codex クロスモデルレビュー＋レビュー対応（修正ループ）
 8. Merge       ─ Squash merge → ブランチ削除
 9. Cleanup     ─ develop pull → git fetch --prune
 10. ACE        ─ ナレッジ体系化（マージ後に develop で実行。/ace-curate）

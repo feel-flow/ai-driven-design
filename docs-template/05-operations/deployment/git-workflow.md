@@ -405,50 +405,41 @@ Closes #${ISSUE_NUM}
 
 ### ステップ7: レビュー対応（Review）
 
-#### 7a. AIレビュールーターによるレビュー（PR作成後）
+#### 7a. クロスモデルレビュー（PR作成後）
 
-**原則**: PR作成後、マージ前に `@review-router` エージェントで包括的なレビューを実施する
+**原則**: PR作成後、マージ前に **Claude Code（pr-review-toolkit）+ Codex CLI** のクロスモデルレビューを実施する
 
-> **動作**: `@review-router` は変更内容を分析し、[`.github/agents/`](../../../.github/agents/) 配下に定義された個別レビューエージェント（`code-reviewer`、`error-handler-hunter` 等）に処理を振り分けます。各エージェントの定義は同ディレクトリ内の `*.agent.md` ファイルを参照してください。
+> **Note**: 旧構成では GitHub Copilot の `@review-router` エージェント（VS Code Copilot Chat）を標準としていたが、Copilot の従量課金化に伴い既定構成から除外した。課金を許容する場合のオプトインとしては引き続き利用可能（[COPILOT_AGENTS.md](../../06-reference/COPILOT_AGENTS.md) 参照）。
 
 #### 実行方法
 
-VS Code の Copilot Chat で以下を入力：
+```bash
+# 一次レビュー（Claude Code 内で実行）
+/pr-review-toolkit:review-pr
 
-```text
-@review-router このPRをレビューして
+# クロスモデルレビュー（GPT系の観点、read-only）
+bash scripts/codex-review.sh --base develop
 ```
 
-#### ルーターの動作
+さらに多観点で確認したい場合は、Multi-CLI 分散レビュー（オプション）を併用します：
 
-`@review-router` は変更内容を自動分析し、以下のスキルを判定・実行します：
+```bash
+# 既定ラインナップ: Claude / Codex / Gemini / Cursor
+bash scripts/multi-review.sh
 
-| スキル               | 実行条件                               |
-| -------------------- | -------------------------------------- |
-| Code Review          | 常に実行（必須）                       |
-| Error Handler Hunt   | 常に実行（必須）                       |
-| Test Analysis        | テストファイルの追加・変更がある場合   |
-| Type Design Analysis | 型定義の追加・変更がある場合           |
-| Comment Analysis     | ドキュメント・コメントの変更がある場合 |
-| Code Simplification  | 30行超の関数、深いネストがある場合     |
+# 特定の観点のみ
+bash scripts/multi-review.sh --perspective test-analysis
+```
 
 #### 統合レポートの確認
 
-ルーターは1つの統合レポートを出力します。以下の判定結果に従って対応してください：
+レビューは1つの統合レポートに集約されます。以下の判定結果に従って対応してください：
 
 | 判定             | 意味               | 対応               |
 | ---------------- | ------------------ | ------------------ |
 | `PASS`           | 問題なし           | マージ可能         |
 | `NEEDS_WORK`     | 改善推奨の問題あり | 修正後に再レビュー |
 | `CRITICAL_BLOCK` | 重大な問題あり     | 必ず修正が必要     |
-
-#### 特定スキルのみ実行する場合
-
-```text
-@review-router テスト分析だけ
-@review-router 型設計を分析して
-@review-router エラーハンドリングを検査して
-```
 
 #### 7b. AI支援レビュー対応
 
@@ -540,10 +531,11 @@ mutation($body: String!) {
 
 **AIツール別の再レビューコマンド**:
 
-| AIツール           | コマンド                | 場所             |
-| ------------------ | ----------------------- | ---------------- |
-| Gemini Code Assist | `/gemini review`        | 返信の最後に記載 |
-| GitHub Copilot     | `@githubcopilot review` | 返信の最後に記載 |
+| AIツール           | コマンド         | 場所             |
+| ------------------ | ---------------- | ---------------- |
+| Gemini Code Assist | `/gemini review` | 返信の最後に記載 |
+
+> **Note**: GitHub Copilot review（`@githubcopilot review`）は従量課金のため既定構成から除外。オプトイン利用時のみ再レビューを依頼する。
 
 **レビュー対応の原則**:
 

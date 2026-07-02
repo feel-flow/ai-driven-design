@@ -2,6 +2,10 @@
 # GitHub Copilot CLI Automated Review Script
 # Runs specialized reviewers in parallel using copilot -p
 #
+# NOTE: Copilot is metered (premium requests) — excluded from the default
+# review lineup (standard: Claude Code + Codex cross-model review).
+# Run this script directly only when you accept the metered cost.
+#
 # Env:
 #   SKIP_COPILOT_REVIEW=1            Skip review
 #   REQUIRE_COPILOT_REVIEW=1         Hard fail if copilot CLI not found (default: soft skip)

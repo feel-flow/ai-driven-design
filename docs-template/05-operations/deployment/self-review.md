@@ -104,7 +104,7 @@ TESTING.mdの基準に照らし、テストが十分か評価してください
 
 ### AIツールの対話的レビュー
 
-**Claude Code / GitHub Copilot / Cursor での実行例**:
+**Claude Code / Cursor 等での実行例**:
 
 ```
 以下の観点で、今回のコミット内容をレビューしてください：
@@ -253,7 +253,7 @@ bash scripts/setup-multi-review.sh
 
 ### 2. AIツールを積極的に活用
 
-- Claude Code、GitHub Copilot等に明示的にレビューを依頼
+- Claude Code（pr-review-toolkit）+ Codex CLI に明示的にレビューを依頼
 - 指摘事項は即座に修正
 
 ### 3. チェックリストを毎回確認

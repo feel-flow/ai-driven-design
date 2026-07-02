@@ -1,6 +1,6 @@
 # /multi-review — 複数AIによるクロスモデルレビュー実行
 
-5つのAI CLI（Claude Code / Codex / Copilot / Gemini / Cursor）を並列実行し、異なる観点からコードレビューを実行します。
+複数のAI CLI（Claude Code / Codex / Gemini / Cursor）を並列実行し、異なる観点からコードレビューを実行します。Copilot CLI は従量課金のため既定ラインナップ外です（`--cli copilot-cli` でオプトイン）。
 
 ## 前提
 
@@ -13,7 +13,7 @@
 ## 引数
 
 - `$ARGUMENTS` — multi-review.sh に渡すオプション（省略時はデフォルト設定で実行）
-  - 例: `--cli codex-cli --cli copilot-cli`（特定CLIのみ）
+  - 例: `--cli claude-code --cli codex-cli`（特定CLIのみ）
   - 例: `--strategy minimize_cost`（コスト最小化）
   - 例: `--perspective code-review`（特定パースペクティブのみ）
   - 例: `--mode cross-model --perspective code-review`（クロスモデル比較）
@@ -71,7 +71,7 @@ ls -la .review-results/
 スクリプト生成レポートを基に、PR Review Response Policy に従って分類します:
 
 | 重大度 | 対応 |
-|--------|------|
+| ------ | ---- |
 | **Critical** | 必ず修正（確認不要で即対応） |
 | **Warning** | 必ず修正（確認不要で即対応） |
 | **Suggestion** | 実装が妥当なものは対応（確認不要） |
@@ -119,6 +119,7 @@ PR Review Response Policy に従い、Critical/Warning/妥当な Suggestion を�
 4. 修正内容をユーザーに報告
 
 修正完了後:
+
 ```bash
 git diff  # 修正内容の確認
 ```

@@ -4,6 +4,8 @@
 
 5つのAI CLI（Claude Code / Codex / Copilot / Gemini / Cursor）を統一オーケストレーターで並列実行し、**Review（レビュー）** / **Explore（探索）** / **Implement（実装）** の3タスクタイプを実行する仕組み。
 
+> **Note**: GitHub Copilot CLI は従量課金へ移行したため、**Review タスクの既定ラインナップから除外**しています（`--cli copilot-cli` でオプトイン）。Explore / Implement では引き続き既定で使用します。
+
 ## アーキテクチャ
 
 ```
@@ -38,8 +40,8 @@ multi-agent.sh --task review|explore|implement [options]
 | type-design-analysis | claude-code   | 型設計分析             |
 | code-review          | codex-cli     | コードレビュー         |
 | error-handler-hunt   | codex-cli     | エラーハンドリング検出 |
-| test-analysis        | copilot-cli   | テスト分析             |
-| comment-analysis     | copilot-cli   | コメント分析           |
+| test-analysis        | codex-cli     | テスト分析             |
+| comment-analysis     | gemini-cli    | コメント分析           |
 | security-analysis    | gemini-cli    | セキュリティ分析       |
 | code-simplification  | cursor-cli    | コード簡素化           |
 

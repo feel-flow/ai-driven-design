@@ -1,5 +1,7 @@
 # GitHub Copilot Agents 設定リファレンス
 
+> **⚠️ ステータス（オプトイン）**: GitHub Copilot（Copilot CLI / Copilot code review）は従量課金へ移行したため、本リポジトリの**既定レビュー体制からは除外**されています。標準は Claude Code（pr-review-toolkit）+ Codex CLI のクロスモデルレビューです（[multi-cli-review-orchestration.md](../05-operations/deployment/multi-cli-review-orchestration.md) 参照）。本ドキュメントは、課金を許容して Copilot をレビューに使う場合の参考構成として残しています。
+
 ## 概要
 
 このドキュメントは、GitHub Copilotで仕様駆動開発を実践するためのカスタムエージェントテンプレート集です。

@@ -4,7 +4,9 @@
 
 ## 概要
 
-任意のAI CLIツールをレビューエージェントにラップするための汎用ガイドです。特定のCLIに依存しない「レビューエージェントの構成要素」を定義し、5つのAI CLI（Claude Code、Codex、Copilot、Gemini、Cursor）を統一的にオーケストレーションするための設計パターンを提供します。
+任意のAI CLIツールをレビューエージェントにラップするための汎用ガイドです。特定のCLIに依存しない「レビューエージェントの構成要素」を定義し、複数のAI CLI（Claude Code、Codex、Gemini、Cursor など）を統一的にオーケストレーションするための設計パターンを提供します。
+
+> **Note**: GitHub Copilot CLI は従量課金へ移行したため、レビューの既定ラインナップから除外しています（アダプタは残置、オプトイン利用可）。
 
 **対象読者**: AI CLIツールを活用してコードレビューを自動化・効率化したい開発者
 
@@ -67,15 +69,15 @@
 
 ### 一覧
 
-| #   | Perspective              | 分析対象                               | 推奨CLI     | 理由                        |
-| --- | ------------------------ | -------------------------------------- | ----------- | --------------------------- |
-| 1   | **Code Review**          | コード品質、ガイドライン準拠、バグ検出 | Codex       | 汎用レビューはGPT系で別視点 |
-| 2   | **Error Handler Hunt**   | サイレント失敗、不適切なcatch          | Codex       | エラーパターン検出に強い    |
-| 3   | **Security Analysis**    | 脆弱性、インジェクション、認証問題     | Gemini      | 無料枠＋長コンテキスト活用  |
-| 4   | **Test Analysis**        | テストカバレッジ、エッジケース不足     | Copilot     | 固定料金で繰り返し実行      |
-| 5   | **Type Design Analysis** | 型設計、カプセル化、不変性             | Claude Code | 最も高度な判断力が必要      |
-| 6   | **Comment Analysis**     | コメント正確性、ドキュメント品質       | Copilot     | 固定料金で繰り返し実行      |
-| 7   | **Code Simplification**  | 複雑性削減、リファクタリング提案       | Cursor      | エディタ連携が強い          |
+| #   | Perspective              | 分析対象                               | 推奨CLI     | 理由                             |
+| --- | ------------------------ | -------------------------------------- | ----------- | -------------------------------- |
+| 1   | **Code Review**          | コード品質、ガイドライン準拠、バグ検出 | Codex       | 汎用レビューはGPT系で別視点      |
+| 2   | **Error Handler Hunt**   | サイレント失敗、不適切なcatch          | Codex       | エラーパターン検出に強い         |
+| 3   | **Security Analysis**    | 脆弱性、インジェクション、認証問題     | Gemini      | 無料枠＋長コンテキスト活用       |
+| 4   | **Test Analysis**        | テストカバレッジ、エッジケース不足     | Codex       | クロスモデルでテスト網羅性を検証 |
+| 5   | **Type Design Analysis** | 型設計、カプセル化、不変性             | Claude Code | 最も高度な判断力が必要           |
+| 6   | **Comment Analysis**     | コメント正確性、ドキュメント品質       | Gemini      | 無料枠で繰り返し実行             |
+| 7   | **Code Simplification**  | 複雑性削減、リファクタリング提案       | Cursor      | エディタ連携が強い               |
 
 ### パースペクティブファイル形式
 
@@ -108,9 +110,9 @@
 | Code Review          | code-reviewer                      | Codex CLI           |
 | Error Handler Hunt   | silent-failure-hunter              | Codex CLI           |
 | Security Analysis    | _(新規)_                           | Gemini CLI          |
-| Test Analysis        | pr-test-analyzer                   | Copilot CLI         |
+| Test Analysis        | pr-test-analyzer                   | Codex CLI           |
 | Type Design Analysis | type-design-analyzer               | Claude Code（据置） |
-| Comment Analysis     | comment-analyzer                   | Copilot CLI         |
+| Comment Analysis     | comment-analyzer                   | Gemini CLI          |
 | Code Simplification  | code-simplifier                    | Cursor CLI          |
 
 ---
@@ -320,21 +322,18 @@ Output in the standard review format."
 各CLIが異なるパースペクティブを担当し、結果を統合します。
 
 ```
-┌──────────┐  type-design   ┌──────────────┐
-│ Claude   │◄──────────────►│ 型設計分析     │
-└──────────┘                └──────────────┘
-┌──────────┐  code-review   ┌──────────────┐
-│ Codex    │◄──────────────►│ コードレビュー  │
-└──────────┘                └──────────────┘
-┌──────────┐  test+comment  ┌──────────────┐
-│ Copilot  │◄──────────────►│ テスト+コメント │
-└──────────┘                └──────────────┘
-┌──────────┐  security      ┌──────────────┐
-│ Gemini   │◄──────────────►│ セキュリティ    │
-└──────────┘                └──────────────┘
-┌──────────┐  simplify      ┌──────────────┐
-│ Cursor   │◄──────────────►│ コード簡素化    │
-└──────────┘                └──────────────┘
+┌──────────┐  type-design   ┌──────────────────────┐
+│ Claude   │◄──────────────►│ 型設計分析            │
+└──────────┘                └──────────────────────┘
+┌──────────┐  code-review   ┌──────────────────────┐
+│ Codex    │◄──────────────►│ コードレビュー＋テスト │
+└──────────┘  +test         └──────────────────────┘
+┌──────────┐  security      ┌──────────────────────┐
+│ Gemini   │◄──────────────►│ セキュリティ＋コメント │
+└──────────┘  +comment      └──────────────────────┘
+┌──────────┐  simplify      ┌──────────────────────┐
+│ Cursor   │◄──────────────►│ コード簡素化          │
+└──────────┘                └──────────────────────┘
 ```
 
 **利点**: 各CLIの得意分野を活かし、コストを最適化
@@ -347,7 +346,7 @@ Output in the standard review format."
 ```
                     code-review
 ┌──────────┐  ┌──────────┐  ┌──────────┐
-│ Claude   │  │ Codex    │  │ Copilot  │
+│ Claude   │  │ Codex    │  │ Gemini   │
 │ 結果A    │  │ 結果B    │  │ 結果C    │
 └────┬─────┘  └────┬─────┘  └────┬─────┘
      └──────┬──────┴──────┬──────┘
@@ -384,8 +383,8 @@ Output in the standard review format."
 │ Standard  │ Codex    │ トークン課金│ コードレビュー、      │
 │           │          │ (中程度)   │ エラーハンドリング    │
 ├───────────┼──────────┼───────────┼───────────────────────┤
-│ Flat-rate │ Copilot  │ 月額固定   │ 繰り返し実行する      │
-│           │          │ ($10/月)   │ 基本チェック          │
+│ Metered   │ Copilot  │ 従量課金   │ レビュー既定外        │
+│           │          │(premium req)│（オプトインのみ）    │
 ├───────────┼──────────┼───────────┼───────────────────────┤
 │ Free-tier │ Gemini   │ 無料枠大   │ セキュリティスキャン、│
 │           │          │            │ ドキュメント分析      │
@@ -413,8 +412,8 @@ toolkit_delegation:
   code-reviewer: codex-cli # GPT系の別視点でレビュー
   silent-failure-hunter: codex-cli # エラーハンドリングもCodexへ
   type-design-analyzer: claude-code # 型設計はClaudeが最強（据置）
-  pr-test-analyzer: copilot-cli # テスト分析はCopilot（固定料金）
-  comment-analyzer: copilot-cli # コメント分析もCopilot
+  pr-test-analyzer: codex-cli # テスト分析もCodex（クロスモデル）
+  comment-analyzer: gemini-cli # コメント分析はGemini（無料枠）
   code-simplifier: cursor-cli # コード簡素化はCursor
 ```
 
@@ -425,16 +424,16 @@ CLIが未インストールの場合、パースペクティブを他のCLIに�
 ```yaml
 fallback:
   claude-code: codex-cli # Claude不可 → Codexへ
-  codex-cli: copilot-cli # Codex不可 → Copilotへ
+  codex-cli: claude-code # Codex不可 → Claudeへ（クロスモデル維持）
   copilot-cli: codex-cli # Copilot不可 → Codexへ
-  gemini-cli: copilot-cli # Gemini不可 → Copilotへ（固定料金）
-  cursor-cli: copilot-cli # Cursor不可 → Copilotへ（固定料金）
+  gemini-cli: codex-cli # Gemini不可 → Codexへ
+  cursor-cli: codex-cli # Cursor不可 → Codexへ
 ```
 
 **フォールバック優先順位の設計思想**:
 
-- トークン課金CLIが不可 → 固定料金CLIにフォールバック（コスト増を避ける）
-- 固定料金CLIが不可 → 別のトークン課金CLIにフォールバック（品質維持）
+- 標準の2本柱（Claude / Codex）は相互にフォールバックし、クロスモデル性を維持する
+- その他のCLIが不可 → Codex に集約（従量課金の Copilot へはフォールバックしない）
 
 ---
 
@@ -476,8 +475,8 @@ bash scripts/multi-review.sh
 # コスト最小化モード
 bash scripts/multi-review.sh --strategy minimize_cost
 
-# 特定CLIのみ
-bash scripts/multi-review.sh --cli codex-cli --cli copilot-cli
+# 特定CLIのみ（標準の2本柱）
+bash scripts/multi-review.sh --cli claude-code --cli codex-cli
 
 # pr-review-toolkit移譲モード
 bash scripts/multi-review.sh --delegate-toolkit
