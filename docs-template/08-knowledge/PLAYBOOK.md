@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.30.0"
+version: "1.31.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-07-02"
 owner: "@fffokazaki"
-ace_entry_count: 59
+ace_entry_count: 60
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1742,7 +1742,39 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-462-1"></a>
+
+### ACE-462-1: 安全ゲートをスキップするか判定するループでは、空文字・想定外入力を「危険側」ではなく「安全側（ゲート実行）」に倒す — `case $x in *[!0]*)` は空文字を「全ゼロ」と同一視する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #462 / Issue #461 |
+| Related    | ACE-449-1            |
+| Date       | 2026-07-02           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 入力を分類して「安全ゲート（品質チェック等）をスキップするか」を決めるコードは、**想定外・欠落入力を必ずゲート実行側（fail-closed）に倒す**べき。特にシェルの `case "$x" in *[!0]*) ...` は「非ゼロ文字を含むか」の判定だが、**空文字列は `*[!0]*` にマッチしない**ため「全ゼロ（＝この文脈では削除＝スキップ）」と同一視され、フィールド欠落・空行がゲート回避（fail-open）を引き起こす。「肯定条件（削除だからスキップ）」だけを書くと、パターンに当てはまらない全入力が暗黙にスキップ側へ流れる。
+
+**Context**: PR #462 で pre-push が「ブランチ削除のみの push（local sha 全ゼロ）は品質ゲートをスキップ」する実装に、Toolkit silent-failure-hunter が「空 `local_sha`（stdin のフィールド欠落・空行）が `*[!0]*` に非マッチ → deletions_only=true のままスキップ」という fail-open を検出（実測再現）。git 標準入力では発火しないが、`"") deletions_only=false` の1行追加で fail-closed に矯正し、フィールド欠落 stdin でゲート実行を検証するテストを追加した。
+
+**Action**:
+
+1. 安全ゲートのスキップ判定は「スキップしてよい条件」を厳密列挙し、それ以外（空・想定外・パース失敗）は**すべてゲート実行側**へ倒す（明示的な `"") ...` / `*) ...` 分岐を書く）。
+2. `case ... *[!0]*` のような「否定文字クラス」は空文字を意図せず通すので、空文字ケースを別途明示する。
+3. テストは正常系だけでなく「欠落・空・不正フィールド」の入力でゲートが**実行される**ことを1本以上固定する。
+
+---
+
 ## Changelog
+
+### [1.31.0] - 2026-07-02
+
+#### 追加
+
+- ACE-462-1: 安全ゲートをスキップするか判定するループでは空文字・想定外入力を安全側（ゲート実行）に倒す — PR #462 で pre-push の削除 push スキップ判定 `case *[!0]*` が空 local_sha を「全ゼロ」と同一視しゲート回避する fail-open を Toolkit silent-failure-hunter が検出した経験から抽出
 
 ### [1.30.0] - 2026-07-02
 
