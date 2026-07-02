@@ -73,9 +73,10 @@ prepare_diff() {
     esac
 }
 
-# Exclude auto-generated/lock files from review scope
+# Exclude auto-generated/lock files from review scope.
+# lock ファイルはどの階層でも除外（ルート直下だけでなく mcp/package-lock.json 等も）。
 _filter_review_files() {
-    echo "$1" | grep -vE '^(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|.*\.generated\..*)$' || true
+    echo "$1" | grep -vE '(^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$|\.generated\.' || true
 }
 
 _prepare_staged_diff() {

@@ -7,6 +7,29 @@ if [ "$SKIP_QUALITY_GATE" = "1" ]; then
   exit 0
 fi
 
+# ブランチ削除 push（local sha が全ゼロ）だけならコード変更がないのでゲート不要（Issue #461）。
+# git は pre-push の stdin に "<local ref> <local sha> <remote ref> <remote sha>" を各 ref 分渡す。
+# 端末での手動実行は stdin が tty のため [ ! -t 0 ] が偽 → このブロックを飛ばしてゲートへ進む。
+# テスト等で stdin が空パイプの場合はブロックに入るが saw_ref が false のままゲートへ進む。
+if [ ! -t 0 ]; then
+  saw_ref=false
+  deletions_only=true
+  while read -r _local_ref local_sha _remote_ref _remote_sha; do
+    saw_ref=true
+    # 全ゼロ sha のみ = 削除。空（フィールド欠落）や非ゼロを含む = 想定外/通常 push は
+    # ゲート実行側に倒す（fail-closed。SHA-1/SHA-256 の桁数差にも耐える）
+    case "$local_sha" in
+      "") deletions_only=false ;;      # フィールド欠落 = 想定外 → ゲート実行
+      *[!0]*) deletions_only=false ;;  # 非ゼロを含む = 通常 push → ゲート実行
+      *) : ;;                          # 全ゼロのみ = 削除（deletions_only を維持）
+    esac
+  done
+  if [ "$saw_ref" = true ] && [ "$deletions_only" = true ]; then
+    echo "ℹ️  ブランチ削除のみの push のため品質ゲートをスキップします"
+    exit 0
+  fi
+fi
+
 echo "Running quality gate before push (npm run quality:local)..."
 echo "  緊急時のみ: SKIP_QUALITY_GATE=1 git push で回避可"
 

@@ -338,10 +338,34 @@ describe("review-common.sh のフェイルセーフ（代表: claude-review.sh�
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("サブディレクトリの lockfile（mcp/package-lock.json）のみもスキップ（exit 0）— Issue #457", () => {
+    const dir = mkdtempSync(join(tmpdir(), "review-sublock-"));
+    try {
+      const git = initGitRepo(dir);
+      git("checkout", "-b", "feature/sublock");
+      mkdirSync(join(dir, "mcp"), { recursive: true });
+      writeFileSync(join(dir, "mcp", "package-lock.json"), "{}\n");
+      git("add", ".");
+      git("commit", "-m", "chore: sub lockfile update");
+      const r = runReview("claude-review.sh", ["--branch"], {
+        cwd: dir,
+        path: `${passStubDir}:${BASE_PATH}`,
+        env: { REVIEW_BASE_BRANCH: "develop" },
+      });
+      expect(r.status).toBe(0);
+      expect(r.output).toMatch(/Only auto-generated files/i);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe(".husky/pre-push の品質ゲート分岐（スタブ npm）", () => {
-  function runPrePush(npmExitCode: number | null, env: Record<string, string> = {}) {
+  const ZERO_SHA = "0".repeat(40);
+  const REAL_SHA = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
+
+  function runPrePush(npmExitCode: number | null, env: Record<string, string> = {}, input?: string) {
     const dir = mkdtempSync(join(tmpdir(), "prepush-stub-"));
     try {
       if (npmExitCode !== null) {
@@ -354,6 +378,7 @@ describe(".husky/pre-push の品質ゲート分岐（スタブ npm）", () => {
         encoding: "utf8",
         timeout: 30_000,
         env: { PATH: `${dir}:${BASE_PATH}`, ...env },
+        ...(input === undefined ? {} : { input }),
       });
       return { ...r, output: `${r.stdout}\n${r.stderr}` };
     } finally {
@@ -374,6 +399,33 @@ describe(".husky/pre-push の品質ゲート分岐（スタブ npm）", () => {
 
   it("quality:local 失敗で exit 1（push ブロック）", () => {
     const r = runPrePush(1);
+    expect(r.status).toBe(1);
+    expect(r.output).toContain("品質ゲート失敗");
+  });
+
+  it("ブランチ削除のみの push はゲートをスキップ（npm-fail スタブでも exit 0）— Issue #461", () => {
+    // npm スタブは exit 1（ゲートが走れば失敗）。削除 push なら npm 到達前に skip → exit 0
+    const r = runPrePush(1, {}, `refs/heads/x ${ZERO_SHA} refs/heads/x ${ZERO_SHA}\n`);
+    expect(r.status).toBe(0);
+    expect(r.output).toContain("ブランチ削除");
+  });
+
+  it("削除と通常 push が混在する場合はゲートを実行（npm-fail で exit 1）— Issue #461", () => {
+    const stdin = `refs/heads/a ${ZERO_SHA} refs/heads/a ${ZERO_SHA}\nrefs/heads/b ${REAL_SHA} refs/heads/b ${ZERO_SHA}\n`;
+    const r = runPrePush(1, {}, stdin);
+    expect(r.status).toBe(1);
+    expect(r.output).toContain("品質ゲート失敗");
+  });
+
+  it("通常 push（非ゼロ sha）はゲートを実行する — Issue #461", () => {
+    const r = runPrePush(1, {}, `refs/heads/x ${REAL_SHA} refs/heads/x ${ZERO_SHA}\n`);
+    expect(r.status).toBe(1);
+    expect(r.output).toContain("品質ゲート失敗");
+  });
+
+  it("フィールド欠落（空 local_sha）は削除扱いにせずゲートを実行（fail-closed）— Issue #461", () => {
+    // sha フィールドが欠けた想定外の stdin。削除誤判定でゲートを回避しないこと
+    const r = runPrePush(1, {}, `refs/heads/x\n`);
     expect(r.status).toBe(1);
     expect(r.output).toContain("品質ゲート失敗");
   });
