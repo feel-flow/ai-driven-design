@@ -196,7 +196,7 @@ npm run quality:local
 2. Branch      ─ feature/#<issue>-<description> で作業を分離
 3. Implement   ─ AI駆動で実装・コミット
 4. Test        ─ `npm run quality:local`（PR 前。手順の全体像: [docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md)）
-5. Self-Review ─ 5観点チェック＋Review Toolkit（/pre-commit-check）
+5. Self-Review ─ 5観点チェック＋Review Toolkit（/pre-commit-check）。深度は `bash scripts/review-level.sh` の3段階判定に従う
 6. PR          ─ develop ベースでPR作成
 7. Review      ─ Claude Code + Codex クロスモデルレビュー＋レビュー対応（修正ループ）
 8. Merge       ─ Squash merge → ブランチ削除
