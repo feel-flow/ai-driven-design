@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.29.0"
+version: "1.30.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-07-02"
 owner: "@fffokazaki"
-ace_entry_count: 56
+ace_entry_count: 59
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1496,7 +1496,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #445 / Issue #444 |
 | Related    | ACE-005              |
 | Date       | 2026-06-19           |
-| Helpful    | 2                    |
+| Helpful    | 3                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1666,7 +1666,95 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-459-1"></a>
+
+### ACE-459-1: git hook 環境から spawn するサブプロセス git は GIT\_\* を除去しないと実リポジトリを破壊する — テストフィクスチャの git init/commit が呼び出し元リポジトリを直撃した
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #459 / Issue #453 |
+| Related    | ACE-449-1            |
+| Date       | 2026-07-02           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: git は hook（pre-push 等）を実行するとき `GIT_DIR` 等の環境変数を設定する。hook から品質ゲート → テストランナー → テストフィクスチャの git コマンドと継承されると、フィクスチャの `git init` / `checkout -b` / `commit` が **tmpdir ではなく呼び出し元の実リポジトリを対象に実行**される。しかも途中まで成功する（ブランチ作成・コミット混入・`git init` による `core.bare=true` 書き換え）ため、失敗地点のエラーだけ見ても破壊に気付けない。特に linked worktree からの push で発火しやすい（メイン worktree の hook では GIT_DIR が設定されないことがあり、テストが「通っていた」ことは安全の証明にならない）。
+
+**Context**: PR #459 で worktree から push した際、pre-push → quality:local → vitest → review-scripts.test.ts のフィクスチャ git が GIT*DIR を継承。実ブランチに "init" コミットが混入し、`feature/test` ブランチが作成され、メインの `.git/config` が `core.bare=true` に書き換えられた（`git rev-parse --show-toplevel` が全域で失敗する状態）。フィクスチャ env から `GIT*`プレフィックスを全除去する`sanitizedGitEnv()` で修正し、`GIT_DIR` を模擬設定した回帰テストで固定した。
+
+**Action**:
+
+1. テスト・スクリプトからサブプロセス git を spawn するときは、**`GIT_` プレフィックスの環境変数を全除去**した env を渡す（`GIT_CONFIG_GLOBAL=/dev/null` / `GIT_CONFIG_SYSTEM=/dev/null` の再設定もセットで）。
+2. パス指定は cwd 依存にせず `git -C <対象ディレクトリ>` で固定する（hook 由来の環境でも対象がすり替わらない）。
+3. リポジトリが不可解な壊れ方をしたら（`must be run in a work tree` 等）、`git config --local --list` で `core.bare` / `core.worktree` の汚染を疑う。
+
+---
+
+<a id="ace-459-2"></a>
+
+### ACE-459-2: linked worktree での並行開発は「メインと同じ」前提が3箇所で破れる — husky 不発・gitignore の symlink すり抜け・共有 config 汚染
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #459 / Issue #453 |
+| Related    | ACE-459-1            |
+| Date       | 2026-07-02           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: `git worktree add` で作った作業ツリーはメインと同じに見えて、(a) husky v9 の hooks 実体 `.husky/_` は untracked のため worktree に存在せず **pre-commit / pre-push が無言で発火しない**、(b) `.gitignore` の `node_modules/`（末尾スラッシュ）はディレクトリ限定で **symlink の node_modules を無視せず誤コミットできる**、(c) `.git/config` はメインと共有のため worktree 内での事故（ACE-459-1）が**メイン側にも波及**する。
+
+**Context**: PR #459 を worktree で並行開発した際、(a) により初回 push が品質ゲートなしで通り、`npm run prepare` 実行後に初めて hook が発火。(b) により依存共有用の symlink node_modules がコミットに混入（mode 120000）し amend で除去。(c) は ACE-459-1 の破壊がメインの config に及んだ形で確認。
+
+**Action**:
+
+1. worktree を作ったら最初に `npm run prepare`（husky 再セットアップ）を実行し、hooks が発火することを確認してから作業する。
+2. `.gitignore` のディレクトリ除外は末尾スラッシュなし（`node_modules`）にして symlink も無視させる。
+3. worktree での `git add -A` 後は `git status --short` で mode 120000（symlink）の混入がないか確認してからコミットする。
+
+---
+
+<a id="ace-460-1"></a>
+
+### ACE-460-1: git diff の出力をパスで分類するツールは `--no-renames` を付ける — rename 表記 `{old => new}` は拡張子判定とディレクトリ前方一致の両方をすり抜ける
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #460 / Issue #454 |
+| Date       | 2026-07-02           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: `git diff --numstat` はリネーム検出が有効だと `docs/{old.md => new.md}` 形式のパスを出力する。この表記は `case *.md)` のような拡張子分類にも `^scripts/` のような前方一致にもマッチしないため、パスベースの判定ロジック（レビューレベル判定、センシティブパス検知、対象ファイルフィルタ等）が**リネームを含む変更だけ静かに誤判定**する。特に「センシティブディレクトリへ跨いで移動するリファクタ」が重点レビュー判定を逃れるのは危険側の欠陥。
+
+**Context**: PR #460 の review-level.sh 初版で発生。Toolkit pr-test-analyzer が実測（`git mv docs/old.md docs/new.md` → docs のみなのに code 扱い、`{lib => mcp/src}/util.ts` → Level 3 すり抜け）で検出した。`git diff --numstat --no-renames` に変更（rename が add+delete に分解され素のパスになる。行数は増えるが判定は安全側）し、rename 分類・跨ぎ移動の回帰テストで固定した。
+
+**Action**:
+
+1. `git diff` の出力パスを分類・マッチングするスクリプトでは **`--no-renames` を明示**する（判定の正確性 > 行数の見かけ）。
+2. パス判定ツールのテストには「リネームを含む diff」のケースを必ず1本入れる（新規作成だけのフィクスチャでは rename 表記経路を通らない）。
+
+---
+
 ## Changelog
+
+### [1.30.0] - 2026-07-02
+
+#### 追加
+
+- ACE-459-1: git hook 環境から spawn するサブプロセス git は GIT\_\* を除去しないと実リポジトリを破壊する — PR #459 で worktree からの push 中に pre-push → vitest → テストフィクスチャの git が GIT_DIR を継承し、実ブランチへのコミット混入・core.bare=true 書き換えが発生した経験から抽出
+- ACE-459-2: linked worktree での並行開発は「メインと同じ」前提が3箇所で破れる — PR #459 で husky 不発（.husky/\_ untracked）・gitignore の symlink すり抜け・共有 config 汚染を1セッションで全部踏んだ経験から抽出
+- ACE-460-1: git diff の出力をパスで分類するツールは --no-renames を付ける — PR #460 の review-level.sh で rename 表記がセンシティブパス判定をすり抜ける実バグを Toolkit pr-test-analyzer が実測検出した経験から抽出
+
+#### 更新
+
+- ACE-445-1（同系列レビュアーの全員一致こそ cross-model の出番）Helpful: 2 → 3 — PR #459 で Claude code-reviewer「指摘なし」の乖離計算バグを Codex が Critical 検出、PR #460 では逆に Codex code-reviewer PASS の rename バグを Claude pr-test-analyzer が検出。cross-model の価値が双方向であることを補強
 
 ### [1.29.0] - 2026-07-02
 
