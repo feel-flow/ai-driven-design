@@ -2,8 +2,8 @@
 .DS_Store
 
 # Node
-node_modules/
-mcp/node_modules/
+node_modules
+mcp/node_modules
 npm-debug.log*
 yarn-error.log*
 
