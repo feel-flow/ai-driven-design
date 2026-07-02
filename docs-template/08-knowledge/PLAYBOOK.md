@@ -1494,7 +1494,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | ---------- | -------------------- |
 | Category   | process              |
 | Origin     | PR #445 / Issue #444 |
-| Related    | ACE-005              |
+| Related    | ACE-001              |
 | Date       | 2026-06-19           |
 | Helpful    | 3                    |
 | Harmful    | 0                    |
@@ -1502,7 +1502,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 **Insight**: 同系列（Claude）の複数レビュアーが borderline な silent-failure を「既存コードとの整合性」を理由に全員一致で承認しても、それは安全の証拠にならない。むしろ「既存と整合的だから OK」という同系列の合意は、cross-model（別系列）レビューが最も価値を出すシグナルである。整合性（consistency）は正しさ（correctness）の証明ではない。
 
-**Context**: PR #445 で env 変数の閾値を `Number.parseInt` で解釈する `parseMaxPlaybookLines` を、既存 `parseMaxPerCategory` を mirror して実装した。subagent-driven の Task レビュー（sonnet）2 回 + 最終 whole-branch レビュー（opus、本セッション最高能力モデル）すべてが APPROVED。opus は `Number.isFinite` の冗長さを「sibling parser との意図的 mirror で、乖離させる方が悪い」と明示的に**修正に反対**した。しかし Codex（gpt-5.4）の silent-failure-hunter と code-reviewer が独立に「`"800abc"`→800、`"1e3"`→1 を無警告で受理する入力検証ギャップ」を Important として検出。共有ヘルパー `parsePositiveIntEnv`（`/^[0-9]+$/` で厳密化）に抽出して両パーサを同時に堅牢化し、乖離ではなく収束で解消した（[ACE-005](#ace-005) を一段具体化した事例）。
+**Context**: PR #445 で env 変数の閾値を `Number.parseInt` で解釈する `parseMaxPlaybookLines` を、既存 `parseMaxPerCategory` を mirror して実装した。subagent-driven の Task レビュー（sonnet）2 回 + 最終 whole-branch レビュー（opus、本セッション最高能力モデル）すべてが APPROVED。opus は `Number.isFinite` の冗長さを「sibling parser との意図的 mirror で、乖離させる方が悪い」と明示的に**修正に反対**した。しかし Codex（gpt-5.4）の silent-failure-hunter と code-reviewer が独立に「`"800abc"`→800、`"1e3"`→1 を無警告で受理する入力検証ギャップ」を Important として検出。共有ヘルパー `parsePositiveIntEnv`（`/^[0-9]+$/` で厳密化）に抽出して両パーサを同時に堅牢化し、乖離ではなく収束で解消した（[ACE-001](#ace-001) を一段具体化した事例）。
 
 **Action**:
 
@@ -1572,7 +1572,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | ---------- | -------------------- |
 | Category   | process              |
 | Origin     | PR #447 / Issue #446 |
-| Related    | ACE-445-1, ACE-005   |
+| Related    | ACE-445-1, ACE-001   |
 | Date       | 2026-06-23           |
 | Helpful    | 0                    |
 | Harmful    | 0                    |
@@ -1788,7 +1788,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 #### 更新
 
-- ACE-005（異なる AI モデルは異なるカテゴリの問題を検出）Helpful: 6 → 7 — PR #445 で Claude 系 3 レビュー（subagent task ×2 + opus 最終 whole-branch）が全員 APPROVED した loose parseInt を Codex が単独検出。同系列レビューの全員一致が cross-model の出番を示すシグナルだった事例として補強
+- ACE-001（異なる AI モデルは異なるカテゴリの問題を検出）Helpful: 6 → 7 — PR #445 で Claude 系 3 レビュー（subagent task ×2 + opus 最終 whole-branch）が全員 APPROVED した loose parseInt を Codex が単独検出。同系列レビューの全員一致が cross-model の出番を示すシグナルだった事例として補強
 
 ### [1.26.0] - 2026-05-30
 
