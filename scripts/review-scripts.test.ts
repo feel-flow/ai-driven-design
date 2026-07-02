@@ -69,13 +69,30 @@ function makeStubDir(verdict: "PASS" | "FAIL"): string {
   return dir;
 }
 
+/**
+ * フィクスチャ用の git 環境。ユーザーのグローバル設定（gpgsign / hooksPath 等）を遮断し、
+ * さらに GIT_* 変数をすべて除去する — git hook（pre-push 等）経由でテストが実行されると
+ * git が GIT_DIR 等を設定するため、これを継承するとフィクスチャの git init/commit が
+ * 呼び出し元リポジトリを指してサイレントに失敗する（linked worktree からの push で実際に発生）。
+ */
+function sanitizedGitEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value !== undefined && !key.startsWith("GIT_")) {
+      env[key] = value;
+    }
+  }
+  env.GIT_CONFIG_GLOBAL = "/dev/null";
+  env.GIT_CONFIG_SYSTEM = "/dev/null";
+  return env;
+}
+
 function initGitRepo(dir: string): (...args: string[]) => void {
   const git = (...args: string[]) => {
     const r = spawnSync("git", args, {
       cwd: dir,
       encoding: "utf8",
-      // ユーザーのグローバル設定（gpgsign / hooksPath 等）を遮断して決定論化
-      env: { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_SYSTEM: "/dev/null" },
+      env: sanitizedGitEnv(),
     });
     if (r.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${r.stderr}`);
   };

@@ -284,6 +284,21 @@ git commit -m "knowledge: ACE-438-1,ACE-438-2 [performance,testing] Prisma N+1�
 
 **対応**: [PLAYBOOK.md のファイル分割ルール](../../08-knowledge/PLAYBOOK.md#ファイル分割ルール) に従ってカテゴリ別に分割
 
+### 知見が「効いているか」わからない（再利用計測）
+
+**対応**: 再利用計測レポートを実行し、Helpful カウンター（手動更新）と実際の参照実績（git log / 相互参照）の乖離を確認する。
+
+```bash
+npm run ace:reuse-report
+# 閾値の上書き（既定 90 日）
+ACE_REUSE_STALE_DAYS=120 npm run ace:reuse-report
+```
+
+- **git参照**: `knowledge:` キュレーションコミットを除くコミットの件名・本文中の ACE ID 言及数
+- **相互参照**: PLAYBOOK 内で他エントリから参照されている数
+- **Archive 候補**: 作成から閾値以上経過し、git 参照が閾値以内にないアクティブエントリ（候補の列挙のみ。アーカイブの実施は別途設計）
+- **推奨頻度**: 月次、または Playbook の行数警告が出たタイミング
+
 ### コミットメッセージの規則を忘れた
 
 **形式**: `knowledge: ACE-XXX [category] [summary]`

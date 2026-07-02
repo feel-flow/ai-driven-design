@@ -16,6 +16,7 @@
     "test:ace-scripts": "vitest run",
     "quality:local": "npm run build:mcp && npm run check && npm --prefix mcp test && npm run test:ace-scripts && npm run validate -- docs-template && npm run build:spec-index && npm run format:md:check && npm run lint:md",
     "ace:check-playbook-categories": "npx --yes tsx docs-template/scripts/ace/check-category-size.ts docs-template/08-knowledge/PLAYBOOK.md",
+    "ace:reuse-report": "npx --yes tsx docs-template/scripts/ace/ace-reuse-report.ts docs-template/08-knowledge/PLAYBOOK.md",
     "setup:labels": "bash scripts/setup-github-labels.sh",
     "prepare": "husky"
   },
