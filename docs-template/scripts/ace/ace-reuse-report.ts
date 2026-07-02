@@ -6,14 +6,20 @@
  * - 長期間参照のないエントリを「Archive 候補」として列挙（Issue #455 の入力データ）
  *
  * 読み取り専用 — PLAYBOOK もリポジトリ履歴も変更しない。gh API 非依存（オフライン動作）。
+ * git log は PLAYBOOK が属するリポジトリ（`git -C <playbookのディレクトリ>`）に対して実行し、
+ * カレントディレクトリや hook 由来の GIT_DIR に影響されない。
  * 実行例: npx --yes tsx docs-template/scripts/ace/ace-reuse-report.ts docs-template/08-knowledge/PLAYBOOK.md
  */
 import * as fs from "node:fs";
+import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import { parsePositiveIntEnv } from "./check-category-size";
 
 const EXIT_OK = 0;
+const EXIT_RUNTIME_ERROR = 1;
 const EXIT_USAGE_ERROR = 2;
+
+const WARN_PREFIX = "ace-reuse-report";
 
 /** これより長く git 参照がないエントリを Archive 候補とする（日数、ACE_REUSE_STALE_DAYS で上書き可） */
 const DEFAULT_STALE_DAYS = 90;
@@ -34,11 +40,15 @@ const ENTRY_HEADER_PATTERN = /^### (ACE-(?:\d+(?:-\d+)?|i\d+(?:-\d+)?)): (.+)$/g
 /** キュレーションコミット（エントリ追加・カウンター更新）は「再利用」に数えない */
 const CURATION_COMMIT_PREFIX = "knowledge:";
 
+const STATUS_ACTIVE = "active";
+
 export type PlaybookEntry = Readonly<{
   readonly id: string;
   readonly title: string;
-  readonly date: string; // YYYY-MM-DD（不明時は ""）
+  /** YYYY-MM-DD。テーブル欠落・不正時は null */
+  readonly date: string | null;
   readonly helpful: number;
+  /** PLAYBOOK の Status 語彙は open（active / deprecated / 試行中 等）。欠落時は "unknown" */
   readonly status: string;
 }>;
 
@@ -48,9 +58,16 @@ export type GitCommitRecord = Readonly<{
   readonly body: string;
 }>;
 
+export type GitLogParseResult = Readonly<{
+  readonly commits: readonly GitCommitRecord[];
+  /** date を持たない壊れたレコード数（呼び出し側が警告する） */
+  readonly malformedCount: number;
+}>;
+
 export type ReuseStats = Readonly<{
   readonly gitRefCount: number;
-  readonly lastGitRefDate: string; // "" = 参照なし
+  /** null = git 参照なし */
+  readonly lastGitRefDate: string | null;
   readonly crossRefCount: number;
 }>;
 
@@ -58,52 +75,93 @@ function stripHtmlBlockComments(source: string): string {
   return source.replace(/<!--[\s\S]*?-->/gu, "");
 }
 
-function extractTableField(segment: string, field: string): string {
+function extractTableField(segment: string, field: string): string | null {
   const pattern = new RegExp(`^\\|\\s*${field}\\s*\\|\\s*([^|]+)\\|`, "im");
   const match = segment.match(pattern);
-  return match ? match[1].trim() : "";
+  return match ? match[1].trim() : null;
 }
 
 /**
  * PLAYBOOK.md からエントリ（ID / タイトル / Date / Helpful / Status）を抽出する。
- * HTML コメント内の追記例は除外する。
+ * HTML コメント内の追記例は除外する。フィールドが「存在するが不正」な場合は
+ * onWarn（既定: console.warn）で表面化させたうえで安全なデフォルトに落とす。
  */
-export function parsePlaybookEntries(content: string): PlaybookEntry[] {
+export function parsePlaybookEntries(
+  content: string,
+  onWarn: (message: string) => void = (m) => console.warn(m),
+): PlaybookEntry[] {
   const cleaned = stripHtmlBlockComments(content);
   const entries: PlaybookEntry[] = [];
   const headers = [...cleaned.matchAll(ENTRY_HEADER_PATTERN)];
 
   headers.forEach((match, index) => {
+    const id = match[1];
     const start = (match.index ?? 0) + match[0].length;
     const end =
       index + 1 < headers.length ? (headers[index + 1].index ?? cleaned.length) : cleaned.length;
     const segment = cleaned.slice(start, end);
 
     const helpfulRaw = extractTableField(segment, "Helpful");
-    const helpful = /^\d+$/u.test(helpfulRaw) ? Number.parseInt(helpfulRaw, 10) : 0;
+    let helpful = 0;
+    if (helpfulRaw === null) {
+      onWarn(`${WARN_PREFIX}: ${id} の Helpful フィールドが見つかりません（0 として扱います）`);
+    } else if (/^\d+$/u.test(helpfulRaw)) {
+      helpful = Number.parseInt(helpfulRaw, 10);
+    } else {
+      onWarn(
+        `${WARN_PREFIX}: ${id} の Helpful "${helpfulRaw}" は数値ではありません（0 として扱います）`,
+      );
+    }
+
+    const status = extractTableField(segment, "Status");
+    if (status === null) {
+      onWarn(`${WARN_PREFIX}: ${id} の Status フィールドが見つかりません（unknown として扱います）`);
+    }
+
+    const dateRaw = extractTableField(segment, "Date");
+    const date = dateRaw && /^\d{4}-\d{2}-\d{2}$/u.test(dateRaw) ? dateRaw : null;
+    if (dateRaw !== null && date === null) {
+      onWarn(`${WARN_PREFIX}: ${id} の Date "${dateRaw}" は YYYY-MM-DD ではありません（不明として扱います）`);
+    }
 
     entries.push({
-      id: match[1],
+      id,
       title: match[2].trim(),
-      date: extractTableField(segment, "Date"),
+      date,
       helpful,
-      status: extractTableField(segment, "Status") || "unknown",
+      status: status ?? "unknown",
     });
   });
 
   return entries;
 }
 
-/** `git log` の RECORD/FIELD 区切り出力をパースする */
-export function parseGitLog(raw: string): GitCommitRecord[] {
-  return raw
-    .split(RECORD_SEPARATOR)
-    .map((record) => record.trim())
-    .filter((record) => record.length > 0)
-    .map((record) => {
-      const [date = "", subject = "", ...bodyParts] = record.split(FIELD_SEPARATOR);
-      return { date: date.trim(), subject: subject.trim(), body: bodyParts.join(FIELD_SEPARATOR) };
+/**
+ * `git log` の RECORD/FIELD 区切り出力をパースする。
+ * date を持たない壊れたレコードは commits に含めず malformedCount で報告する。
+ */
+export function parseGitLog(raw: string): GitLogParseResult {
+  const commits: GitCommitRecord[] = [];
+  let malformedCount = 0;
+
+  for (const record of raw.split(RECORD_SEPARATOR)) {
+    const trimmed = record.trim();
+    if (trimmed.length === 0) {
+      continue;
+    }
+    const [date = "", subject = "", ...bodyParts] = trimmed.split(FIELD_SEPARATOR);
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(date.trim())) {
+      malformedCount += 1;
+      continue;
+    }
+    commits.push({
+      date: date.trim(),
+      subject: subject.trim(),
+      body: bodyParts.join(FIELD_SEPARATOR),
     });
+  }
+
+  return { commits, malformedCount };
 }
 
 /**
@@ -161,14 +219,17 @@ export function computeReuseStats(
   for (const entry of entries) {
     stats.set(entry.id, {
       gitRefCount: gitRefCount.get(entry.id) ?? 0,
-      lastGitRefDate: lastGitRefDate.get(entry.id) ?? "",
+      lastGitRefDate: lastGitRefDate.get(entry.id) ?? null,
       crossRefCount: crossRefCount.get(entry.id) ?? 0,
     });
   }
   return stats;
 }
 
-function daysBetween(fromIso: string, to: Date): number | null {
+function daysBetween(fromIso: string | null, to: Date): number | null {
+  if (fromIso === null) {
+    return null;
+  }
   const from = new Date(`${fromIso}T00:00:00Z`);
   if (Number.isNaN(from.getTime())) {
     return null;
@@ -179,6 +240,7 @@ function daysBetween(fromIso: string, to: Date): number | null {
 /**
  * Archive 候補 = Status が active、作成から staleDays 以上経過、
  * かつ git 参照が一度もない or 最終 git 参照が staleDays 以上前。
+ * 判定不能なデータ（日付欠損・stats 欠落）は**候補にしない**（安全側 = 誤アーカイブ推奨を避ける）。
  * （判定は「候補の列挙」のみ。実際のアーカイブは Issue #455 で別途設計）
  */
 export function findArchiveCandidates(
@@ -188,7 +250,7 @@ export function findArchiveCandidates(
   staleDays: number,
 ): PlaybookEntry[] {
   return entries.filter((entry) => {
-    if (entry.status !== "active") {
+    if (entry.status !== STATUS_ACTIVE) {
       return false;
     }
     const ageDays = daysBetween(entry.date, now);
@@ -197,17 +259,20 @@ export function findArchiveCandidates(
     }
     const stat = stats.get(entry.id);
     if (!stat) {
-      return true;
+      return false; // 判定材料なし → 安全側（候補にしない）
     }
     if (stat.gitRefCount === 0) {
       return true;
     }
     const sinceLastRef = daysBetween(stat.lastGitRefDate, now);
-    return sinceLastRef === null || sinceLastRef >= staleDays;
+    if (sinceLastRef === null) {
+      return false; // 参照実績はあるが日付が解釈不能 → 安全側（候補にしない）
+    }
+    return sinceLastRef >= staleDays;
   });
 }
 
-/** Markdown レポートを組み立てる */
+/** Markdown レポートを組み立てる。乖離 =（git参照 + 相互参照）− Helpful */
 export function formatReport(
   entries: readonly PlaybookEntry[],
   stats: ReadonlyMap<string, ReuseStats>,
@@ -215,13 +280,11 @@ export function formatReport(
   now: Date,
   staleDays: number,
 ): string {
-  const sorted = [...entries].sort((a, b) => {
-    const sa = stats.get(a.id);
-    const sb = stats.get(b.id);
-    return (
-      (sb?.gitRefCount ?? 0) + (sb?.crossRefCount ?? 0) - ((sa?.gitRefCount ?? 0) + (sa?.crossRefCount ?? 0))
-    );
-  });
+  const totalRefs = (id: string): number => {
+    const stat = stats.get(id);
+    return (stat?.gitRefCount ?? 0) + (stat?.crossRefCount ?? 0);
+  };
+  const sorted = [...entries].sort((a, b) => totalRefs(b.id) - totalRefs(a.id));
 
   const lines: string[] = [];
   lines.push(`# ACE 再利用計測レポート`);
@@ -235,9 +298,10 @@ export function formatReport(
   for (const entry of sorted) {
     const stat = stats.get(entry.id);
     const gitRefs = stat?.gitRefCount ?? 0;
-    const divergence = gitRefs - entry.helpful;
+    const crossRefs = stat?.crossRefCount ?? 0;
+    const divergence = gitRefs + crossRefs - entry.helpful;
     lines.push(
-      `| ${entry.id} | ${gitRefs} | ${stat?.lastGitRefDate || "—"} | ${stat?.crossRefCount ?? 0} | ${entry.helpful} | ${divergence >= 0 ? "+" : ""}${divergence} | ${entry.status} |`,
+      `| ${entry.id} | ${gitRefs} | ${stat?.lastGitRefDate ?? "—"} | ${crossRefs} | ${entry.helpful} | ${divergence >= 0 ? "+" : ""}${divergence} | ${entry.status} |`,
     );
   }
   lines.push("");
@@ -247,7 +311,9 @@ export function formatReport(
     lines.push("なし");
   } else {
     for (const entry of candidates) {
-      lines.push(`- ${entry.id}: ${entry.title}（Date: ${entry.date || "不明"} / Helpful: ${entry.helpful}）`);
+      lines.push(
+        `- ${entry.id}: ${entry.title}（Date: ${entry.date ?? "不明"} / Helpful: ${entry.helpful}）`,
+      );
     }
     lines.push("");
     lines.push(
@@ -258,16 +324,50 @@ export function formatReport(
   return lines.join("\n");
 }
 
-function readGitLog(): GitCommitRecord[] {
+/**
+ * PLAYBOOK が属するリポジトリの git log を取得する。
+ * - `git -C <repoDir>` で実行先を固定（カレントディレクトリ非依存）
+ * - GIT_* 環境変数を除去（git hook 経由の実行で GIT_DIR を継承すると別リポジトリを集計する）
+ */
+function readGitLog(repoDir: string): GitLogParseResult {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value !== undefined && !key.startsWith("GIT_")) {
+      env[key] = value;
+    }
+  }
   const raw = execFileSync(
     "git",
-    ["log", "--date=short", `--pretty=format:${RECORD_SEPARATOR}%ad${FIELD_SEPARATOR}%s${FIELD_SEPARATOR}%b`],
-    { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+    [
+      "-C",
+      repoDir,
+      "log",
+      "--date=short",
+      `--pretty=format:${RECORD_SEPARATOR}%ad${FIELD_SEPARATOR}%s${FIELD_SEPARATOR}%b`,
+    ],
+    { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env },
   );
   return parseGitLog(raw);
 }
 
-export function main(argv: readonly string[] = process.argv.slice(2)): number {
+export type MainDeps = Readonly<{
+  readonly readLog: (repoDir: string) => GitLogParseResult;
+  readonly now: () => Date;
+}>;
+
+const DEFAULT_DEPS: MainDeps = {
+  readLog: readGitLog,
+  now: () => new Date(),
+};
+
+/**
+ * CLI エントリポイント。
+ * 引数: argv[0] = PLAYBOOK.md へのパス（必須）
+ * 出力: stdout に Markdown レポート、警告は stderr
+ * 終了コード: 0 = 成功 / 1 = 実行時エラー（git 失敗・読み込み失敗）/ 2 = 使用方法エラー
+ * deps はテスト用の注入ポイント（既定は実 git log と現在時刻）。
+ */
+export function main(argv: readonly string[] = process.argv.slice(2), deps: MainDeps = DEFAULT_DEPS): number {
   const playbookPath = argv[0];
   if (!playbookPath) {
     console.error(
@@ -275,8 +375,8 @@ export function main(argv: readonly string[] = process.argv.slice(2)): number {
     );
     return EXIT_USAGE_ERROR;
   }
-  if (!fs.existsSync(playbookPath)) {
-    console.error(`ERROR: PLAYBOOK が見つかりません: ${playbookPath}`);
+  if (!fs.existsSync(playbookPath) || !fs.statSync(playbookPath).isFile()) {
+    console.error(`ERROR: PLAYBOOK ファイルが見つかりません: ${playbookPath}`);
     return EXIT_USAGE_ERROR;
   }
 
@@ -284,21 +384,40 @@ export function main(argv: readonly string[] = process.argv.slice(2)): number {
     process.env.ACE_REUSE_STALE_DAYS,
     DEFAULT_STALE_DAYS,
     "ACE_REUSE_STALE_DAYS",
+    WARN_PREFIX,
   );
 
-  const content = fs.readFileSync(playbookPath, "utf8");
-  const entries = parsePlaybookEntries(content);
-  const commits = readGitLog();
-  const stats = computeReuseStats(entries, commits, content);
-  const now = new Date();
-  const candidates = findArchiveCandidates(entries, stats, now, staleDays);
-
-  console.log(formatReport(entries, stats, candidates, now, staleDays));
-  return EXIT_OK;
+  try {
+    const content = fs.readFileSync(playbookPath, "utf8");
+    const entries = parsePlaybookEntries(content);
+    const logResult = deps.readLog(path.dirname(path.resolve(playbookPath)));
+    if (logResult.malformedCount > 0) {
+      console.warn(
+        `${WARN_PREFIX}: git log に解釈できないレコードが ${logResult.malformedCount} 件ありました（集計から除外）`,
+      );
+    }
+    const stats = computeReuseStats(entries, logResult.commits, content);
+    const now = deps.now();
+    const candidates = findArchiveCandidates(entries, stats, now, staleDays);
+    console.log(formatReport(entries, stats, candidates, now, staleDays));
+    return EXIT_OK;
+  } catch (error) {
+    const err = error as { code?: string; message?: string };
+    if (err.code === "ENOENT") {
+      console.error(`ERROR: git コマンドが見つかりません（git をインストールしてください）`);
+    } else if (typeof err.message === "string" && /not a git repository/iu.test(err.message)) {
+      console.error(
+        `ERROR: PLAYBOOK が git リポジトリ内にありません（git log を取得できないため集計不能です）`,
+      );
+    } else {
+      console.error(`ERROR: レポート生成に失敗しました: ${err.message ?? String(error)}`);
+    }
+    return EXIT_RUNTIME_ERROR;
+  }
 }
 
 // 直接実行（tsx 経由の CLI）のときのみ自動実行する。テストから import した
 // ときは副作用なく関数だけを取り込めるようにする。
-if ((process.argv[1] ?? "").includes("ace-reuse-report")) {
+if ((process.argv[1] ?? "").includes("ace-reuse-report") && !(process.argv[1] ?? "").includes(".test.")) {
   process.exitCode = main();
 }

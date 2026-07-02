@@ -107,11 +107,13 @@ export function analyzePlaybookMarkdown(content: string): AnalyzeResult {
  * 正の整数を表す環境変数を厳密に解釈する。`"800abc"` や `"1e3"` のような
  * 曖昧な値・0 以下・空値は無効として既定値にフォールバックし、stderr に警告を出す。
  * rawValue を引数で受け取り、副作用なくユニットテストできるようにしている。
+ * warnPrefix は警告の発信元スクリプト名（他スクリプトから再利用する際に上書きする）。
  */
 export function parsePositiveIntEnv(
   rawValue: string | undefined,
   defaultValue: number,
   envName: string,
+  warnPrefix: string = "ace-check",
 ): number {
   if (rawValue === undefined || rawValue.trim() === "") {
     return defaultValue;
@@ -119,7 +121,7 @@ export function parsePositiveIntEnv(
   const trimmed = rawValue.trim();
   if (!/^[0-9]+$/u.test(trimmed) || Number.parseInt(trimmed, 10) < 1) {
     console.warn(
-      `ace-check: ${envName}="${trimmed}" は無効のため、既定値 ${String(defaultValue)} を使います。`,
+      `${warnPrefix}: ${envName}="${trimmed}" は無効のため、既定値 ${String(defaultValue)} を使います。`,
     );
     return defaultValue;
   }
