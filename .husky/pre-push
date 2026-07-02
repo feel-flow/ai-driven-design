@@ -1,3 +1,18 @@
 #!/bin/sh
-# docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §4.2 方針 C: 高速サブセット。CI 完全同等は PR 前に `npm run quality:local`。
-npm run lint:md && npm run check
+# docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §4.2 方針 B: push 前にフル品質ゲートを強制（Issue #452）。
+# 緊急時のみ SKIP_QUALITY_GATE=1 git push で回避可能（多用しないこと）。
+
+if [ "$SKIP_QUALITY_GATE" = "1" ]; then
+  echo "⚠️  SKIP_QUALITY_GATE=1 — 品質ゲートをスキップして push します（緊急時限定）"
+  exit 0
+fi
+
+echo "Running quality gate before push (npm run quality:local)..."
+echo "  緊急時のみ: SKIP_QUALITY_GATE=1 git push で回避可"
+
+if ! npm run quality:local; then
+  echo ""
+  echo "❌ 品質ゲート失敗。push を中止しました。"
+  echo "   修正後に再 push してください（緊急時のみ SKIP_QUALITY_GATE=1 git push）。"
+  exit 1
+fi

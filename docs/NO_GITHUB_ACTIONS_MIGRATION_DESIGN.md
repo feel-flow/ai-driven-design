@@ -119,7 +119,7 @@ npm run lint:md
 
 **推奨（設計段階）**: 移行直後は **A または C** を推奨し、チーム合意のうえ **B** へ拡張する。フル一致が必要なタイミング（リリース前・大規模 doc 変更）は 3.2 または `quality:local` を**明示実行**する運用をドキュメントに明記する。
 
-**実装**: `.husky/pre-push` で **方針 C**（`lint:md` → `check`）を採用。フル相当は PR 前の `npm run quality:local` に委ねる。
+**実装**: 移行直後は **方針 C**（`lint:md` → `check`）で運用したが、品質ゲートの実行が善意ベースだとスキップが常態化しうる問題（PR #449 のワークフロー評価で指摘）を受け、Issue #452 で **方針 B** に拡張した。`.husky/pre-push` が `npm run quality:local` を実行し、失敗時は push をブロックする。緊急時の回避は `SKIP_QUALITY_GATE=1 git push`（オプトアウトの記録が残るよう、hook が警告を表示する）。
 
 ---
 
@@ -198,7 +198,7 @@ npm run lint:md
 1. **棚卸し**: 旧 `ci.yml` / `release.yml` / `release-drafter`（workflow + 設定）の**役割とトリガー**が本文 §2 で追跡可能。
 2. **ローカル品質ゲート**: `quality:local` および 3.2 全文で **Node >= 20** を前提化。
 3. **`quality:local`**: ルート `package.json` に実装（`npm ci` 抜きの同順チェーン）。
-4. **Husky**: pre-commit 維持。pre-push は方針 **C** で実装。
+4. **Husky**: pre-commit 維持。pre-push は方針 **C** で実装 → Issue #452 で方針 **B**（フルゲート強制 + `SKIP_QUALITY_GATE=1` 回避）へ拡張。
 5. **PR テンプレ**: 付録 A に沿った**ローカル検証**文言へ更新。
 6. **リリース手順**: 手動 `gh` フローとラベル／`.github/release-drafter.yml` の参考利用を文書化。
 7. **ワークフロー YAML**: 推奨どおり **3 ファイル削除**（`ci.yml`, `release.yml`, `release-drafter.yml`）。設定ファイル `release-drafter.yml` は方針に従い保持可。
