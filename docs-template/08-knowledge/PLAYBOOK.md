@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.28.0"
+version: "1.29.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-06-23"
+updated: "2026-07-02"
 owner: "@fffokazaki"
-ace_entry_count: 53
+ace_entry_count: 56
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1496,7 +1496,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #445 / Issue #444 |
 | Related    | ACE-005              |
 | Date       | 2026-06-19           |
-| Helpful    | 1                    |
+| Helpful    | 2                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1590,7 +1590,95 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-449-1"></a>
+
+### ACE-449-1: `set -e` 下の bash 関数は末尾を `[[ cond ]] && cmd` で終わらせない — cond 偽で関数が非ゼロを返し呼び出し元の errexit がスクリプトを無出力で殺す
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #449 / Issue #448 |
+| Date       | 2026-07-02           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: `set -euo pipefail` の下では、`[[ cond ]] && cmd` の失敗は「&&リストの途中」なら errexit を発火しないが、それが**関数の最終文**だと関数の戻り値が非ゼロになり、関数呼び出し（単純コマンド）として errexit が発火してスクリプト全体がバナーすら出さずに死ぬ。「デフォルト値がすでに設定済み」という正常系ほど cond が偽になるため、設定が充実した環境でだけ発症する。しかも同じイディオムはコピペで水平増殖する（本件は `apply_task_defaults` と `load_config` の 2 関数に存在）。
+
+**Context**: PR #449 で `multi-agent.sh --dry-run` が exit 0・完全無出力なことを発見。develop 版でも再現したため自分の変更起因ではない既存バグと切り分けた。原因は `apply_task_defaults` 末尾の `[[ -z "$STRATEGY" ]] && STRATEGY=...` — config が全値を供給する（yq インストール済み + 同梱 config）環境では常に偽 → 関数が 1 を返し即死。`return 0` を追加して修正したが、Claude 系 silent-failure-hunter が同一クラスの残存を疑って走査し、`load_config` にも同パターン（`output_dir` 欠落 config で実機再現）を発見した。
+
+**Action**:
+
+1. `set -e` を使う bash スクリプトでは、関数末尾の `[[ cond ]] && cmd` に `return 0` を続けるか、`if` 文に書き換える。
+2. この種のバグを 1 箇所直したら、**同じイディオムを同ファイル・同リポで grep して水平展開を確認**する（`&& .*$` で終わる関数末尾）。
+3. ツールが「無出力で正常終了」したら、まず base ブランチで再現確認して既存バグか自変更起因かを切り分けてから直す。
+
+---
+
+<a id="ace-449-2"></a>
+
+### ACE-449-2: 「既定から外す」変更はデータの空化ではなく明示的なゲート条件で実装し、ドキュメントに書いたオプトイン手順はその場で回帰テストに固定する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #449 / Issue #448 |
+| Related    | ACE-445-1            |
+| Date       | 2026-07-02           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 「X を既定から外すがオプトインは残す」という要件を「X の割り当てデータを空にする」で実装すると、除外（既定で動かない）は達成できてもオプトイン経路（明示指定で動く）が一緒に死ぬ。しかも実行系は空プランを exit 0 で完走するため、ドキュメントの案内どおりに実行したユーザーは「動いた」と誤解する三重のサイレント失敗になる。除外は「明示指定がない場合のみスキップ」というゲート条件で表現し、ドキュメントに書いた具体的なコマンド例（オプトイン経路）は同 PR で回帰テストに固定する。
+
+**Context**: PR #449 で Copilot をレビュー既定から外す際、初版は `get_cli_perspectives_review` の copilot 行を空文字にした。Claude 系 code-reviewer は「問題なし」で通過したが、Codex（cross-model）と silent-failure-hunter が独立に「`--cli copilot-cli` 明示でもプランに載らず exit 0」を検出（[ACE-445-1](#ace-445-1) の再演）。perspectives を復元し「review タスクかつ `CLI_FILTER` 空のときのみ skip」のゲートに実装し直し、空実行プランは非 dry-run で exit 1 に変更、`--cli copilot-cli` オプトインを含む 9 テストを `scripts/multi-agent.test.ts` に固定した。
+
+**Action**:
+
+1. 「既定から外す」は割り当てデータの削除ではなく、**プラン構築時のゲート条件**（明示オプトインで素通し）で実装する。
+2. ドキュメント・コメントに具体的なオプトインコマンドを書いたら、**その コマンドが動くことを同 PR のテストで検証**する（案内と実装の drift を構造的に防ぐ）。
+3. 実行対象が 0 件のプランは警告ではなく **非ゼロ exit** にする — 「何も実行せず成功」はゲート系ツールで最悪のサイレント失敗。
+
+---
+
+<a id="ace-449-3"></a>
+
+### ACE-449-3: 「設定駆動」を謳う config を編集する前に、そのキーが実際にスクリプトから読まれているか確認する — 読まれない飾りキーはハードコードとの同期注記を付ける
+
+| フィールド | 値                    |
+| ---------- | --------------------- |
+| Category   | documentation-quality |
+| Origin     | PR #449 / Issue #448  |
+| Date       | 2026-07-02            |
+| Helpful    | 0                     |
+| Harmful    | 0                     |
+| Status     | active                |
+
+**Insight**: 「設定駆動で統一管理」を謳うツールでも、config の全キーが実装から読まれているとは限らない。読まれない「飾りキー」を編集して挙動が変わったと思い込むと、ドキュメント・config・実装の三者が別々の状態を主張する drift が生まれる。config を編集する変更では、まず**そのキーを読むコード（yq/jq 呼び出し等）を grep で実在確認**し、読まれていなければ (a) 実装のハードコードも同時に変更し、(b) config とドキュメントに「実体はスクリプト内ハードコード、同期編集が必要」と注記する。
+
+**Context**: PR #449 で `agent-config.yaml` の perspectives を変更したが、`multi-agent.sh` の `load_config` が yq で読むのは `mode` / `parallel` / `tasks.*` のみで、perspectives・fallback・cost_tier は**すべてスクリプト内ハードコード**だった（編集しても挙動不変）。さらに `review-config.yaml` は `agent-config.yaml` への symlink で、2 ファイルに見えて実体は 1 つだった。ハードコード側（`get_cli_perspectives_review` 等）を同時に変更し、multi-cli-review-orchestration.md に同期編集の注記を追加した。
+
+**Action**:
+
+1. config ファイルを編集する前に、`grep`（yq/jq のキー参照）で**そのキーが実装から読まれているか確認**する。
+2. 読まれない飾りキーを見つけたら、ハードコード側を同時に変更した上で、config・ドキュメント両方に「SSOT はスクリプト内、同期編集必須」の注記を残す（読み取り実装の追加は別 issue でよい）。
+3. 同種の設定ファイルが複数見えたら `ls -la` で symlink かどうか確認してから編集する（重複編集・片側編集事故の防止）。
+
+---
+
 ## Changelog
+
+### [1.29.0] - 2026-07-02
+
+#### 追加
+
+- ACE-449-1: `set -e` 下の bash 関数は末尾を `[[ cond ]] && cmd` で終わらせない — PR #449 で `multi-agent.sh --dry-run` が完全無出力で死ぬ既存バグ（`apply_task_defaults`）を発見・修正し、silent-failure-hunter の水平走査で `load_config` にも同一クラスが残存（実機再現）した経験から抽出
+- ACE-449-2: 「既定から外す」変更はデータの空化ではなく明示的なゲート条件で実装し、ドキュメントに書いたオプトイン手順はその場で回帰テストに固定する — PR #449 で Copilot の review perspectives 空化が `--cli copilot-cli` オプトインを無言 no-op にし、Codex cross-model が検出。ゲート実装 + 空プラン exit 1 + 9 テスト固定で解消した経験から抽出
+- ACE-449-3: 「設定駆動」を謳う config を編集する前に、そのキーが実際にスクリプトから読まれているか確認する — PR #449 で `agent-config.yaml` の perspectives が実装から一切読まれない飾りキー（実体はスクリプト内ハードコード + `review-config.yaml` は symlink）と判明した経験から抽出
+
+#### 更新
+
+- ACE-445-1（同系列レビュアーの全員一致こそ cross-model の出番）Helpful: 1 → 2 — PR #449 で Claude 系 code-reviewer が「信頼度80以上の問題なし」とした copilot オプトイン no-op を、Codex（gpt-5.4）の code-reviewer / silent-failure-hunter が Critical として独立検出した事例として補強
 
 ### [1.28.0] - 2026-06-23
 
