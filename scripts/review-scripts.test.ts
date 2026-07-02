@@ -422,4 +422,11 @@ describe(".husky/pre-push の品質ゲート分岐（スタブ npm）", () => {
     expect(r.status).toBe(1);
     expect(r.output).toContain("品質ゲート失敗");
   });
+
+  it("フィールド欠落（空 local_sha）は削除扱いにせずゲートを実行（fail-closed）— Issue #461", () => {
+    // sha フィールドが欠けた想定外の stdin。削除誤判定でゲートを回避しないこと
+    const r = runPrePush(1, {}, `refs/heads/x\n`);
+    expect(r.status).toBe(1);
+    expect(r.output).toContain("品質ゲート失敗");
+  });
 });
