@@ -158,12 +158,16 @@ describe("multi-agent.sh config loading (set -e regression)", () => {
 // main を無効化して source し、generate_*_report を直接検証する。修正方針は「削除」ではなく
 // 「レポートを plan 駆動にする」= ディスク上のファイルは一切壊さず、プラン外は読まない。
 describe("multi-agent.sh plan-scoped report (issue #450)", () => {
-  /** main を無効化した multi-agent.sh を temp に書き出しパスを返す（置換不発なら loud fail） */
+  /**
+   * main を無効化した multi-agent.sh を temp に書き出しパスを返す。呼び出し形の変化に
+   * 寛容にするため `main` で始まる行全体を対象にし（`main "$@"` / `main "$@" || exit`
+   * 等）、置換不発なら loud fail する（実装形変更を silent no-op で見逃さない）。
+   */
   function neutralizedScript(): string {
     const raw = readFileSync(SCRIPT, "utf8");
-    const neutralized = raw.replace(/^main "\$@"$/m, "true");
+    const neutralized = raw.replace(/^main(?:\s.*)?$/m, "true");
     if (neutralized === raw) {
-      throw new Error("neutralization failed: 末尾の 'main \"$@\"' が見つからない（呼び出し形が変わった可能性）");
+      throw new Error("neutralization failed: エントリポイント 'main ...' 行が見つからない（呼び出し形が変わった可能性）");
     }
     const file = join(stubDir, "multi-agent.neutralized.sh");
     writeFileSync(file, neutralized);
@@ -251,6 +255,58 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
       expect(r.stdout).not.toContain("OLD-GEMINI");
       // ただしディスク上は破壊されない（旧 cleanup 方式の破壊的挙動を回避）
       expect(r.stdout).toContain("GEMINI-KEPT");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("空プランでは (No ... results found.) に落ちる（境界条件）", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-empty-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR"',
+          '# ディスクに残骸があってもプランが空なら何も収録しない',
+          'mkdir -p "$OUTPUT_DIR/codex-cli"',
+          'echo STALE > "$OUTPUT_DIR/codex-cli/code-review.md"',
+          'EXECUTION_PLAN=""',
+          "generate_review_report >/dev/null 2>&1",
+          'cat "$OUTPUT_DIR/integrated-report.md"',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain("(No review results found.)");
+      expect(r.stdout).not.toContain("STALE");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("プラン内エントリの出力が欠落しても黙って落とさずレポートに可視化する（silent-failure 回避）", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-missing-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli"',
+          "# codex-cli:code-review は成功、gemini-cli:code-review は出力欠落（CLI 失敗相当）",
+          'echo OK-CODEX > "$OUTPUT_DIR/codex-cli/code-review.md"',
+          "EXECUTION_PLAN=$'codex-cli:code-review\\ngemini-cli:code-review'",
+          "generate_review_report >/dev/null 2>&1",
+          'cat "$OUTPUT_DIR/integrated-report.md"',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      // 成功分は収録
+      expect(r.stdout).toContain("OK-CODEX");
+      // 欠落したエントリは見出しごと可視化される（黙殺しない）
+      expect(r.stdout).toContain("gemini-cli — code-review");
+      expect(r.stdout).toContain("No output produced by this task");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }

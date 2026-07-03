@@ -628,17 +628,18 @@ HEADER
   local has_results=false
 
   # issue #450: include exactly the results THIS run produced by iterating the
-  # execution plan, instead of globbing ${cli}/*.md. A prior run's stale
-  # perspective (absent from this plan) is therefore never read, and nothing on
-  # disk is deleted or touched — so re-running with a shared --output-dir, or a
-  # partial --cli/--perspective run, is non-destructive.
+  # execution plan instead of globbing ${cli}/*.md. A prior run's stale
+  # perspective (absent from this plan) is never read, and no result file is
+  # deleted or modified — the report only reads result files and writes
+  # report_file. So a shared --output-dir re-run, or a partial --cli/--perspective
+  # run, is non-destructive. A planned entry whose output file is missing (CLI
+  # failure or name mismatch) is surfaced in the report, not silently dropped.
   local entry
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
-    [[ -f "$result_file" ]] || continue
     has_results=true
 
     local tier
@@ -648,7 +649,11 @@ HEADER
       echo ""
       echo "## ${cli_name} — ${perspective_name} [${tier}]"
       echo ""
-      cat "$result_file"
+      if [[ -f "$result_file" ]]; then
+        cat "$result_file"
+      else
+        echo "⚠️ No output produced by this task (CLI failure or missing result file)."
+      fi
       echo ""
       echo "---"
       echo ""
@@ -689,17 +694,18 @@ HEADER
   local has_results=false
 
   # issue #450: include exactly the results THIS run produced by iterating the
-  # execution plan, instead of globbing ${cli}/*.md. A prior run's stale
-  # perspective (absent from this plan) is therefore never read, and nothing on
-  # disk is deleted or touched — so re-running with a shared --output-dir, or a
-  # partial --cli/--perspective run, is non-destructive.
+  # execution plan instead of globbing ${cli}/*.md. A prior run's stale
+  # perspective (absent from this plan) is never read, and no result file is
+  # deleted or modified — the report only reads result files and writes
+  # report_file. So a shared --output-dir re-run, or a partial --cli/--perspective
+  # run, is non-destructive. A planned entry whose output file is missing (CLI
+  # failure or name mismatch) is surfaced in the report, not silently dropped.
   local entry
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
-    [[ -f "$result_file" ]] || continue
     has_results=true
 
     local tier
@@ -709,7 +715,11 @@ HEADER
       echo ""
       echo "## ${cli_name} — ${perspective_name} [${tier}]"
       echo ""
-      cat "$result_file"
+      if [[ -f "$result_file" ]]; then
+        cat "$result_file"
+      else
+        echo "⚠️ No output produced by this task (CLI failure or missing result file)."
+      fi
       echo ""
       echo "---"
       echo ""
@@ -748,17 +758,18 @@ HEADER
   local has_results=false
 
   # issue #450: include exactly the results THIS run produced by iterating the
-  # execution plan, instead of globbing ${cli}/*.md. A prior run's stale
-  # perspective (absent from this plan) is therefore never read, and nothing on
-  # disk is deleted or touched — so re-running with a shared --output-dir, or a
-  # partial --cli/--perspective run, is non-destructive.
+  # execution plan instead of globbing ${cli}/*.md. A prior run's stale
+  # perspective (absent from this plan) is never read, and no result file is
+  # deleted or modified — the report only reads result files and writes
+  # report_file. So a shared --output-dir re-run, or a partial --cli/--perspective
+  # run, is non-destructive. A planned entry whose output file is missing (CLI
+  # failure or name mismatch) is surfaced in the report, not silently dropped.
   local entry
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
-    [[ -f "$result_file" ]] || continue
     has_results=true
 
     local tier
@@ -768,7 +779,11 @@ HEADER
       echo ""
       echo "## ${cli_name} — ${perspective_name} [${tier}]"
       echo ""
-      cat "$result_file"
+      if [[ -f "$result_file" ]]; then
+        cat "$result_file"
+      else
+        echo "⚠️ No output produced by this task (CLI failure or missing result file)."
+      fi
       echo ""
       echo "---"
       echo ""
