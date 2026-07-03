@@ -562,6 +562,14 @@ validate_execution_plan() {
   local entry cli_name persp_name bad=0
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
+    # Require the exact "cli:perspective" shape. Without a ':', ${entry%%:*} and
+    # ${entry#*:} both collapse to the whole string, so a malformed entry would
+    # otherwise pass and drive read/delete/write at the wrong path.
+    if [[ "$entry" != *:* ]]; then
+      echo "ERROR: malformed execution plan entry (expected 'cli:perspective'): '${entry}'" >&2
+      bad=1
+      continue
+    fi
     cli_name="${entry%%:*}"
     persp_name="${entry#*:}"
     if ! is_safe_token "$cli_name" || ! is_safe_token "$persp_name"; then
@@ -682,20 +690,24 @@ HEADER
 
   # issue #450: report exactly THIS run's entries by iterating the execution plan
   # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
-  # read, and each entry's target file was cleared before execution
-  # (clear_planned_outputs), so a prior run's result — whether a different
-  # perspective or a same-named stale file left by a failed task — cannot appear
-  # as current. The report only reads result files and writes report_file; no
-  # result file is deleted or modified here, so a shared --output-dir re-run or a
-  # partial --cli/--perspective run is non-destructive. A planned entry with no
-  # output file (CLI failure) is surfaced, not silently dropped.
-  local entry
+  # read. In the normal flow execute_tasks clears each entry's target before
+  # running (clear_planned_outputs), so a prior run's result — a different
+  # perspective, or a same-named stale file left by a failed task — does not
+  # appear as current. The report only reads result files and writes report_file;
+  # no result file is deleted or modified here, so a shared --output-dir re-run or
+  # a partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped. The generate_report
+  # dispatcher validates every token before dispatching here.
+  local entry seen=""
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so a repeated cli:perspective (e.g. a plan
+    # fallback that reassigns a perspective to an already-listed CLI) is not
+    # pasted into the report twice.
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
-    # Tokens are already validated by validate_execution_plan (called from the
-    # generate_report dispatcher) before we build any path from them.
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -752,20 +764,24 @@ HEADER
 
   # issue #450: report exactly THIS run's entries by iterating the execution plan
   # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
-  # read, and each entry's target file was cleared before execution
-  # (clear_planned_outputs), so a prior run's result — whether a different
-  # perspective or a same-named stale file left by a failed task — cannot appear
-  # as current. The report only reads result files and writes report_file; no
-  # result file is deleted or modified here, so a shared --output-dir re-run or a
-  # partial --cli/--perspective run is non-destructive. A planned entry with no
-  # output file (CLI failure) is surfaced, not silently dropped.
-  local entry
+  # read. In the normal flow execute_tasks clears each entry's target before
+  # running (clear_planned_outputs), so a prior run's result — a different
+  # perspective, or a same-named stale file left by a failed task — does not
+  # appear as current. The report only reads result files and writes report_file;
+  # no result file is deleted or modified here, so a shared --output-dir re-run or
+  # a partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped. The generate_report
+  # dispatcher validates every token before dispatching here.
+  local entry seen=""
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so a repeated cli:perspective (e.g. a plan
+    # fallback that reassigns a perspective to an already-listed CLI) is not
+    # pasted into the report twice.
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
-    # Tokens are already validated by validate_execution_plan (called from the
-    # generate_report dispatcher) before we build any path from them.
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -820,20 +836,24 @@ HEADER
 
   # issue #450: report exactly THIS run's entries by iterating the execution plan
   # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
-  # read, and each entry's target file was cleared before execution
-  # (clear_planned_outputs), so a prior run's result — whether a different
-  # perspective or a same-named stale file left by a failed task — cannot appear
-  # as current. The report only reads result files and writes report_file; no
-  # result file is deleted or modified here, so a shared --output-dir re-run or a
-  # partial --cli/--perspective run is non-destructive. A planned entry with no
-  # output file (CLI failure) is surfaced, not silently dropped.
-  local entry
+  # read. In the normal flow execute_tasks clears each entry's target before
+  # running (clear_planned_outputs), so a prior run's result — a different
+  # perspective, or a same-named stale file left by a failed task — does not
+  # appear as current. The report only reads result files and writes report_file;
+  # no result file is deleted or modified here, so a shared --output-dir re-run or
+  # a partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped. The generate_report
+  # dispatcher validates every token before dispatching here.
+  local entry seen=""
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so a repeated cli:perspective (e.g. a plan
+    # fallback that reassigns a perspective to an already-listed CLI) is not
+    # pasted into the report twice.
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
-    # Tokens are already validated by validate_execution_plan (called from the
-    # generate_report dispatcher) before we build any path from them.
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 

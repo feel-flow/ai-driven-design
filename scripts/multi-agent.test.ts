@@ -188,7 +188,7 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
 
   // 公開ディスパッチャ generate_report を TASK_TYPE で切り替えて 3 タスク種を検証する
   // （検証込みの実エントリポイント。builder 直呼びより実挙動に近い）。
-  const TASK_TYPES = ["review", "explore", "implement"];
+  const TASK_TYPES = ["review", "explore", "implement"] as const;
 
   // 境界条件（プラン外除外/非破壊・空プラン・欠落可視化）を 3 タスク種すべてで検証する。
   for (const type of TASK_TYPES) {
@@ -287,8 +287,8 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
           'echo OLD-GEMINI > "$OUTPUT_DIR/gemini-cli/code-review.md"',
           'echo NEW-CODEX  > "$OUTPUT_DIR/codex-cli/code-review.md"',
           'EXECUTION_PLAN="codex-cli:code-review"',
-          "generate_review_report >/dev/null 2>&1",
-          'test -f "$OUTPUT_DIR/gemini-cli/code-review.md" && echo GEMINI-KEPT',
+          "generate_report >/dev/null 2>&1",
+          'if [[ -f "$OUTPUT_DIR/gemini-cli/code-review.md" ]]; then echo GEMINI-KEPT; fi',
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
@@ -314,14 +314,18 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
           'echo STALE-PREV > "$OUTPUT_DIR/codex-cli/code-review.md"',
           "run_single_task() { return 1; }",
           'EXECUTION_PLAN="codex-cli:code-review"',
-          "# execute_tasks は失敗検知で非0（|| true）。事前クリアで stale ファイルは消える",
-          "execute_tasks >/dev/null 2>&1 || true",
+          "# execute_tasks は task 失敗を検知して非0（握り潰さず rc を明示検証）。",
+          '# 事前クリアで stale ファイルは消える。想定外の rc はテストで検出する。',
+          'rc_exec=0; execute_tasks >/dev/null 2>&1 || rc_exec=$?',
+          'echo "rc_exec=$rc_exec"',
           "generate_report >/dev/null 2>&1",
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
       );
       expect(r.status).toBe(0);
+      // run_single_task 失敗により execute_tasks は非0（task 失敗）で返る（設定不備等の別要因ではない）
+      expect(r.stdout).toContain("rc_exec=1");
       // 前回の同名 stale は current として混入しない
       expect(r.stdout).not.toContain("STALE-PREV");
       // 代わりに欠落として可視化される
@@ -368,6 +372,97 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
       expect(r.stdout).toContain("REP_LOUD");
       expect(r.stdout).toContain("NO_LEAK");
       expect(r.stdout).not.toContain("TOP-SECRET");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("不正な EXECUTION_PLAN（区切り ':' 無し・'.'・'..'）は generate_report で fail-loud に拒否される", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-malformed-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli"',
+          "check() { # $1=plan $2=ラベル",
+          '  local rc=0; EXECUTION_PLAN="$1" generate_report >/dev/null 2>"$WORKDIR/e.txt" || rc=$?',
+          '  if [[ "$rc" -ne 0 ]] && grep -qiE "unsafe|malformed" "$WORKDIR/e.txt"; then echo "$2:LOUD"; else echo "$2:PASSED-THROUGH"; fi',
+          "}",
+          '# ":" 無し（cli_name と persp_name が同値になる不正形）',
+          'check "codex-cli" NOCOLON',
+          '# perspective が ".." （traversal 境界）',
+          'check "codex-cli:.." DOTDOT',
+          '# cli_name が "." （境界）',
+          'check ".:code-review" DOT',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain("NOCOLON:LOUD");
+      expect(r.stdout).toContain("DOTDOT:LOUD");
+      expect(r.stdout).toContain("DOT:LOUD");
+      expect(r.stdout).not.toContain("PASSED-THROUGH");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("clear_planned_outputs は execute_tasks 経由でプラン外（他 CLI/他 perspective/ユーザー .md）を消さない", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-clearscope-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=false",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli" "$OUTPUT_DIR/gemini-cli"',
+          "# プラン対象（今回クリア＆再生成される）",
+          'echo PREV > "$OUTPUT_DIR/codex-cli/code-review.md"',
+          "# プラン外: 他 CLI / 同 CLI 別 perspective / ユーザーファイル",
+          'echo KEEP-GEMINI  > "$OUTPUT_DIR/gemini-cli/code-review.md"',
+          'echo KEEP-OTHERP  > "$OUTPUT_DIR/codex-cli/security-analysis.md"',
+          'echo KEEP-USER    > "$OUTPUT_DIR/codex-cli/my-notes.md"',
+          "run_single_task() { return 0; }",
+          'EXECUTION_PLAN="codex-cli:code-review"',
+          "execute_tasks >/dev/null 2>&1 || true",
+          '# プラン対象だけがクリアされ、他は温存される',
+          'if [[ ! -f "$OUTPUT_DIR/codex-cli/code-review.md" ]]; then echo TARGET_CLEARED; fi',
+          'if [[ -f "$OUTPUT_DIR/gemini-cli/code-review.md" ]]; then echo GEMINI_KEPT; fi',
+          'if [[ -f "$OUTPUT_DIR/codex-cli/security-analysis.md" ]]; then echo OTHERP_KEPT; fi',
+          'if [[ -f "$OUTPUT_DIR/codex-cli/my-notes.md" ]]; then echo USER_KEPT; fi',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain("TARGET_CLEARED");
+      expect(r.stdout).toContain("GEMINI_KEPT");
+      expect(r.stdout).toContain("OTHERP_KEPT");
+      expect(r.stdout).toContain("USER_KEPT");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("プラン内の重複 cli:perspective はレポートに二重掲載されない", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-dup-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli"',
+          'echo DUP-CONTENT > "$OUTPUT_DIR/codex-cli/code-review.md"',
+          "# 同じエントリを重複させる",
+          "EXECUTION_PLAN=$'codex-cli:code-review\\ncodex-cli:code-review'",
+          "generate_report >/dev/null 2>&1",
+          '# 見出しの出現回数を数える',
+          'grep -c "^## codex-cli — code-review " "$OUTPUT_DIR/integrated-report.md" | sed "s/^/HEADING_COUNT=/"',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      // 重複エントリでも見出しは 1 回だけ
+      expect(r.stdout).toContain("HEADING_COUNT=1");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
