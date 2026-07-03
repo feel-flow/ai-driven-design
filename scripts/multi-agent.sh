@@ -543,6 +543,63 @@ run_single_task() {
     "${extra_args[@]}"
 }
 
+# ── Path-Segment Safety ──
+# A CLI / perspective name is used as a single path segment under OUTPUT_DIR.
+# Reject anything that is not a plain identifier so a crafted --cli/--perspective
+# value (e.g. "../../secret") cannot escape OUTPUT_DIR when we build result paths.
+is_safe_token() {
+  [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] && [[ "$1" != "." && "$1" != ".." ]]
+}
+
+# ── Validate Execution Plan ──
+# Fail loud (never a silent skip) if any plan entry carries a cli/perspective
+# token that is not a safe single path segment. Called once at each consumption
+# entry point (execute_tasks, generate_report) BEFORE the plan is used, so a
+# crafted --cli/--perspective value cannot reach the execute (write), cleanup, or
+# report (read) paths and escape OUTPUT_DIR — and a malformed plan surfaces as an
+# error instead of silently collapsing to "(No results found.)".
+validate_execution_plan() {
+  local entry cli_name persp_name bad=0
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    # Require the exact "cli:perspective" shape. Without a ':', ${entry%%:*} and
+    # ${entry#*:} both collapse to the whole string, so a malformed entry would
+    # otherwise pass and drive read/delete/write at the wrong path.
+    if [[ "$entry" != *:* ]]; then
+      echo "ERROR: malformed execution plan entry (expected 'cli:perspective'): '${entry}'" >&2
+      bad=1
+      continue
+    fi
+    cli_name="${entry%%:*}"
+    persp_name="${entry#*:}"
+    if ! is_safe_token "$cli_name" || ! is_safe_token "$persp_name"; then
+      echo "ERROR: unsafe token in execution plan entry: '${entry}'" >&2
+      bad=1
+    fi
+  done <<< "$EXECUTION_PLAN"
+  [[ "$bad" -eq 0 ]]
+}
+
+# ── Clear This Run's Planned Outputs ──
+# The report reads ${cli}/${perspective}.md for each plan entry; adapters only
+# (over)write that file on success, leaving a prior run's file in place on
+# failure/timeout. Deleting exactly this run's own targets up front means a task
+# that produces no output leaves NO stale same-name file to be mis-reported as
+# current (issue #450) — instead the report surfaces it as "no output". Scoped to
+# the plan's own (cli, perspective) targets only; nothing else on disk (other
+# CLIs, other perspectives, unrelated user files) is touched. Callers run
+# validate_execution_plan first, so every token here is already a safe segment.
+clear_planned_outputs() {
+  [[ -n "${OUTPUT_DIR:-}" ]] || return 0
+  local entry cli_name persp_name
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    cli_name="${entry%%:*}"
+    persp_name="${entry#*:}"
+    rm -f "${OUTPUT_DIR}/${cli_name}/${persp_name}.md"
+  done <<< "$EXECUTION_PLAN"
+}
+
 # ── Execute All Tasks ──
 execute_tasks() {
   if [[ -z "$EXECUTION_PLAN" ]]; then
@@ -550,15 +607,24 @@ execute_tasks() {
     return 0
   fi
 
+  # Reject a plan with unsafe path segments before writing/deleting anything.
+  validate_execution_plan || return 1
+
   mkdir -p "$OUTPUT_DIR"
+  clear_planned_outputs
 
   local pids=""
   local tasks=""
   local failed=0
   local count=0
+  local seen=""
 
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so the same cli:perspective is not executed
+    # twice (a plan fallback can list it more than once).
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
     local cli="${entry%%:*}"
     local persp="${entry#*:}"
 
@@ -572,6 +638,11 @@ execute_tasks() {
       if ! run_single_task "$cli" "$persp"; then
         failed=$((failed + 1))
         echo "  ❌ Failed: ${cli}/${persp}" >&2
+      elif [[ ! -f "${OUTPUT_DIR}/${cli}/${persp}.md" ]]; then
+        # Adapter reported success but wrote no output — count it as a failure so
+        # a silently-empty run shows up in the exit code, not only the report.
+        failed=$((failed + 1))
+        echo "  ❌ No output file: ${cli}/${persp}" >&2
       fi
     fi
   done <<< "$EXECUTION_PLAN"
@@ -588,11 +659,15 @@ execute_tasks() {
       task_name="$(echo "$tasks" | cut -d'|' -f"$idx")"
       wait "$pid"
       exit_code=$?
-      if [[ $exit_code -eq 0 ]]; then
+      if [[ $exit_code -eq 0 && -f "${OUTPUT_DIR}/${task_name}.md" ]]; then
         echo "  ✅ Done: ${task_name}" >&2
-      else
+      elif [[ $exit_code -ne 0 ]]; then
         failed=$((failed + 1))
         echo "  ❌ Failed: ${task_name} (exit code: ${exit_code})" >&2
+      else
+        # Success exit but no output file — surface as a failure, not silent OK.
+        failed=$((failed + 1))
+        echo "  ❌ No output file: ${task_name}" >&2
       fi
     done
     set -e
@@ -627,30 +702,46 @@ HEADER
 
   local has_results=false
 
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
+  # issue #450: report exactly THIS run's entries by iterating the execution plan
+  # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
+  # read. In the normal flow execute_tasks clears each entry's target before
+  # running (clear_planned_outputs), so a prior run's result — a different
+  # perspective, or a same-named stale file left by a failed task — does not
+  # appear as current. The report only reads result files and writes report_file;
+  # no result file is deleted or modified here, so a shared --output-dir re-run or
+  # a partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped. The generate_report
+  # dispatcher validates every token before dispatching here.
+  local entry seen=""
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so a repeated cli:perspective (e.g. a plan
+    # fallback that reassigns a perspective to an already-listed CLI) is not
+    # pasted into the report twice.
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
+    local cli_name="${entry%%:*}"
+    local perspective_name="${entry#*:}"
+    local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
+    has_results=true
 
-    for result_file in "${cli_dir}"/*.md; do
-      [[ -f "$result_file" ]] || continue
-      has_results=true
+    local tier
+    tier="$(get_cli_cost_tier "$cli_name")"
 
-      local perspective_name
-      perspective_name="$(basename "$result_file" .md)"
-      local tier
-      tier="$(get_cli_cost_tier "$cli_name")"
-
-      {
-        echo ""
-        echo "## ${cli_name} — ${perspective_name} [${tier}]"
-        echo ""
+    {
+      echo ""
+      echo "## ${cli_name} — ${perspective_name} [${tier}]"
+      echo ""
+      if [[ -f "$result_file" ]]; then
         cat "$result_file"
-        echo ""
-        echo "---"
-        echo ""
-      } >> "$report_file"
-    done
-  done
+      else
+        echo "⚠️ No output produced by this task (CLI failure or missing result file)."
+      fi
+      echo ""
+      echo "---"
+      echo ""
+    } >> "$report_file"
+  done <<< "$EXECUTION_PLAN"
 
   if [[ "$has_results" == "false" ]]; then
     echo "(No review results found.)" >> "$report_file"
@@ -685,30 +776,46 @@ HEADER
 
   local has_results=false
 
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
+  # issue #450: report exactly THIS run's entries by iterating the execution plan
+  # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
+  # read. In the normal flow execute_tasks clears each entry's target before
+  # running (clear_planned_outputs), so a prior run's result — a different
+  # perspective, or a same-named stale file left by a failed task — does not
+  # appear as current. The report only reads result files and writes report_file;
+  # no result file is deleted or modified here, so a shared --output-dir re-run or
+  # a partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped. The generate_report
+  # dispatcher validates every token before dispatching here.
+  local entry seen=""
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so a repeated cli:perspective (e.g. a plan
+    # fallback that reassigns a perspective to an already-listed CLI) is not
+    # pasted into the report twice.
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
+    local cli_name="${entry%%:*}"
+    local perspective_name="${entry#*:}"
+    local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
+    has_results=true
 
-    for result_file in "${cli_dir}"/*.md; do
-      [[ -f "$result_file" ]] || continue
-      has_results=true
+    local tier
+    tier="$(get_cli_cost_tier "$cli_name")"
 
-      local perspective_name
-      perspective_name="$(basename "$result_file" .md)"
-      local tier
-      tier="$(get_cli_cost_tier "$cli_name")"
-
-      {
-        echo ""
-        echo "## ${cli_name} — ${perspective_name} [${tier}]"
-        echo ""
+    {
+      echo ""
+      echo "## ${cli_name} — ${perspective_name} [${tier}]"
+      echo ""
+      if [[ -f "$result_file" ]]; then
         cat "$result_file"
-        echo ""
-        echo "---"
-        echo ""
-      } >> "$report_file"
-    done
-  done
+      else
+        echo "⚠️ No output produced by this task (CLI failure or missing result file)."
+      fi
+      echo ""
+      echo "---"
+      echo ""
+    } >> "$report_file"
+  done <<< "$EXECUTION_PLAN"
 
   if [[ "$has_results" == "false" ]]; then
     echo "(No explore results found.)" >> "$report_file"
@@ -741,30 +848,46 @@ HEADER
 
   local has_results=false
 
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
+  # issue #450: report exactly THIS run's entries by iterating the execution plan
+  # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
+  # read. In the normal flow execute_tasks clears each entry's target before
+  # running (clear_planned_outputs), so a prior run's result — a different
+  # perspective, or a same-named stale file left by a failed task — does not
+  # appear as current. The report only reads result files and writes report_file;
+  # no result file is deleted or modified here, so a shared --output-dir re-run or
+  # a partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped. The generate_report
+  # dispatcher validates every token before dispatching here.
+  local entry seen=""
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so a repeated cli:perspective (e.g. a plan
+    # fallback that reassigns a perspective to an already-listed CLI) is not
+    # pasted into the report twice.
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
+    local cli_name="${entry%%:*}"
+    local perspective_name="${entry#*:}"
+    local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
+    has_results=true
 
-    for result_file in "${cli_dir}"/*.md; do
-      [[ -f "$result_file" ]] || continue
-      has_results=true
+    local tier
+    tier="$(get_cli_cost_tier "$cli_name")"
 
-      local perspective_name
-      perspective_name="$(basename "$result_file" .md)"
-      local tier
-      tier="$(get_cli_cost_tier "$cli_name")"
-
-      {
-        echo ""
-        echo "## ${cli_name} — ${perspective_name} [${tier}]"
-        echo ""
+    {
+      echo ""
+      echo "## ${cli_name} — ${perspective_name} [${tier}]"
+      echo ""
+      if [[ -f "$result_file" ]]; then
         cat "$result_file"
-        echo ""
-        echo "---"
-        echo ""
-      } >> "$report_file"
-    done
-  done
+      else
+        echo "⚠️ No output produced by this task (CLI failure or missing result file)."
+      fi
+      echo ""
+      echo "---"
+      echo ""
+    } >> "$report_file"
+  done <<< "$EXECUTION_PLAN"
 
   if [[ "$has_results" == "false" ]]; then
     echo "(No implement results found.)" >> "$report_file"
@@ -775,6 +898,8 @@ HEADER
 
 # ── Generate Report (dispatcher) ──
 generate_report() {
+  # Reject a plan with unsafe path segments before any builder reads from it.
+  validate_execution_plan || return 1
   case "$TASK_TYPE" in
     review)    generate_review_report ;;
     explore)   generate_explore_report ;;
