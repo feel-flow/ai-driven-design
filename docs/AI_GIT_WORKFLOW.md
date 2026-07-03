@@ -1,3 +1,7 @@
+---
+visibility: public
+---
+
 # AI駆動 Git Workflow
 
 AI開発ツール（Claude Code、GitHub Copilot、Cursor）に最適化されたGit Flowベースのワークフローです。

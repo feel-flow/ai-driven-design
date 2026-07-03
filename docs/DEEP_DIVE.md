@@ -12,6 +12,7 @@ references:
   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
   - docs/PRACTICAL_GUIDE.md
 changeImpact: low
+visibility: public
 ---
 
 # 深掘り：AI Spec Driven Development

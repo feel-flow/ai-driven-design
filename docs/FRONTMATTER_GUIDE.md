@@ -1,10 +1,10 @@
 ---
 id: frontmatter-guide
 title: Frontmatter ガイド - なぜ・どこで・何を書くか
-version: 1.3.0
+version: 1.4.0
 status: draft
 created: 2026-05-19
-updated: 2026-05-19
+updated: 2026-07-03
 owner: feel-flow
 phase: mvp
 tags: [documentation, frontmatter, metadata, spec-kit, governance]
@@ -14,8 +14,10 @@ references:
   - docs-template/MASTER.md
   - scripts/validate-docs.mjs
   - scripts/build-spec-index.mjs
+  - scripts/sync-to-public.mjs
   - mcp/src/utils.ts
 changeImpact: medium
+visibility: public
 ---
 
 # Frontmatter ガイド - なぜ・どこで・何を書くか
@@ -314,6 +316,32 @@ metrics:
 
 [PLAYBOOK.md](../docs-template/08-knowledge/PLAYBOOK.md) の「サンプルテンプレ汚染回避」エントリで導入された**「SAMPLE — テンプレートです」バナー付き**のファイル（`DECISION_TREE.md` 等）は、採用時にバナーを削除すると同時に frontmatter の `created` / `updated` / `owner` を自プロジェクト値に書き換える運用。コピペしたまま放置しないこと。
 
+### 5.5 visibility フィールド（internal → public 抽出同期用）
+
+> **適用範囲**: 本リポジトリ運用向けのフィールド（`docs/**/*.md` のみ）。テンプレート採用者には不要。
+
+FEEL FLOW ではメソドロジーの全量を private リポジトリ（`ai-spec-driven-development-internal`、SSOT）で管理し、公開分だけを本リポジトリへ一方向同期する（[Issue #467](https://github.com/feel-flow/ai-spec-driven-development/issues/467)）。同期対象の判定に `visibility` フィールドを使う。
+
+```yaml
+---
+title: ...
+visibility: public # public | internal
+---
+```
+
+| 値                            | 意味                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `public`                      | `scripts/sync-to-public.mjs` の同期対象。public リポジトリで更新を継続する文書 |
+| `internal`                    | 同期対象外。internal リポジトリでのみ発展させる文書（public 側は凍結）         |
+| （未指定 / frontmatter なし） | **`internal` と同じ扱い**（fail-safe。公開はオプトイン）                       |
+
+運用ルール:
+
+- **公開はオプトイン**: `visibility: public` を明示した文書だけが同期される。未指定・frontmatter なし・`internal` は決して public へコピーされない
+- **不正値は fail-loud**: `public` / `internal` 以外の値（typo 等）を1つでも検出すると、同期スクリプトは**一切書き込まずに** exit 1 で中断する
+- **非破壊**: 同期は削除を行わない。`internal` に変更された文書の public 側コピーは orphan（凍結）として報告のみされる
+- 同期の実行方法: internal リポジトリの checkout から `node scripts/sync-to-public.mjs --target <public-checkout> [--dry-run]`（target の origin が public リポジトリでない場合は入口で拒否される）
+
 ---
 
 ## 6. 出自と歴史的経緯
@@ -404,6 +432,14 @@ frontmatter 管理（編集・検証・索引化）は Node スクリプトと�
 ---
 
 ## Changelog
+
+### [1.4.0] - 2026-07-03
+
+#### 追加
+
+- §5.5 `visibility` フィールド（internal → public 抽出同期用、[Issue #467](https://github.com/feel-flow/ai-spec-driven-development/issues/467)）
+  - `public | internal` の2値、未指定は fail-safe で `internal` 扱い
+  - `scripts/sync-to-public.mjs` の同期対象判定に使用
 
 ### [1.3.0] - 2026-05-19
 

@@ -12,6 +12,7 @@ references:
   - mcp/README.md
   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
 changeImpact: medium
+visibility: public
 ---
 
 # VS Code Codex拡張とMCPツール連携ガイド

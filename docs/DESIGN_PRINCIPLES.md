@@ -13,6 +13,7 @@ references:
   - docs-template/08-knowledge/PLAYBOOK.md
 tags: [design, principles, governance]
 changeImpact: high
+visibility: public
 ---
 
 # 本リポジトリの設計原則
