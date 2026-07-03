@@ -526,4 +526,36 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
       rmSync(workDir, { recursive: true, force: true });
     }
   });
+
+  it("並列実行（PARALLEL=true）でも出力欠落は失敗として表面化する（並列経路の回帰）", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-parallel-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=true",
+          "# case A: 成功して出力を書く → wait 分岐は成功（rc=0）",
+          'OUTPUT_DIR="$WORKDIR/ok"; mkdir -p "$OUTPUT_DIR/codex-cli"',
+          'run_single_task() { echo out > "$OUTPUT_DIR/$1/$2.md"; return 0; }',
+          'EXECUTION_PLAN="codex-cli:code-review"',
+          'rc_ok=0; execute_tasks >/dev/null 2>&1 || rc_ok=$?',
+          'echo "rc_ok=$rc_ok"',
+          "# case B: 成功終了だが出力を書かない → wait 分岐で失敗扱い（rc=1）",
+          'OUTPUT_DIR="$WORKDIR/bad"; mkdir -p "$OUTPUT_DIR/codex-cli"',
+          "run_single_task() { return 0; }",
+          'rc_bad=0; execute_tasks >/dev/null 2>"$WORKDIR/e.txt" || rc_bad=$?',
+          'echo "rc_bad=$rc_bad"',
+          'if grep -q "No output file" "$WORKDIR/e.txt"; then echo REPORTED; fi',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      // 並列・出力あり → 成功
+      expect(r.stdout).toContain("rc_ok=0");
+      // 並列・出力欠落 → 非0 で表面化
+      expect(r.stdout).toContain("rc_bad=1");
+      expect(r.stdout).toContain("REPORTED");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
 });
