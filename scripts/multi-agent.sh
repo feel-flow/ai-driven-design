@@ -544,23 +544,44 @@ run_single_task() {
 }
 
 # ── Cleanup Stale Results ──
-# generate_report() collects EVERY *.md under ${OUTPUT_DIR}/${cli}/, so results
-# from a previous run linger and get reported as "this run's" results (issue #450).
-# Remove the prior run's per-CLI result files before executing, so the integrated
-# report contains only the current run. Runs for review/explore/implement alike,
-# since all three share this single execution path.
+# The report builders (generate_{review,explore,implement}_report) each collect
+# EVERY *.md under ${OUTPUT_DIR}/${cli}/, so a perspective produced only by a
+# previous run lingers and is reported as "this run's" result (issue #450).
+# Before executing, delete the prior run's result files so the integrated report
+# reflects only the current run. Covers review/explore/implement alike, since all
+# three converge on this single execution path.
+#
+# We delete only the perspective files THIS script produces for the current task
+# type — mirroring resolve_perspective_file's lookup (task-type subdir + root
+# fallback) — instead of a blanket "${cli_dir}"/*.md. That way unrelated Markdown
+# a user keeps under a shared --output-dir is never destroyed.
 cleanup_stale_results() {
   # Defense-in-depth: never operate on an unset/empty OUTPUT_DIR, even though
   # apply_task_defaults guarantees it is populated by this point.
   [[ -n "$OUTPUT_DIR" ]] || return 0
 
+  # Perspective names this task type can emit (task-type subdir + root fallback).
+  local managed_names=()
+  local persp_src persp_file
+  for persp_src in "${SCRIPT_DIR}/perspectives/${TASK_TYPE}" "${SCRIPT_DIR}/perspectives"; do
+    [[ -d "$persp_src" ]] || continue
+    for persp_file in "$persp_src"/*.md; do
+      [[ -f "$persp_file" ]] || continue
+      managed_names+=("$(basename "$persp_file" .md)")
+    done
+  done
+
+  local cli_name persp_name
   for cli_name in $ALL_CLIS; do
     local cli_dir="${OUTPUT_DIR}/${cli_name}"
     [[ -d "$cli_dir" ]] || continue
-
-    # Remove only the per-perspective result files (*.md). `-f` keeps this a
-    # no-op — not an errexit-tripping failure — when the glob matches nothing.
-    rm -f "$cli_dir"/*.md
+    # ":-" guards the empty-array expansion under `set -u` on bash 3.2.
+    for persp_name in "${managed_names[@]:-}"; do
+      [[ -n "$persp_name" ]] || continue
+      # `-f`: not every (cli, perspective) pair produced a file, and a missing
+      # file must be a no-op rather than an errexit-tripping failure.
+      rm -f "${cli_dir}/${persp_name}.md"
+    done
   done
 }
 
