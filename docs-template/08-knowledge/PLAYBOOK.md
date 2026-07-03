@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.31.0"
+version: "1.32.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-07-02"
+updated: "2026-07-03"
 owner: "@fffokazaki"
-ace_entry_count: 60
+ace_entry_count: 63
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -188,7 +188,7 @@ Playbook が 800 行を超えた場合、以下のように分割する：
 | Category   | process           |
 | Origin     | PR #316 / PR #319 |
 | Date       | 2026-03-10        |
-| Helpful    | 7                 |
+| Helpful    | 8                 |
 | Harmful    | 0                 |
 | Status     | active            |
 
@@ -1496,7 +1496,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #445 / Issue #444 |
 | Related    | ACE-001              |
 | Date       | 2026-06-19           |
-| Helpful    | 3                    |
+| Helpful    | 4                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1574,7 +1574,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #447 / Issue #446 |
 | Related    | ACE-445-1, ACE-001   |
 | Date       | 2026-06-23           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1766,9 +1766,80 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 2. `case ... *[!0]*` のような「否定文字クラス」は空文字を意図せず通すので、空文字ケースを別途明示する。
 3. テストは正常系だけでなく「欠落・空・不正フィールド」の入力でゲートが**実行される**ことを1本以上固定する。
 
+<a id="ace-464-1"></a>
+
+### ACE-464-1: 集約レポートの stale 混入は「削除」でなく「読む側を今回の実行計画にスコープ」して断つ
+
+| フィールド | 値           |
+| ---------- | ------------ |
+| Category   | architecture |
+| Origin     | PR #464      |
+| Date       | 2026-07-03   |
+| Helpful    | 0            |
+| Harmful    | 0            |
+| Status     | active       |
+
+**Insight**: 共有ディレクトリを glob して集約するレポートが前回実行の成果物（stale）を拾う問題を「stale を削除する」で直そうとすると、消しすぎ（他実行・ユーザーのファイル破壊）vs 残しすぎ（別 task 再利用・同名残骸）のジレンマから逃れられない。読む側を「今回の実行計画（例: `EXECUTION_PLAN` の cli:perspective エントリ）が産んだファイルだけ」にスコープすれば、プラン外は原理的に読まれず、ディスクは非破壊のまま stale が混入しない。
+
+**Context**: `multi-agent.sh` のレポートが `${OUTPUT_DIR}/${cli}/*.md` を無条件収集し前回だけ実行した perspective を「今回の結果」として混入。当初「実行前クリーンアップ（削除）」で対処したが、cross-model レビューが破壊性（共有 --output-dir のユーザーファイル/他 CLI 結果の消失）と残留（別 task 再利用・rename 時の stale）を反復指摘し収束しなかった。
+
+**Action**: 集約/レポートが「今そこにある成果物を全部読む」設計は stale 混入源。まず consumer を「今回の既知集合（実行計画・マニフェスト）」にスコープする。同名上書き漏れ対策の削除が要るなら「今回どうせ再生成する自分の出力先だけ」に限定し（他は非破壊）、出力欠落は削除で隠さず「⚠️ No output」として可視化＋exit code に反映する。
+
+<a id="ace-464-2"></a>
+
+### ACE-464-2: cross-model レビューが実質的な新指摘を出し続けるなら各指摘を patch せず「設計を疑え」— 停止は「新規 Critical/Important 不在」
+
+| フィールド | 値         |
+| ---------- | ---------- |
+| Category   | process    |
+| Origin     | PR #464    |
+| Date       | 2026-07-03 |
+| Helpful    | 0          |
+| Harmful    | 0          |
+| Status     | active     |
+
+**Insight**: cross-model レビューが round を重ねても新しい substantive 指摘（破壊性・silent failure・traversal…）を出し続けるのは、細部の欠陥ではなく approach 自体が間違っているサイン。個別 patch を積み続けるより approach をピボット（削除ベース→プラン駆動）した方が、関連指摘群がまとめて構造的に消える。ループの停止は all-green ではなく「新規の実質 Critical/Important が出ないこと」で判断する（[ACE-447-3](#ace-447-3) の code PR 版）。
+
+**Context**: PR #464 は Codex を 9 round 回した。削除ベース設計への指摘（消しすぎ／残しすぎ）が round をまたいで収束せず、プラン駆動へ設計転換した途端に破壊性/残留/silent 系の指摘が構造的に解消。以降は traversal・重複・境界など細粒度の指摘に収束した。
+
+**Action**: 同一テーマの指摘が 2〜3 round 続いたら「この設計を patch し続けるべきか」を自問し、必要なら実装途中でも approach をピボットする。停止ゲートは「Critical 不在＋実 Important 全対応＋回帰テスト（可能なら mutation で検知力を確認）」。primary（Toolkit）が pass 済みなら green を待って無限ループしない。
+
+<a id="ace-464-3"></a>
+
+### ACE-464-3: 複数経路が同じ untrusted トークンを消費するなら消費地点ごとの silent skip でなく入口で一度 fail-loud 検証する
+
+| フィールド | 値         |
+| ---------- | ---------- |
+| Category   | security   |
+| Origin     | PR #464    |
+| Date       | 2026-07-03 |
+| Helpful    | 0          |
+| Harmful    | 0          |
+| Status     | active     |
+
+**Insight**: ユーザー由来の識別子（`--cli` / `--perspective` 等）をパスセグメントに使うとき、各消費地点で `is_safe "$x" || continue` と黙ってスキップすると、(a) 不正入力が `"(No results)"` に化けて表面化しない (b) ガードを付け忘れた経路（例: 実行/write 側）が traversal 可能なまま残る。消費前の**単一チェックポイント**（実行・レポートの各入口）で形式＋セグメント安全性を一度だけ検証し、不正は非0で fail-loud に落とせば全経路（write/clear/read）が一括で守られる。
+
+**Context**: `multi-agent.sh` で traversal ガードを read/clear にだけ付け、実行（`run_single_task` の write）経路が無防備だった。さらに各所の silent `continue` が malformed plan（`:` 無しで cli 名と perspective 名が同値化する等）を隠蔽していた。
+
+**Action**: untrusted トークンを複数経路が使うなら、検証を各サイトに散らさず「消費前の単一検証関数」に集約し、不正は skip でなく `error + 非0` で落とす。`cli:perspective` のような複合形式は「区切りの存在」も検証する（区切り無しは両片が同値化して検証をすり抜ける）。関連: [ACE-462-1](#ace-462-1)（不明入力は安全側へ）。
+
 ---
 
 ## Changelog
+
+### [1.32.0] - 2026-07-03
+
+#### 追加
+
+- ACE-464-1: 集約レポートの stale 混入は「削除」でなく「読む側を今回の実行計画（EXECUTION_PLAN）にスコープ」して断つ — PR #464 で multi-agent.sh のレポートが glob で前回 perspective を混入する問題を、削除ではなくプラン駆動の読み取りに転換して解決した経験から抽出
+- ACE-464-2: cross-model レビューが実質的な新指摘を出し続けるなら各指摘を patch せず設計を疑え・停止は「新規 Critical/Important 不在」 — PR #464 で Codex を 9 round 回し、削除ベース設計への指摘が収束せずプラン駆動へピボットして構造的に解消した経験から抽出
+- ACE-464-3: 複数経路が同じ untrusted トークンを消費するなら消費地点ごとの silent skip でなく入口で一度 fail-loud 検証する — PR #464 で traversal ガードが read/clear のみで write 経路が無防備＋silent continue が malformed plan を隠蔽していた指摘から抽出
+
+#### カウンター更新
+
+- ACE-001 (Helpful 7→8): Toolkit が pass した設計を Codex が traversal/stale 等で反復検出
+- ACE-445-1 (Helpful 3→4): Claude 系 Toolkit 全 pass 箇所を cross-model が指摘
+- ACE-447-3 (Helpful 0→1): 9 round の cross-model を「新規 Critical/Important 不在」で停止判断（code PR へ適用）
 
 ### [1.31.0] - 2026-07-02
 
