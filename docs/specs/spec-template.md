@@ -21,7 +21,6 @@ metrics:
     - 指標例: adoption rate >= 60%
   guardrails:
     - 指標例: error rate < 1%
-visibility: public
 ---
 
 ## 背景 / Context

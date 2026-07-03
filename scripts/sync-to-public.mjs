@@ -10,7 +10,8 @@
  * 設計原則 (Issue #467):
  *   - fail-safe: visibility が 'public' 以外（'internal'・未指定・frontmatter なし）は
  *     絶対に同期しない。公開はオプトイン。
- *   - fail-loud: 不正な visibility 値を1つでも検出したら、書き込みを一切行わずに exit 1。
+ *   - fail-loud: 不正な visibility 値・壊れた frontmatter（閉じデリミタ欠落）を
+ *     1つでも検出したら、書き込みを一切行わずに exit 1。
  *   - guard: target は origin が public リポジトリを指す git repo のみ許可
  *     （internal への逆方向同期・無関係リポジトリへの書き込みを入口で遮断）。
  *   - 非破壊: target 側のファイルは削除しない。同期対象外になったファイルは
@@ -24,9 +25,13 @@ import { spawnSync } from 'node:child_process';
 const SYNC_ROOT = 'docs';
 /** visibility フィールドの許容値 */
 const VALID_VISIBILITY_VALUES = ['public', 'internal'];
-/** 同期を許可する target の origin URL（public リポジトリのみ、-internal は不一致） */
+/**
+ * 同期を許可する target の origin URL（public リポジトリのみ、-internal は末尾アンカーで不一致）。
+ * 先頭もアンカーし、パス中に public URL を含むだけの無関係ホストを弾く。
+ * 許容形式: https://github.com/... / git@github.com:... / ssh://git@github.com/...
+ */
 const PUBLIC_ORIGIN_PATTERN =
-  /github\.com[/:]feel-flow\/ai-spec-driven-development(\.git)?\/?$/;
+  /^(?:https:\/\/|git@|ssh:\/\/git@)github\.com[/:]feel-flow\/ai-spec-driven-development(?:\.git)?\/?$/i;
 
 const EXIT_OK = 0;
 const EXIT_ERROR = 1;
@@ -39,13 +44,19 @@ function fail(message) {
 /** コマンドライン引数を解析する */
 function parseArgs(argv) {
   const args = { source: process.cwd(), target: null, dryRun: false };
+  const flagValue = (flag, value) => {
+    if (value === undefined || value.startsWith('--')) {
+      fail(`${flag} に値がありません`);
+    }
+    return value;
+  };
   for (let i = 0; i < argv.length; i++) {
     switch (argv[i]) {
       case '--source':
-        args.source = argv[++i];
+        args.source = flagValue('--source', argv[++i]);
         break;
       case '--target':
-        args.target = argv[++i];
+        args.target = flagValue('--target', argv[++i]);
         break;
       case '--dry-run':
         args.dryRun = true;
@@ -55,31 +66,53 @@ function parseArgs(argv) {
     }
   }
   if (!args.target) fail('--target <public-checkout> は必須です');
+  if (!fs.existsSync(args.source)) fail(`source が存在しません: ${args.source}`);
   return args;
 }
 
 /**
  * frontmatter から visibility 値を取り出す。
- * @returns {{ hasFrontmatter: boolean, visibility: string | undefined }}
- *   frontmatter なし / 閉じデリミタ欠落は hasFrontmatter: false（= 同期対象外）
+ * 先に閉じデリミタの存在を確認し、走査は frontmatter ブロック内に限定する
+ * （本文中の `visibility:` 例文を拾って公開してしまう事故の防止）。
+ *
+ * @returns {{ kind: 'absent' | 'broken' | 'frontmatter', visibility: string | undefined }}
+ *   - absent: frontmatter なし → 同期対象外（fail-safe の quiet skip）
+ *   - broken: 開始デリミタはあるが閉じデリミタ欠落 → 呼び出し側で fail-loud にする
+ *   - frontmatter: visibility はキーが無ければ undefined（= internal 扱い）。
+ *     キーがあり値が空・許容値外の場合は呼び出し側の検証で fail-loud になる
  */
 function readVisibility(content) {
   const DELIM = '---';
   const lines = content.split(/\r?\n/);
   if ((lines[0] ?? '').trim() !== DELIM) {
-    return { hasFrontmatter: false, visibility: undefined };
+    return { kind: 'absent', visibility: undefined };
   }
+  let closeIndex = -1;
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === DELIM) {
-      return { hasFrontmatter: true, visibility: undefined };
-    }
-    const match = lines[i].match(/^visibility:\s*['"]?([^'"]*?)['"]?\s*$/);
-    if (match) {
-      return { hasFrontmatter: true, visibility: match[1] };
+      closeIndex = i;
+      break;
     }
   }
-  // 閉じデリミタ欠落 = 壊れた frontmatter → fail-safe で同期対象外
-  return { hasFrontmatter: false, visibility: undefined };
+  if (closeIndex === -1) {
+    // 閉じデリミタ欠落 = 構造的に壊れたファイル。silent skip でも本文走査でもなく中断対象
+    return { kind: 'broken', visibility: undefined };
+  }
+  for (let i = 1; i < closeIndex; i++) {
+    const match = lines[i].match(/^visibility:\s*(.*)$/);
+    if (match) {
+      let value = match[1].trim();
+      const quoted = value.match(/^(['"])(.*)\1$/);
+      if (quoted) {
+        value = quoted[2];
+      } else {
+        // 引用符なしの値は YAML インラインコメント（" #" 以降）を剥がす
+        value = value.replace(/\s+#.*$/, '').trim();
+      }
+      return { kind: 'frontmatter', visibility: value };
+    }
+  }
+  return { kind: 'frontmatter', visibility: undefined };
 }
 
 /** dir 以下の .md ファイルを相対パスで列挙する（dir が無ければ空） */
@@ -109,8 +142,14 @@ function assertValidTarget(source, target) {
   if (fs.realpathSync(target) === fs.realpathSync(source)) {
     fail('source と target が同一ディレクトリです');
   }
-  const git = (...gitArgs) =>
-    spawnSync('git', ['-C', target, ...gitArgs], { encoding: 'utf8' });
+  const git = (...gitArgs) => {
+    const result = spawnSync('git', ['-C', target, ...gitArgs], { encoding: 'utf8' });
+    if (result.error) {
+      // git 自体が起動できない（PATH に無い等）のを「target が git repo でない」と誤診しない
+      fail(`git コマンドを実行できません (${result.error.code ?? 'unknown'}): ${result.error.message}`);
+    }
+    return result;
+  };
 
   const inWorkTree = git('rev-parse', '--is-inside-work-tree');
   if (inWorkTree.status !== 0 || inWorkTree.stdout.trim() !== 'true') {
@@ -138,15 +177,20 @@ function main() {
     fail(`source に ${SYNC_ROOT}/ 配下の .md ファイルが見つかりません: ${source}`);
   }
 
-  // 1st pass: 全ファイルを分類し、不正値があれば書き込み前に全体を中断する（fail-loud）
+  // 1st pass: 全ファイルを分類し、不正があれば書き込み前に全体を中断する（fail-loud）
   const publishFiles = [];
   const skippedFiles = [];
   const invalidFiles = [];
   for (const relPath of sourceFiles) {
     const content = fs.readFileSync(path.join(source, relPath), 'utf8');
-    const { visibility } = readVisibility(content);
-    if (visibility !== undefined && !VALID_VISIBILITY_VALUES.includes(visibility)) {
-      invalidFiles.push({ relPath, visibility });
+    const { kind, visibility } = readVisibility(content);
+    if (kind === 'broken') {
+      invalidFiles.push({ relPath, reason: 'frontmatter の閉じデリミタがありません' });
+    } else if (visibility !== undefined && !VALID_VISIBILITY_VALUES.includes(visibility)) {
+      invalidFiles.push({
+        relPath,
+        reason: `不正な visibility 値 "${visibility}" (許容値: ${VALID_VISIBILITY_VALUES.join(' | ')})`,
+      });
     } else if (visibility === 'public') {
       publishFiles.push({ relPath, content });
     } else {
@@ -155,9 +199,9 @@ function main() {
   }
 
   if (invalidFiles.length > 0) {
-    console.error('❌ 不正な visibility 値を検出したため、同期を中断しました（書き込みなし）:');
-    for (const { relPath, visibility } of invalidFiles) {
-      console.error(`   - ${relPath}: "${visibility}" (許容値: ${VALID_VISIBILITY_VALUES.join(' | ')})`);
+    console.error('❌ 不正な frontmatter を検出したため、同期を中断しました（書き込みなし）:');
+    for (const { relPath, reason } of invalidFiles) {
+      console.error(`   - ${relPath}: ${reason}`);
     }
     process.exit(EXIT_ERROR);
   }
@@ -182,6 +226,14 @@ function main() {
     fs.writeFileSync(dest, content);
     copied++;
     console.log(`  + copied: ${relPath}`);
+  }
+
+  // dry-run では監査しやすいよう、同期対象外（fail-safe skip）の一覧も出す
+  if (dryRun && skippedFiles.length > 0) {
+    console.log('\nℹ️  skipped（visibility が public でないため同期対象外）:');
+    for (const rel of skippedFiles) {
+      console.log(`   - ${rel}`);
+    }
   }
 
   // orphan 報告: target にあるが同期対象になっていないファイル（削除はしない）

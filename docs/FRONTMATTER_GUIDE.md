@@ -130,19 +130,19 @@ frontmatter に関するルールは以下に**分散**している。本ガイ�
 
 `validate-docs.mjs` が CI で検証するのは **CORE_DOCS 配列で列挙された固定 7 ファイルのみ**。それ以外は frontmatter を付けても CI 対象外（手動 `node scripts/validate-docs.mjs` でも検査されない）。
 
-| 対象                                                   | スキーマ                             | CI 検証                                    |
-| ------------------------------------------------------ | ------------------------------------ | ------------------------------------------ |
-| `docs-template/MASTER.md`                              | コア 7 文書スキーマ                  | ✅ `validate-docs.mjs`                     |
-| `docs-template/01-context/PROJECT.md`                  | 同上                                 | ✅ 同上                                    |
-| `docs-template/02-design/ARCHITECTURE.md`              | 同上                                 | ✅ 同上                                    |
-| `docs-template/02-design/DOMAIN.md`                    | 同上                                 | ✅ 同上                                    |
-| `docs-template/03-implementation/PATTERNS.md`          | 同上                                 | ✅ 同上                                    |
-| `docs-template/04-quality/TESTING.md`                  | 同上                                 | ✅ 同上                                    |
-| `docs-template/05-operations/DEPLOYMENT.md`            | 同上                                 | ✅ 同上                                    |
-| 拡張文書（GLOSSARY, DECISIONS, FAQ, API, DATABASE 等） | コア 7 文書スキーマ                  | ❌ CI 対象外（手動チェック推奨）           |
-| `docs/specs/**/*.md`                                   | **Spec Kit スキーマ**（別系統）      | ✅ `build-spec-index.mjs`                  |
-| `docs/*.md`（本ガイド含む方法論文書）                  | コア 7 文書スキーマに準拠            | ❌ CI 対象外（リポジトリ自身の方法論文書） |
-| `docs-template/08-knowledge/PLAYBOOK.md`               | コア 7 文書 + `ace_entry_count` 拡張 | ❌ CI 対象外                               |
+| 対象                                                   | スキーマ                                                                                     | CI 検証                                    |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `docs-template/MASTER.md`                              | コア 7 文書スキーマ                                                                          | ✅ `validate-docs.mjs`                     |
+| `docs-template/01-context/PROJECT.md`                  | 同上                                                                                         | ✅ 同上                                    |
+| `docs-template/02-design/ARCHITECTURE.md`              | 同上                                                                                         | ✅ 同上                                    |
+| `docs-template/02-design/DOMAIN.md`                    | 同上                                                                                         | ✅ 同上                                    |
+| `docs-template/03-implementation/PATTERNS.md`          | 同上                                                                                         | ✅ 同上                                    |
+| `docs-template/04-quality/TESTING.md`                  | 同上                                                                                         | ✅ 同上                                    |
+| `docs-template/05-operations/DEPLOYMENT.md`            | 同上                                                                                         | ✅ 同上                                    |
+| 拡張文書（GLOSSARY, DECISIONS, FAQ, API, DATABASE 等） | コア 7 文書スキーマ                                                                          | ❌ CI 対象外（手動チェック推奨）           |
+| `docs/specs/**/*.md`                                   | **Spec Kit スキーマ**（別系統）                                                              | ✅ `build-spec-index.mjs`                  |
+| `docs/*.md`（本ガイド含む方法論文書）                  | コア 7 文書スキーマに準拠 + `visibility`（§5.5。`visibility` のみの最小 frontmatter も許容） | ❌ CI 対象外（リポジトリ自身の方法論文書） |
+| `docs-template/08-knowledge/PLAYBOOK.md`               | コア 7 文書 + `ace_entry_count` 拡張                                                         | ❌ CI 対象外                               |
 
 > **拡張対象にしたい場合**: `scripts/validate-docs.mjs` の `CORE_DOCS` 配列に追加するか、別スクリプトを用意する。
 
@@ -335,11 +335,14 @@ visibility: public # public | internal
 | `internal`                    | 同期対象外。internal リポジトリでのみ発展させる文書（public 側は凍結）         |
 | （未指定 / frontmatter なし） | **`internal` と同じ扱い**（fail-safe。公開はオプトイン）                       |
 
+「未指定」は **`visibility` キー自体が無い場合のみ**を指す。キーはあるが値が空・許容値外（typo 等）、または frontmatter の閉じデリミタが欠落している場合は、fail-safe の quiet skip ではなく次項の fail-loud で中断される。値のインラインコメント（`visibility: public # コメント`）と引用符（`"public"`）は同期スクリプトが剥がして解釈する。
+
 運用ルール:
 
 - **公開はオプトイン**: `visibility: public` を明示した文書だけが同期される。未指定・frontmatter なし・`internal` は決して public へコピーされない
-- **不正値は fail-loud**: `public` / `internal` 以外の値（typo 等）を1つでも検出すると、同期スクリプトは**一切書き込まずに** exit 1 で中断する
+- **不正は fail-loud**: 許容値外の値・空値・閉じデリミタ欠落の壊れた frontmatter を1つでも検出すると、同期スクリプトは**一切書き込まずに** exit 1 で中断する
 - **非破壊**: 同期は削除を行わない。`internal` に変更された文書の public 側コピーは orphan（凍結）として報告のみされる
+- **雛形には含めない**: [docs/specs/spec-template.md](specs/spec-template.md) には `visibility` を意図的に入れていない（雛形コピーで新規 spec が公開既定になるのを防ぐため）。spec を公開したい場合のみ、作成後に `visibility: public` を明示する
 - 同期の実行方法: internal リポジトリの checkout から `node scripts/sync-to-public.mjs --target <public-checkout> [--dry-run]`（target の origin が public リポジトリでない場合は入口で拒否される）
 
 ---
@@ -438,8 +441,10 @@ frontmatter 管理（編集・検証・索引化）は Node スクリプトと�
 #### 追加
 
 - §5.5 `visibility` フィールド（internal → public 抽出同期用、[Issue #467](https://github.com/feel-flow/ai-spec-driven-development/issues/467)）
-  - `public | internal` の2値、未指定は fail-safe で `internal` 扱い
+  - `public | internal` の2値、未指定（キーなし）は fail-safe で `internal` 扱い
+  - 空値・許容値外・閉じデリミタ欠落は fail-loud（同期スクリプトが書き込みゼロで中断）
   - `scripts/sync-to-public.mjs` の同期対象判定に使用
+  - `docs/specs/spec-template.md` には雛形コピーでの公開既定化を防ぐため `visibility` を含めない
 
 ### [1.3.0] - 2026-05-19
 
