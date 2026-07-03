@@ -22,6 +22,7 @@ metrics:
     - login_success_rate >= 98%
   guardrails:
     - auth_latency_p95 < 150ms
+visibility: public
 ---
 
 ## 背景 / Context

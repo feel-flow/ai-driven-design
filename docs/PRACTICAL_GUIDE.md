@@ -13,6 +13,7 @@ references:
   - docs/DEEP_DIVE.md
   - docs/AI_CONFIG_BEST_PRACTICES.md
 changeImpact: medium
+visibility: public
 ---
 
 # 実践ガイド：AI Spec Driven Development

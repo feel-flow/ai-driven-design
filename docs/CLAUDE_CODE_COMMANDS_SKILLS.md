@@ -14,6 +14,7 @@ references:
   - docs/PRACTICAL_GUIDE.md
   - docs-template/SETUP_CLAUDE_CODE.md
 changeImpact: medium
+visibility: public
 ---
 
 # AIツール拡張機能とコンテキスト管理の最適化戦略

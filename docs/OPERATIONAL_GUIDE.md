@@ -13,6 +13,7 @@ references:
   - docs-template/02-design/ARCHITECTURE.md
   - AI_SPEC_DRIVEN_DEVELOPMENT.md
 changeImpact: high
+visibility: public
 ---
 
 # AI Spec Driven Development ドキュメント運用ガイド

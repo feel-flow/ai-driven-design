@@ -1,3 +1,7 @@
+---
+visibility: internal
+---
+
 # GitHub Actions を使わない運用への移行設計
 
 > **移行実装**: `quality:local`、Husky `pre-push`、PR テンプレ、ドキュメント更新、**`.github/workflows/` 内の `ci.yml` / `release.yml` / `release-drafter.yml` の削除**を Issue #377 系の作業で反映済み。`.github/release-drafter.yml`（設定）は手動リリース時のカテゴリ参考として保持。

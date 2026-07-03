@@ -12,6 +12,7 @@ references:
   - docs-template/08-knowledge/PLAYBOOK.md
   - docs-template/05-operations/deployment/ace-cycle.md
 changeImpact: medium
+visibility: public
 ---
 
 # ACE セットアップガイド

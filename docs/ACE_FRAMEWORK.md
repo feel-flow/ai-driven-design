@@ -14,6 +14,7 @@ references:
   - docs-template/05-operations/deployment/knowledge-management.md
   - docs/ACE_SETUP.md
 changeImpact: high
+visibility: public
 ---
 
 # ACE (Agentic Context Engineering) フレームワーク

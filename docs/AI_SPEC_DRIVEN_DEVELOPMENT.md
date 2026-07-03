@@ -14,6 +14,7 @@ references:
   - docs/DEEP_DIVE.md
   - docs-template/MASTER.md
 changeImpact: high
+visibility: public
 ---
 
 # AI Spec Driven Development - AIエージェントが迷わないドキュメント戦略

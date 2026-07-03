@@ -14,6 +14,7 @@ references:
   - docs-template/SETUP_CURSOR.md
   - docs-template/SETUP_GITHUB_COPILOT.md
 changeImpact: medium
+visibility: public
 ---
 
 # AIツール設定ファイルのベストプラクティス

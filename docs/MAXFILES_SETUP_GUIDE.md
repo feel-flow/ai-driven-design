@@ -12,6 +12,7 @@ references:
   - docs/OPERATIONAL_GUIDE.md
   - docs/AI_GIT_WORKFLOW.md
 changeImpact: medium
+visibility: public
 ---
 
 # OS ファイルディスクリプタ上限の設定ガイド
