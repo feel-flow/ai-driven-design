@@ -543,41 +543,51 @@ run_single_task() {
     "${extra_args[@]}"
 }
 
-# ── Cleanup Stale Results ──
-# The report builders (generate_{review,explore,implement}_report) each collect
-# EVERY *.md under ${OUTPUT_DIR}/${cli}/, so a perspective produced only by a
-# previous run lingers and is reported as "this run's" result (issue #450).
-# Before executing, delete the prior run's result files so the integrated report
-# reflects only the current run. Covers review/explore/implement alike, since all
-# three converge on this single execution path.
-#
-# We delete only the perspective files THIS script produces for the current task
+# ── Managed Perspective Names ──
+# The set of perspective basenames THIS script can emit for the current task
 # type — mirroring resolve_perspective_file's lookup (task-type subdir + root
-# fallback) — instead of a blanket "${cli_dir}"/*.md. That way unrelated Markdown
-# a user keeps under a shared --output-dir is never destroyed.
-cleanup_stale_results() {
-  # Defense-in-depth: never operate on an unset/empty OUTPUT_DIR, even though
-  # apply_task_defaults guarantees it is populated by this point.
-  [[ -n "$OUTPUT_DIR" ]] || return 0
-
-  # Perspective names this task type can emit (task-type subdir + root fallback).
-  local managed_names=()
-  local persp_src persp_file
+# fallback). Echoed space-delimited. Both cleanup and report generation key off
+# this same set so they agree on what counts as "a result of this tool".
+managed_perspective_names() {
+  local names="" persp_src persp_file
   for persp_src in "${SCRIPT_DIR}/perspectives/${TASK_TYPE}" "${SCRIPT_DIR}/perspectives"; do
     [[ -d "$persp_src" ]] || continue
     for persp_file in "$persp_src"/*.md; do
       [[ -f "$persp_file" ]] || continue
-      managed_names+=("$(basename "$persp_file" .md)")
+      names="${names} $(basename "$persp_file" .md)"
     done
   done
+  echo "$names"
+}
+
+# ── Cleanup Stale Results ──
+# The report builders (generate_{review,explore,implement}_report) collect result
+# files under ${OUTPUT_DIR}/${cli}/, so a perspective produced only by a previous
+# run lingers and is reported as "this run's" result (issue #450). Before
+# executing, delete the prior run's result files so the integrated report reflects
+# only the current run. Covers review/explore/implement alike, since all three
+# converge on this single execution path.
+#
+# Delete only the perspective files THIS script manages (managed_perspective_names)
+# rather than a blanket "${cli_dir}"/*.md — unrelated Markdown a user keeps under a
+# shared --output-dir is never destroyed. Non-managed leftovers that survive here
+# (e.g. a renamed perspective, or a dir reused across task types) are handled on
+# the read side: the report ignores any *.md that is not a managed perspective, so
+# they cannot leak into the report either.
+cleanup_stale_results() {
+  # Defense-in-depth: never operate on an unset/empty OUTPUT_DIR ("${x:-}" keeps
+  # this safe under `set -u` when unset), even though apply_task_defaults
+  # guarantees it is populated by this point.
+  [[ -n "${OUTPUT_DIR:-}" ]] || return 0
+
+  local managed
+  managed="$(managed_perspective_names)"
 
   local cli_name persp_name
   for cli_name in $ALL_CLIS; do
     local cli_dir="${OUTPUT_DIR}/${cli_name}"
     [[ -d "$cli_dir" ]] || continue
-    # ":-" guards the empty-array expansion under `set -u` on bash 3.2.
-    for persp_name in "${managed_names[@]:-}"; do
-      [[ -n "$persp_name" ]] || continue
+    for persp_name in $managed; do
       # `-f`: not every (cli, perspective) pair produced a file, and a missing
       # file must be a no-op rather than an errexit-tripping failure.
       rm -f "${cli_dir}/${persp_name}.md"
@@ -669,6 +679,8 @@ generate_review_report() {
 HEADER
 
   local has_results=false
+  local managed
+  managed="$(managed_perspective_names)"
 
   for cli_name in $ALL_CLIS; do
     local cli_dir="${OUTPUT_DIR}/${cli_name}"
@@ -676,10 +688,15 @@ HEADER
 
     for result_file in "${cli_dir}"/*.md; do
       [[ -f "$result_file" ]] || continue
-      has_results=true
 
       local perspective_name
       perspective_name="$(basename "$result_file" .md)"
+      # issue #450: only surface perspectives this task type manages; a stray or
+      # stale *.md (renamed perspective, a dir reused across task types, or a
+      # user's own file under a shared --output-dir) must not leak into the report.
+      [[ " $managed " == *" ${perspective_name} "* ]] || continue
+      has_results=true
+
       local tier
       tier="$(get_cli_cost_tier "$cli_name")"
 
@@ -727,6 +744,8 @@ generate_explore_report() {
 HEADER
 
   local has_results=false
+  local managed
+  managed="$(managed_perspective_names)"
 
   for cli_name in $ALL_CLIS; do
     local cli_dir="${OUTPUT_DIR}/${cli_name}"
@@ -734,10 +753,15 @@ HEADER
 
     for result_file in "${cli_dir}"/*.md; do
       [[ -f "$result_file" ]] || continue
-      has_results=true
 
       local perspective_name
       perspective_name="$(basename "$result_file" .md)"
+      # issue #450: only surface perspectives this task type manages; a stray or
+      # stale *.md (renamed perspective, a dir reused across task types, or a
+      # user's own file under a shared --output-dir) must not leak into the report.
+      [[ " $managed " == *" ${perspective_name} "* ]] || continue
+      has_results=true
+
       local tier
       tier="$(get_cli_cost_tier "$cli_name")"
 
@@ -783,6 +807,8 @@ generate_implement_report() {
 HEADER
 
   local has_results=false
+  local managed
+  managed="$(managed_perspective_names)"
 
   for cli_name in $ALL_CLIS; do
     local cli_dir="${OUTPUT_DIR}/${cli_name}"
@@ -790,10 +816,15 @@ HEADER
 
     for result_file in "${cli_dir}"/*.md; do
       [[ -f "$result_file" ]] || continue
-      has_results=true
 
       local perspective_name
       perspective_name="$(basename "$result_file" .md)"
+      # issue #450: only surface perspectives this task type manages; a stray or
+      # stale *.md (renamed perspective, a dir reused across task types, or a
+      # user's own file under a shared --output-dir) must not leak into the report.
+      [[ " $managed " == *" ${perspective_name} "* ]] || continue
+      has_results=true
+
       local tier
       tier="$(get_cli_cost_tier "$cli_name")"
 

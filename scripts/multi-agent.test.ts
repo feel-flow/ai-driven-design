@@ -190,16 +190,22 @@ describe("multi-agent.sh stale-result cleanup (issue #450)", () => {
           "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
           'OUTPUT_DIR="$WORKDIR/.review-results"',
           'mkdir -p "$OUTPUT_DIR/codex-cli" "$OUTPUT_DIR/claude-code"',
-          "# run 1: codex-cli で security-analysis + code-review、claude-code で test-analysis",
+          "# run 1: 実行された managed perspective（codex-cli / claude-code 跨ぎ）",
           'echo STALE-CODEX-SEC   > "$OUTPUT_DIR/codex-cli/security-analysis.md"',
           'echo RUN1-CODEX-REVIEW > "$OUTPUT_DIR/codex-cli/code-review.md"',
           'echo STALE-CLAUDE-TEST > "$OUTPUT_DIR/claude-code/test-analysis.md"',
+          "# 非 managed な残骸: 別 task type の perspective 結果とユーザー自身の Markdown",
+          'echo STALE-EXPLORE > "$OUTPUT_DIR/codex-cli/api-surface-analysis.md"',
+          'echo USER-NOTES    > "$OUTPUT_DIR/codex-cli/my-notes.md"',
           "generate_review_report >/dev/null 2>&1",
           "# run 2: cleanup 後、codex-cli の code-review のみ実行",
           "cleanup_stale_results",
-          "# 別 CLI に跨って stale が消えること（マルチ CLI 分離）",
+          "# managed stale は両 CLI 跨ぎで削除される（マルチ CLI 分離）",
           'test ! -f "$OUTPUT_DIR/codex-cli/security-analysis.md" || { echo LEAK-CODEX; exit 3; }',
           'test ! -f "$OUTPUT_DIR/claude-code/test-analysis.md"   || { echo LEAK-CLAUDE; exit 3; }',
+          "# 非 managed（ユーザーファイル/別 task 残骸）は削除しない",
+          'test -f "$OUTPUT_DIR/codex-cli/my-notes.md"             || { echo USER-FILE-DELETED; exit 4; }',
+          'test -f "$OUTPUT_DIR/codex-cli/api-surface-analysis.md" || { echo NONMANAGED-DELETED; exit 4; }',
           'echo RUN2-CODEX-REVIEW > "$OUTPUT_DIR/codex-cli/code-review.md"',
           "generate_review_report >/dev/null 2>&1",
           'cat "$OUTPUT_DIR/integrated-report.md"',
@@ -212,6 +218,9 @@ describe("multi-agent.sh stale-result cleanup (issue #450)", () => {
       // 1回目のみの stale（両 CLI）は含まれない ← 受け入れ基準
       expect(r.stdout).not.toContain("STALE-CODEX-SEC");
       expect(r.stdout).not.toContain("STALE-CLAUDE-TEST");
+      // 非 managed の残骸はレポートに載らない（バウンドされた収集）
+      expect(r.stdout).not.toContain("STALE-EXPLORE");
+      expect(r.stdout).not.toContain("USER-NOTES");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
@@ -243,14 +252,17 @@ describe("multi-agent.sh stale-result cleanup (issue #450)", () => {
     }
   });
 
-  it("空 OUTPUT_DIR ではガードが働き、削除ロジックに入らず正常終了する", () => {
+  it("空文字・未設定どちらの OUTPUT_DIR でもガードが働き削除ロジックに入らず正常終了する", () => {
     const workDir = mkdtempSync(join(tmpdir(), "ma-guard-"));
     try {
       const r = runHarness(
         [
           "TASK_TYPE=review",
-          "# OUTPUT_DIR が空なら rm 系ロジックへ進まず no-op で return 0",
+          "# 空文字ケース: rm 系ロジックへ進まず no-op で return 0",
           'OUTPUT_DIR=""',
+          "cleanup_stale_results",
+          "# 未設定ケース: set -u 下でも ${OUTPUT_DIR:-} ガードで unbound を踏まず return 0",
+          "unset OUTPUT_DIR",
           "cleanup_stale_results",
           "echo GUARD_OK",
         ],
