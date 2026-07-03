@@ -551,6 +551,27 @@ is_safe_token() {
   [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] && [[ "$1" != "." && "$1" != ".." ]]
 }
 
+# ── Validate Execution Plan ──
+# Fail loud (never a silent skip) if any plan entry carries a cli/perspective
+# token that is not a safe single path segment. Called once at each consumption
+# entry point (execute_tasks, generate_report) BEFORE the plan is used, so a
+# crafted --cli/--perspective value cannot reach the execute (write), cleanup, or
+# report (read) paths and escape OUTPUT_DIR — and a malformed plan surfaces as an
+# error instead of silently collapsing to "(No results found.)".
+validate_execution_plan() {
+  local entry cli_name persp_name bad=0
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    cli_name="${entry%%:*}"
+    persp_name="${entry#*:}"
+    if ! is_safe_token "$cli_name" || ! is_safe_token "$persp_name"; then
+      echo "ERROR: unsafe token in execution plan entry: '${entry}'" >&2
+      bad=1
+    fi
+  done <<< "$EXECUTION_PLAN"
+  [[ "$bad" -eq 0 ]]
+}
+
 # ── Clear This Run's Planned Outputs ──
 # The report reads ${cli}/${perspective}.md for each plan entry; adapters only
 # (over)write that file on success, leaving a prior run's file in place on
@@ -558,7 +579,8 @@ is_safe_token() {
 # that produces no output leaves NO stale same-name file to be mis-reported as
 # current (issue #450) — instead the report surfaces it as "no output". Scoped to
 # the plan's own (cli, perspective) targets only; nothing else on disk (other
-# CLIs, other perspectives, unrelated user files) is touched.
+# CLIs, other perspectives, unrelated user files) is touched. Callers run
+# validate_execution_plan first, so every token here is already a safe segment.
 clear_planned_outputs() {
   [[ -n "${OUTPUT_DIR:-}" ]] || return 0
   local entry cli_name persp_name
@@ -566,9 +588,6 @@ clear_planned_outputs() {
     [[ -z "$entry" ]] && continue
     cli_name="${entry%%:*}"
     persp_name="${entry#*:}"
-    if ! is_safe_token "$cli_name" || ! is_safe_token "$persp_name"; then
-      continue
-    fi
     rm -f "${OUTPUT_DIR}/${cli_name}/${persp_name}.md"
   done <<< "$EXECUTION_PLAN"
 }
@@ -579,6 +598,9 @@ execute_tasks() {
     echo "Nothing to execute." >&2
     return 0
   fi
+
+  # Reject a plan with unsafe path segments before writing/deleting anything.
+  validate_execution_plan || return 1
 
   mkdir -p "$OUTPUT_DIR"
   clear_planned_outputs
@@ -672,11 +694,8 @@ HEADER
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
-    # Never build a path from an unsafe segment (guards report against a crafted
-    # --cli/--perspective traversal such as "../../secret").
-    if ! is_safe_token "$cli_name" || ! is_safe_token "$perspective_name"; then
-      continue
-    fi
+    # Tokens are already validated by validate_execution_plan (called from the
+    # generate_report dispatcher) before we build any path from them.
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -745,11 +764,8 @@ HEADER
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
-    # Never build a path from an unsafe segment (guards report against a crafted
-    # --cli/--perspective traversal such as "../../secret").
-    if ! is_safe_token "$cli_name" || ! is_safe_token "$perspective_name"; then
-      continue
-    fi
+    # Tokens are already validated by validate_execution_plan (called from the
+    # generate_report dispatcher) before we build any path from them.
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -816,11 +832,8 @@ HEADER
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
-    # Never build a path from an unsafe segment (guards report against a crafted
-    # --cli/--perspective traversal such as "../../secret").
-    if ! is_safe_token "$cli_name" || ! is_safe_token "$perspective_name"; then
-      continue
-    fi
+    # Tokens are already validated by validate_execution_plan (called from the
+    # generate_report dispatcher) before we build any path from them.
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -851,6 +864,8 @@ HEADER
 
 # ── Generate Report (dispatcher) ──
 generate_report() {
+  # Reject a plan with unsafe path segments before any builder reads from it.
+  validate_execution_plan || return 1
   case "$TASK_TYPE" in
     review)    generate_review_report ;;
     explore)   generate_explore_report ;;

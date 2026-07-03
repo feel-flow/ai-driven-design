@@ -154,9 +154,11 @@ describe("multi-agent.sh config loading (set -e regression)", () => {
 });
 
 // レポートが「今回の実行分（EXECUTION_PLAN）」だけを収録し、前回実行の stale 結果を
-// 混入させない回帰（issue #450）。end-to-end 実行はアダプタが実 CLI を叩くため、末尾の
-// main を無効化して source し、generate_*_report を直接検証する。修正方針は「削除」ではなく
-// 「レポートを plan 駆動にする」= ディスク上のファイルは一切壊さず、プラン外は読まない。
+// 混入させない回帰（issue #450）。アダプタが実 CLI を叩くため末尾の main を無効化して
+// source し、generate_report / execute_tasks を直接検証する。方針: レポートは plan 駆動で
+// 収集し、実行前に「プランの自分の出力先だけ」を rm する（他 CLI/他 perspective/ユーザー
+// ファイルは非破壊）。不正な cli/perspective トークンは validate_execution_plan で
+// fail-loud に拒否し、write/clear/read のどの経路でも OUTPUT_DIR 外へ出さない。
 describe("multi-agent.sh plan-scoped report (issue #450)", () => {
   /**
    * main を無効化した multi-agent.sh を temp に書き出しパスを返す。呼び出し形の変化に
@@ -184,15 +186,12 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
     });
   }
 
-  // 3 タスク種すべてで plan 駆動の収集ロジックを検証する（report builder は共通実装）。
-  const TASK_REPORTS = [
-    { type: "review", fn: "generate_review_report" },
-    { type: "explore", fn: "generate_explore_report" },
-    { type: "implement", fn: "generate_implement_report" },
-  ];
+  // 公開ディスパッチャ generate_report を TASK_TYPE で切り替えて 3 タスク種を検証する
+  // （検証込みの実エントリポイント。builder 直呼びより実挙動に近い）。
+  const TASK_TYPES = ["review", "explore", "implement"];
 
   // 境界条件（プラン外除外/非破壊・空プラン・欠落可視化）を 3 タスク種すべてで検証する。
-  for (const { type, fn } of TASK_REPORTS) {
+  for (const type of TASK_TYPES) {
     it(`${type}: レポートは EXECUTION_PLAN のエントリのみ収録し、プラン外の stale/ユーザーファイルを混入させない（非破壊）`, () => {
       const workDir = mkdtempSync(join(tmpdir(), `ma-${type}-`));
       try {
@@ -208,7 +207,7 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
             'echo STALE-GAMMA > "$OUTPUT_DIR/codex-cli/gamma.md"',
             'echo USER-NOTES  > "$OUTPUT_DIR/codex-cli/my-notes.md"',
             "EXECUTION_PLAN=$'codex-cli:alpha\\nclaude-code:beta'",
-            `${fn} >/dev/null 2>&1`,
+            "generate_report >/dev/null 2>&1",
             "# レポートは読むだけ — ディスク上のプラン外ファイルは消えない（非破壊）",
             'test -f "$OUTPUT_DIR/codex-cli/gamma.md" && test -f "$OUTPUT_DIR/codex-cli/my-notes.md" && echo NONDESTRUCTIVE_OK',
             'cat "$OUTPUT_DIR/integrated-report.md"',
@@ -237,7 +236,7 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
             "# ディスクに残骸があってもプランが空なら何も収録しない",
             'echo STALE > "$OUTPUT_DIR/codex-cli/alpha.md"',
             'EXECUTION_PLAN=""',
-            `${fn} >/dev/null 2>&1`,
+            "generate_report >/dev/null 2>&1",
             'cat "$OUTPUT_DIR/integrated-report.md"',
           ],
           workDir,
@@ -261,7 +260,7 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
             "# codex-cli:alpha は成功、gemini-cli:alpha は出力欠落（CLI 失敗相当）",
             'echo OK-CODEX > "$OUTPUT_DIR/codex-cli/alpha.md"',
             "EXECUTION_PLAN=$'codex-cli:alpha\\ngemini-cli:alpha'",
-            `${fn} >/dev/null 2>&1`,
+            "generate_report >/dev/null 2>&1",
             'cat "$OUTPUT_DIR/integrated-report.md"',
           ],
           workDir,
@@ -317,7 +316,7 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
           'EXECUTION_PLAN="codex-cli:code-review"',
           "# execute_tasks は失敗検知で非0（|| true）。事前クリアで stale ファイルは消える",
           "execute_tasks >/dev/null 2>&1 || true",
-          "generate_review_report >/dev/null 2>&1",
+          "generate_report >/dev/null 2>&1",
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
@@ -332,27 +331,43 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
     }
   });
 
-  it("パストラバーサルな perspective/cli 名は OUTPUT_DIR 外を読まない", () => {
+  it("パストラバーサルな cli/perspective 名は fail-loud で拒否され、OUTPUT_DIR 外を読み書きしない", () => {
     const workDir = mkdtempSync(join(tmpdir(), "ma-traversal-"));
     try {
       const r = runHarness(
         [
-          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=false",
           'OUTPUT_DIR="$WORKDIR/out"',
           'mkdir -p "$OUTPUT_DIR/codex-cli" "$WORKDIR/secretdir"',
-          "# OUTPUT_DIR の外に秘密ファイル。traversal で読めてしまわないことを確認",
           'echo TOP-SECRET > "$WORKDIR/secretdir/secret.md"',
-          "# $OUTPUT_DIR/codex-cli/../../secretdir/secret.md == $WORKDIR/secretdir/secret.md",
+          "run_single_task() { echo RAN-TASK >&2; return 0; }",
+          "# $OUTPUT_DIR/codex-cli/../../secretdir/secret(.md) == $WORKDIR/secretdir/secret.md",
           'EXECUTION_PLAN="codex-cli:../../secretdir/secret"',
-          "generate_review_report >/dev/null 2>&1",
-          'cat "$OUTPUT_DIR/integrated-report.md"',
+          "# 1) execute_tasks（write/clear 経路）は検証で fail-loud し、clear/run へ進まない",
+          'rc_exec=0; execute_tasks >/dev/null 2>"$WORKDIR/exec_err.txt" || rc_exec=$?',
+          'echo "rc_exec=$rc_exec"',
+          'if grep -q "unsafe token" "$WORKDIR/exec_err.txt"; then echo EXEC_LOUD; fi',
+          'if grep -q "RAN-TASK" "$WORKDIR/exec_err.txt"; then echo TASK_RAN; else echo TASK_NOT_RAN; fi',
+          'if [[ -f "$WORKDIR/secretdir/secret.md" ]]; then echo SECRET_KEPT; else echo SECRET_DELETED; fi',
+          "# 2) generate_report（read 経路）も fail-loud し、秘密を読まない",
+          'rc_rep=0; generate_report >/dev/null 2>"$WORKDIR/rep_err.txt" || rc_rep=$?',
+          'echo "rc_rep=$rc_rep"',
+          'if grep -q "unsafe token" "$WORKDIR/rep_err.txt"; then echo REP_LOUD; fi',
+          'if [[ -f "$OUTPUT_DIR/integrated-report.md" ]] && grep -q TOP-SECRET "$OUTPUT_DIR/integrated-report.md"; then echo SECRET_LEAKED; else echo NO_LEAK; fi',
         ],
         workDir,
       );
       expect(r.status).toBe(0);
-      // ガードにより不正セグメントはスキップ → 秘密は読まれない
+      // execute_tasks: 非0 で fail-loud、run_single_task 未実行、外部 secret は削除されない
+      expect(r.stdout).toContain("rc_exec=1");
+      expect(r.stdout).toContain("EXEC_LOUD");
+      expect(r.stdout).toContain("TASK_NOT_RAN");
+      expect(r.stdout).toContain("SECRET_KEPT");
+      // generate_report: 非0 で fail-loud、秘密はレポートに漏れない
+      expect(r.stdout).toContain("rc_rep=1");
+      expect(r.stdout).toContain("REP_LOUD");
+      expect(r.stdout).toContain("NO_LEAK");
       expect(r.stdout).not.toContain("TOP-SECRET");
-      expect(r.stdout).toContain("(No review results found.)");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
