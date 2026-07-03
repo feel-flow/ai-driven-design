@@ -422,11 +422,15 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
           'echo KEEP-GEMINI  > "$OUTPUT_DIR/gemini-cli/code-review.md"',
           'echo KEEP-OTHERP  > "$OUTPUT_DIR/codex-cli/security-analysis.md"',
           'echo KEEP-USER    > "$OUTPUT_DIR/codex-cli/my-notes.md"',
-          "run_single_task() { return 0; }",
+          "# タスクは成功して出力を書く（clear→再生成）",
+          'run_single_task() { echo FRESH > "$OUTPUT_DIR/codex-cli/code-review.md"; return 0; }',
           'EXECUTION_PLAN="codex-cli:code-review"',
-          "execute_tasks >/dev/null 2>&1 || true",
-          '# プラン対象だけがクリアされ、他は温存される',
-          'if [[ ! -f "$OUTPUT_DIR/codex-cli/code-review.md" ]]; then echo TARGET_CLEARED; fi',
+          'rc=0; execute_tasks >/dev/null 2>&1 || rc=$?',
+          'echo "rc=$rc"',
+          '# プラン対象は clear→再生成で FRESH（前回 PREV は残らない）',
+          'if grep -q FRESH "$OUTPUT_DIR/codex-cli/code-review.md"; then echo TARGET_FRESH; fi',
+          'if grep -q PREV "$OUTPUT_DIR/codex-cli/code-review.md"; then echo TARGET_STALE; else echo NO_STALE; fi',
+          '# プラン外は温存（他 CLI / 同 CLI 別 perspective / ユーザーファイル）',
           'if [[ -f "$OUTPUT_DIR/gemini-cli/code-review.md" ]]; then echo GEMINI_KEPT; fi',
           'if [[ -f "$OUTPUT_DIR/codex-cli/security-analysis.md" ]]; then echo OTHERP_KEPT; fi',
           'if [[ -f "$OUTPUT_DIR/codex-cli/my-notes.md" ]]; then echo USER_KEPT; fi',
@@ -434,7 +438,10 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
         workDir,
       );
       expect(r.status).toBe(0);
-      expect(r.stdout).toContain("TARGET_CLEARED");
+      // 出力を書く成功タスクなので execute_tasks は 0（握り潰さず検証）
+      expect(r.stdout).toContain("rc=0");
+      expect(r.stdout).toContain("TARGET_FRESH");
+      expect(r.stdout).toContain("NO_STALE");
       expect(r.stdout).toContain("GEMINI_KEPT");
       expect(r.stdout).toContain("OTHERP_KEPT");
       expect(r.stdout).toContain("USER_KEPT");
@@ -463,6 +470,58 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
       expect(r.status).toBe(0);
       // 重複エントリでも見出しは 1 回だけ
       expect(r.stdout).toContain("HEADING_COUNT=1");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("プラン内の重複 cli:perspective は実行時も 1 回だけ走る", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-dupexec-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=false",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli"',
+          '# run_single_task の呼び出し回数を記録しつつ出力を書く',
+          'run_single_task() { echo x >> "$WORKDIR/calls.txt"; echo out > "$OUTPUT_DIR/$1/$2.md"; return 0; }',
+          "EXECUTION_PLAN=$'codex-cli:code-review\\ncodex-cli:code-review'",
+          'rc=0; execute_tasks >/dev/null 2>&1 || rc=$?',
+          'echo "rc=$rc"',
+          'echo "CALLS=$(wc -l < "$WORKDIR/calls.txt" | tr -d " ")"',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      expect(r.stdout).toContain("rc=0");
+      // 重複は排除され実行は 1 回のみ
+      expect(r.stdout).toContain("CALLS=1");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("成功終了でも出力ファイルが無ければ execute_tasks は失敗（非0）で表面化する", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-nooutput-"));
+    try {
+      const r = runHarness(
+        [
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=false",
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli"',
+          "# アダプタが 0 を返すが出力を書かない（silent no-output）を模擬",
+          "run_single_task() { return 0; }",
+          'EXECUTION_PLAN="codex-cli:code-review"',
+          'rc=0; execute_tasks >/dev/null 2>"$WORKDIR/e.txt" || rc=$?',
+          'echo "rc=$rc"',
+          'if grep -q "No output file" "$WORKDIR/e.txt"; then echo REPORTED; fi',
+        ],
+        workDir,
+      );
+      expect(r.status).toBe(0);
+      // 出力欠落は exit code に反映される（silent 成功にならない）
+      expect(r.stdout).toContain("rc=1");
+      expect(r.stdout).toContain("REPORTED");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }

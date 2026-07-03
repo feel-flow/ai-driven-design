@@ -617,9 +617,14 @@ execute_tasks() {
   local tasks=""
   local failed=0
   local count=0
+  local seen=""
 
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
+    # Skip a duplicate plan entry so the same cli:perspective is not executed
+    # twice (a plan fallback can list it more than once).
+    if [[ " $seen " == *" $entry "* ]]; then continue; fi
+    seen="$seen $entry"
     local cli="${entry%%:*}"
     local persp="${entry#*:}"
 
@@ -633,6 +638,11 @@ execute_tasks() {
       if ! run_single_task "$cli" "$persp"; then
         failed=$((failed + 1))
         echo "  ❌ Failed: ${cli}/${persp}" >&2
+      elif [[ ! -f "${OUTPUT_DIR}/${cli}/${persp}.md" ]]; then
+        # Adapter reported success but wrote no output — count it as a failure so
+        # a silently-empty run shows up in the exit code, not only the report.
+        failed=$((failed + 1))
+        echo "  ❌ No output file: ${cli}/${persp}" >&2
       fi
     fi
   done <<< "$EXECUTION_PLAN"
@@ -649,11 +659,15 @@ execute_tasks() {
       task_name="$(echo "$tasks" | cut -d'|' -f"$idx")"
       wait "$pid"
       exit_code=$?
-      if [[ $exit_code -eq 0 ]]; then
+      if [[ $exit_code -eq 0 && -f "${OUTPUT_DIR}/${task_name}.md" ]]; then
         echo "  ✅ Done: ${task_name}" >&2
-      else
+      elif [[ $exit_code -ne 0 ]]; then
         failed=$((failed + 1))
         echo "  ❌ Failed: ${task_name} (exit code: ${exit_code})" >&2
+      else
+        # Success exit but no output file — surface as a failure, not silent OK.
+        failed=$((failed + 1))
+        echo "  ❌ No output file: ${task_name}" >&2
       fi
     done
     set -e
