@@ -110,12 +110,3 @@ fallback:
   copilot-cli: codex-cli
   gemini-cli: codex-cli
   cursor-cli: codex-cli
-
-# ── pr-review-toolkit Delegation Mapping ──
-toolkit_delegation:
-  code-reviewer: codex-cli
-  silent-failure-hunter: codex-cli
-  type-design-analyzer: claude-code
-  pr-test-analyzer: codex-cli
-  comment-analyzer: gemini-cli
-  code-simplifier: cursor-cli

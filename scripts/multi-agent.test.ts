@@ -129,6 +129,18 @@ describe("multi-agent.sh silent-failure guards", () => {
   });
 });
 
+describe("multi-agent.sh removed flags (issue #451)", () => {
+  // --delegate-toolkit はパース後どこからも参照されないデッドフラグだった
+  // （PR #449 の silent-failure-hunter が検出）。指定しても無言で無視され、
+  // 何も起きないのに成功したように見えていた。削除により未知オプション扱いとなり、
+  // *) 分岐で fail-loud（exit 1）する。無言で無視されないことを保証する回帰ガード。
+  it("--delegate-toolkit は削除済み — 未知オプションとして fail-loud で拒否される（exit 1）", () => {
+    const r = runScript(["--task", "review", "--delegate-toolkit", "--dry-run"]);
+    expect(r.status).toBe(1);
+    expect(r.output).toContain("Unknown option: --delegate-toolkit");
+  });
+});
+
 describe("multi-agent.sh config loading (set -e regression)", () => {
   const hasYq = spawnSync("bash", ["-c", "command -v yq"]).status === 0;
 

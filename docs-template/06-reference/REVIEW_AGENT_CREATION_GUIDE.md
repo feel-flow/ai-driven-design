@@ -105,7 +105,7 @@
 
 ### Claude Code pr-review-toolkit との対応
 
-| Perspective          | pr-review-toolkit サブエージェント | 移譲先CLI           |
+| Perspective          | pr-review-toolkit サブエージェント | 担当CLI             |
 | -------------------- | ---------------------------------- | ------------------- |
 | Code Review          | code-reviewer                      | Codex CLI           |
 | Error Handler Hunt   | silent-failure-hunter              | Codex CLI           |
@@ -402,21 +402,6 @@ Output in the standard review format."
 | **minimize_cost**    | 固定料金/無料CLIを優先               | 予算制約がある場合       |
 | **maximize_quality** | 最も高品質なCLIに多く割当            | リリース前の最終レビュー |
 
-### Toolkit移譲パターン
-
-Claude Code の `pr-review-toolkit` サブエージェントを外部CLIに移譲し、Claudeのトークン消費を削減します：
-
-```yaml
-# 移譲マッピング
-toolkit_delegation:
-  code-reviewer: codex-cli # GPT系の別視点でレビュー
-  silent-failure-hunter: codex-cli # エラーハンドリングもCodexへ
-  type-design-analyzer: claude-code # 型設計はClaudeが最強（据置）
-  pr-test-analyzer: codex-cli # テスト分析もCodex（クロスモデル）
-  comment-analyzer: gemini-cli # コメント分析はGemini（無料枠）
-  code-simplifier: cursor-cli # コード簡素化はCursor
-```
-
 ### Graceful Degradation（フォールバック）
 
 CLIが未インストールの場合、パースペクティブを他のCLIに再分配します：
@@ -446,7 +431,7 @@ fallback:
 | 呼び出し元      | 方法             | 例                                                             |
 | --------------- | ---------------- | -------------------------------------------------------------- |
 | **ターミナル**  | 直接実行         | `bash scripts/multi-review.sh`                                 |
-| **Claude Code** | Bash tool / hook | `bash scripts/multi-review.sh --delegate-toolkit`              |
+| **Claude Code** | Bash tool / hook | `bash scripts/multi-review.sh`                                 |
 | **Copilot CLI** | プロンプト経由   | `copilot -p "bash scripts/multi-review.sh を実行して"`         |
 | **CI/CD**       | GitHub Actions   | `- run: bash scripts/multi-review.sh --strategy minimize_cost` |
 | **Husky**       | pre-push hook    | `.husky/pre-push` から呼び出し                                 |
@@ -463,7 +448,6 @@ bash scripts/multi-review.sh [options]
   --parallel              並列実行（デフォルト）
   --sequential            順次実行
   --output-dir <dir>      出力先（デフォルト: .review-results/）
-  --delegate-toolkit      pr-review-toolkitのパースペクティブを外部CLIに移譲
 ```
 
 ### 使用例
@@ -477,9 +461,6 @@ bash scripts/multi-review.sh --strategy minimize_cost
 
 # 特定CLIのみ（標準の2本柱）
 bash scripts/multi-review.sh --cli claude-code --cli codex-cli
-
-# pr-review-toolkit移譲モード
-bash scripts/multi-review.sh --delegate-toolkit
 
 # クロスモデル比較
 bash scripts/multi-review.sh --mode cross-model --perspective code-review

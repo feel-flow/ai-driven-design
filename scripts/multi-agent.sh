@@ -26,7 +26,6 @@
 #   --output-dir <dir>      Output directory (auto-detected by task type)
 #   --base <branch>         Base branch for diff (default: develop)
 #   --include-diff          Include diff in implement prompts
-#   --delegate-toolkit      Delegate pr-review-toolkit perspectives
 #   --dry-run               Show plan without executing
 #   --timeout <seconds>     Timeout per CLI (auto-detected by task type)
 #   --help                  Show this help
@@ -186,7 +185,6 @@ STRATEGY=""
 PARALLEL=true
 OUTPUT_DIR=""
 BASE_BRANCH="develop"
-DELEGATE_TOOLKIT=false
 DRY_RUN=false
 TIMEOUT=""
 
@@ -232,7 +230,6 @@ parse_args() {
       --sequential)  PARALLEL=false; shift ;;
       --output-dir)  OUTPUT_DIR="$2"; shift 2 ;;
       --base)        BASE_BRANCH="$2"; shift 2 ;;
-      --delegate-toolkit) DELEGATE_TOOLKIT=true; shift ;;
       --dry-run)     DRY_RUN=true; shift ;;
       --timeout)     TIMEOUT="$2"; shift 2 ;;
       --help|-h)     show_help ;;
