@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.32.0"
+version: "1.33.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-07-03"
 owner: "@fffokazaki"
-ace_entry_count: 63
+ace_entry_count: 65
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1496,7 +1496,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #445 / Issue #444 |
 | Related    | ACE-001              |
 | Date       | 2026-06-19           |
-| Helpful    | 4                    |
+| Helpful    | 5                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1650,7 +1650,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | documentation-quality |
 | Origin     | PR #449 / Issue #448  |
 | Date       | 2026-07-02            |
-| Helpful    | 0                     |
+| Helpful    | 1                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1823,9 +1823,61 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 **Action**: untrusted トークンを複数経路が使うなら、検証を各サイトに散らさず「消費前の単一検証関数」に集約し、不正は skip でなく `error + 非0` で落とす。`cli:perspective` のような複合形式は「区切りの存在」も検証する（区切り無しは両片が同値化して検証をすり抜ける）。関連: [ACE-462-1](#ace-462-1)（不明入力は安全側へ）。
 
+<a id="ace-465-1"></a>
+
+### ACE-465-1: パース後どこからも読まれないデッドフラグ/デッド設定は「実装 vs 削除」を既定動作との重複と命名スキーマの整合で判定する
+
+| フィールド | 値           |
+| ---------- | ------------ |
+| Category   | architecture |
+| Origin     | PR #465      |
+| Related    | ACE-449-3    |
+| Date       | 2026-07-03   |
+| Helpful    | 0            |
+| Harmful    | 0            |
+| Status     | active       |
+
+**Insight**: 未使用フラグ / config キーを見つけたとき「せっかくあるから実装する」に流れる前に 2 点を確認する。(1) その機能が意図する挙動が**既定動作で既に実現されていないか**、(2) config のキー名が**実装が実際に消費する識別子と一致しているか**。両方が「削除」を指すなら、実装は既定動作の焼き直し＋二重命名スキーマの維持コストにしかならない。削除して案内と実態を一致させる。削除する場合の回帰テストは「フラグが消えたこと」でなく「**未知オプションとして fail-loud（exit 1）になったこと**」を検証する（元の欠陥が silent-ignore だったため、silent 経路が消えたことを証明する）。
+
+**Context**: PR #465 で `multi-agent.sh --delegate-toolkit` を削除（Issue #451）。このフラグは parse 後どこからも読まれず（[ACE-449-3](#ace-449-3) の飾りキーと同型）、指定しても exit 0 で silent に無視されていた。実装案（`agent-config.yaml` の `toolkit_delegation` を読む）を検討したが、(1) その CLI 割り当ては `build_distributed_plan`（既定の分散プラン）とほぼ同一で重複、(2) `toolkit_delegation` のキー（`code-reviewer` 等 = pr-review-toolkit サブエージェント名）は orchestrator の perspective 実体名（`code-review` / `error-handler-hunt`）と一致せず対応 perspective ファイルも存在しない、という二重の不整合が判明。削除を選び、`--delegate-toolkit` が exit 1 + `Unknown option` を返す回帰テストを固定した。
+
+**Action**: パース後未使用のフラグ / config キーを見つけたら、まず (a) `grep` でそのキーを読むコードの実在を確認（[ACE-449-3](#ace-449-3)）、(b) 意図する挙動が既定動作と重複しないか、(c) キー名が実装の消費識別子と一致するかを見る。実装が既定の焼き直し or 命名スキーマの新設・維持を要するだけなら削除する。削除時は使用例を全ドキュメントから消し（`grep` で 0 件確認）、回帰テストは「未知オプション → exit 1 + エラーメッセージ」の fail-loud を検証する。
+
+<a id="ace-465-2"></a>
+
+### ACE-465-2: cross-model が指摘した「互換性破壊」も、修正案が Issue の明示的決定と矛盾するなら盲従せず実害（呼び出し元の実在）を検証して判断する
+
+| フィールド | 値         |
+| ---------- | ---------- |
+| Category   | process    |
+| Origin     | PR #465    |
+| Related    | ACE-445-1  |
+| Date       | 2026-07-03 |
+| Helpful    | 0          |
+| Harmful    | 0          |
+| Status     | active     |
+
+**Insight**: cross-model レビューは省略しない（[ACE-445-1](#ace-445-1)）が、その指摘を盲従もしない。cross-model が「互換性破壊」等を指摘し提示した修正案が、Issue で明示的に選ばれた方針と正面から矛盾する場合、修正案を鵜呑みにすると決定を覆すことになる。指摘の**妥当な核**（例: breaking change の存在）と**提示された修正案**（例: 互換レイヤーの追加）を分け、核が**実害を持つか**を検証してから対応を決める。実害ゼロ（依存する呼び出し元が実在しない）なら、決定を覆さず「**意図的な breaking change**」として明記するのが正しい対応。
+
+**Context**: PR #465 で Codex code-reviewer が「silent に受理されていた `--delegate-toolkit` を exit 1 化するのは互換性破壊。互換レイヤーを挟むか breaking change として扱え」と指摘（Toolkit 系 4 観点は指摘せず Codex のみ = [ACE-445-1](#ace-445-1) の再演）。互換レイヤー案は Issue #451 が明示的に選んだ案2「未知フラグはエラー」と矛盾し、無効果フラグを警告付きで温存する元のアンチパターンへの逆戻りだった。リポジトリ内で `--delegate-toolkit` を呼ぶ自動化（husky / CI / `.claude/hooks`）が実在しないことを `grep` で検証し、互換レイヤーは採用せず PR 本文に意図的 breaking change として明記した。
+
+**Action**: cross-model の指摘は「妥当な核」と「提示された修正案」を分けて扱う。修正案が Issue / 設計で明示的に決めた方針と矛盾するなら、`receiving-code-review` に沿って実害を検証してから push back する。破壊的変更系の指摘は「その破壊に実際に依存する呼び出し元が存在するか」を `grep` / 検索で確認し、実害ゼロなら方針は維持しつつ意図的 breaking change として PR 本文・commit に明記する。関連: [ACE-445-1](#ace-445-1)（同系列合意より cross-model）/ [ACE-447-3](#ace-447-3)（clean verdict を待たない）。
+
 ---
 
 ## Changelog
+
+### [1.33.0] - 2026-07-03
+
+#### 追加
+
+- ACE-465-1: パース後どこからも読まれないデッドフラグ / デッド設定は「実装 vs 削除」を既定動作との重複と命名スキーマの整合で判定する — PR #465 で `multi-agent.sh --delegate-toolkit` を、既定の分散プランと重複し `toolkit_delegation` のキー名も perspective 実体と不一致だったため削除した経験から抽出
+- ACE-465-2: cross-model が指摘した「互換性破壊」も、修正案が Issue の明示的決定と矛盾するなら盲従せず実害（呼び出し元の実在）を検証して判断する — PR #465 で Codex のみが breaking change を指摘したが、互換レイヤー案は Issue #451 案2 と矛盾し呼び出し元も実在しないため意図的 breaking change として明記した経験から抽出
+
+#### カウンター更新
+
+- ACE-445-1 (Helpful 4→5): Toolkit 4 観点が pass した breaking change を Codex（cross-model）のみが検出
+- ACE-449-3 (Helpful 0→1): `toolkit_delegation` という別の「読まれない飾りキー」を削除して実態と一致させた
 
 ### [1.32.0] - 2026-07-03
 
