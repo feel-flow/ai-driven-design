@@ -543,58 +543,6 @@ run_single_task() {
     "${extra_args[@]}"
 }
 
-# ── Managed Perspective Names ──
-# The set of perspective basenames THIS script can emit for the current task
-# type — mirroring resolve_perspective_file's lookup (task-type subdir + root
-# fallback). Echoed space-delimited. Both cleanup and report generation key off
-# this same set so they agree on what counts as "a result of this tool".
-managed_perspective_names() {
-  local names="" persp_src persp_file
-  for persp_src in "${SCRIPT_DIR}/perspectives/${TASK_TYPE}" "${SCRIPT_DIR}/perspectives"; do
-    [[ -d "$persp_src" ]] || continue
-    for persp_file in "$persp_src"/*.md; do
-      [[ -f "$persp_file" ]] || continue
-      names="${names} $(basename "$persp_file" .md)"
-    done
-  done
-  echo "$names"
-}
-
-# ── Cleanup Stale Results ──
-# The report builders (generate_{review,explore,implement}_report) collect result
-# files under ${OUTPUT_DIR}/${cli}/, so a perspective produced only by a previous
-# run lingers and is reported as "this run's" result (issue #450). Before
-# executing, delete the prior run's result files so the integrated report reflects
-# only the current run. Covers review/explore/implement alike, since all three
-# converge on this single execution path.
-#
-# Delete only the perspective files THIS script manages (managed_perspective_names)
-# rather than a blanket "${cli_dir}"/*.md — unrelated Markdown a user keeps under a
-# shared --output-dir is never destroyed. Non-managed leftovers that survive here
-# (e.g. a renamed perspective, or a dir reused across task types) are handled on
-# the read side: the report ignores any *.md that is not a managed perspective, so
-# they cannot leak into the report either.
-cleanup_stale_results() {
-  # Defense-in-depth: never operate on an unset/empty OUTPUT_DIR ("${x:-}" keeps
-  # this safe under `set -u` when unset), even though apply_task_defaults
-  # guarantees it is populated by this point.
-  [[ -n "${OUTPUT_DIR:-}" ]] || return 0
-
-  local managed
-  managed="$(managed_perspective_names)"
-
-  local cli_name persp_name
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
-    for persp_name in $managed; do
-      # `-f`: not every (cli, perspective) pair produced a file, and a missing
-      # file must be a no-op rather than an errexit-tripping failure.
-      rm -f "${cli_dir}/${persp_name}.md"
-    done
-  done
-}
-
 # ── Execute All Tasks ──
 execute_tasks() {
   if [[ -z "$EXECUTION_PLAN" ]]; then
@@ -603,7 +551,6 @@ execute_tasks() {
   fi
 
   mkdir -p "$OUTPUT_DIR"
-  cleanup_stale_results
 
   local pids=""
   local tasks=""
@@ -679,38 +626,34 @@ generate_review_report() {
 HEADER
 
   local has_results=false
-  local managed
-  managed="$(managed_perspective_names)"
 
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
+  # issue #450: include exactly the results THIS run produced by iterating the
+  # execution plan, instead of globbing ${cli}/*.md. A prior run's stale
+  # perspective (absent from this plan) is therefore never read, and nothing on
+  # disk is deleted or touched — so re-running with a shared --output-dir, or a
+  # partial --cli/--perspective run, is non-destructive.
+  local entry
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    local cli_name="${entry%%:*}"
+    local perspective_name="${entry#*:}"
+    local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
+    [[ -f "$result_file" ]] || continue
+    has_results=true
 
-    for result_file in "${cli_dir}"/*.md; do
-      [[ -f "$result_file" ]] || continue
+    local tier
+    tier="$(get_cli_cost_tier "$cli_name")"
 
-      local perspective_name
-      perspective_name="$(basename "$result_file" .md)"
-      # issue #450: only surface perspectives this task type manages; a stray or
-      # stale *.md (renamed perspective, a dir reused across task types, or a
-      # user's own file under a shared --output-dir) must not leak into the report.
-      [[ " $managed " == *" ${perspective_name} "* ]] || continue
-      has_results=true
-
-      local tier
-      tier="$(get_cli_cost_tier "$cli_name")"
-
-      {
-        echo ""
-        echo "## ${cli_name} — ${perspective_name} [${tier}]"
-        echo ""
-        cat "$result_file"
-        echo ""
-        echo "---"
-        echo ""
-      } >> "$report_file"
-    done
-  done
+    {
+      echo ""
+      echo "## ${cli_name} — ${perspective_name} [${tier}]"
+      echo ""
+      cat "$result_file"
+      echo ""
+      echo "---"
+      echo ""
+    } >> "$report_file"
+  done <<< "$EXECUTION_PLAN"
 
   if [[ "$has_results" == "false" ]]; then
     echo "(No review results found.)" >> "$report_file"
@@ -744,38 +687,34 @@ generate_explore_report() {
 HEADER
 
   local has_results=false
-  local managed
-  managed="$(managed_perspective_names)"
 
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
+  # issue #450: include exactly the results THIS run produced by iterating the
+  # execution plan, instead of globbing ${cli}/*.md. A prior run's stale
+  # perspective (absent from this plan) is therefore never read, and nothing on
+  # disk is deleted or touched — so re-running with a shared --output-dir, or a
+  # partial --cli/--perspective run, is non-destructive.
+  local entry
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    local cli_name="${entry%%:*}"
+    local perspective_name="${entry#*:}"
+    local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
+    [[ -f "$result_file" ]] || continue
+    has_results=true
 
-    for result_file in "${cli_dir}"/*.md; do
-      [[ -f "$result_file" ]] || continue
+    local tier
+    tier="$(get_cli_cost_tier "$cli_name")"
 
-      local perspective_name
-      perspective_name="$(basename "$result_file" .md)"
-      # issue #450: only surface perspectives this task type manages; a stray or
-      # stale *.md (renamed perspective, a dir reused across task types, or a
-      # user's own file under a shared --output-dir) must not leak into the report.
-      [[ " $managed " == *" ${perspective_name} "* ]] || continue
-      has_results=true
-
-      local tier
-      tier="$(get_cli_cost_tier "$cli_name")"
-
-      {
-        echo ""
-        echo "## ${cli_name} — ${perspective_name} [${tier}]"
-        echo ""
-        cat "$result_file"
-        echo ""
-        echo "---"
-        echo ""
-      } >> "$report_file"
-    done
-  done
+    {
+      echo ""
+      echo "## ${cli_name} — ${perspective_name} [${tier}]"
+      echo ""
+      cat "$result_file"
+      echo ""
+      echo "---"
+      echo ""
+    } >> "$report_file"
+  done <<< "$EXECUTION_PLAN"
 
   if [[ "$has_results" == "false" ]]; then
     echo "(No explore results found.)" >> "$report_file"
@@ -807,38 +746,34 @@ generate_implement_report() {
 HEADER
 
   local has_results=false
-  local managed
-  managed="$(managed_perspective_names)"
 
-  for cli_name in $ALL_CLIS; do
-    local cli_dir="${OUTPUT_DIR}/${cli_name}"
-    [[ -d "$cli_dir" ]] || continue
+  # issue #450: include exactly the results THIS run produced by iterating the
+  # execution plan, instead of globbing ${cli}/*.md. A prior run's stale
+  # perspective (absent from this plan) is therefore never read, and nothing on
+  # disk is deleted or touched — so re-running with a shared --output-dir, or a
+  # partial --cli/--perspective run, is non-destructive.
+  local entry
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    local cli_name="${entry%%:*}"
+    local perspective_name="${entry#*:}"
+    local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
+    [[ -f "$result_file" ]] || continue
+    has_results=true
 
-    for result_file in "${cli_dir}"/*.md; do
-      [[ -f "$result_file" ]] || continue
+    local tier
+    tier="$(get_cli_cost_tier "$cli_name")"
 
-      local perspective_name
-      perspective_name="$(basename "$result_file" .md)"
-      # issue #450: only surface perspectives this task type manages; a stray or
-      # stale *.md (renamed perspective, a dir reused across task types, or a
-      # user's own file under a shared --output-dir) must not leak into the report.
-      [[ " $managed " == *" ${perspective_name} "* ]] || continue
-      has_results=true
-
-      local tier
-      tier="$(get_cli_cost_tier "$cli_name")"
-
-      {
-        echo ""
-        echo "## ${cli_name} — ${perspective_name} [${tier}]"
-        echo ""
-        cat "$result_file"
-        echo ""
-        echo "---"
-        echo ""
-      } >> "$report_file"
-    done
-  done
+    {
+      echo ""
+      echo "## ${cli_name} — ${perspective_name} [${tier}]"
+      echo ""
+      cat "$result_file"
+      echo ""
+      echo "---"
+      echo ""
+    } >> "$report_file"
+  done <<< "$EXECUTION_PLAN"
 
   if [[ "$has_results" == "false" ]]; then
     echo "(No implement results found.)" >> "$report_file"

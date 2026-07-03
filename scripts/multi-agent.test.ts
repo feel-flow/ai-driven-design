@@ -153,123 +153,104 @@ describe("multi-agent.sh config loading (set -e regression)", () => {
   );
 });
 
-// 前回実行の stale 結果がレポートに混入しない回帰（issue #450）
-// end-to-end 実行はアダプタが実 CLI を叩くため、末尾の main を無効化して source し、
-// cleanup_stale_results / execute_tasks を直接検証する。実在の perspective 名を使う
-// （cleanup は当スクリプトが生成し得る perspective ファイルのみ削除するため）。
-describe("multi-agent.sh stale-result cleanup (issue #450)", () => {
-  const SCRIPTS_DIR = join(REPO_ROOT, "scripts");
-
-  /** main を無効化した multi-agent.sh を temp に書き出しパスを返す */
+// レポートが「今回の実行分（EXECUTION_PLAN）」だけを収録し、前回実行の stale 結果を
+// 混入させない回帰（issue #450）。end-to-end 実行はアダプタが実 CLI を叩くため、末尾の
+// main を無効化して source し、generate_*_report を直接検証する。修正方針は「削除」ではなく
+// 「レポートを plan 駆動にする」= ディスク上のファイルは一切壊さず、プラン外は読まない。
+describe("multi-agent.sh plan-scoped report (issue #450)", () => {
+  /** main を無効化した multi-agent.sh を temp に書き出しパスを返す（置換不発なら loud fail） */
   function neutralizedScript(): string {
     const raw = readFileSync(SCRIPT, "utf8");
     const neutralized = raw.replace(/^main "\$@"$/m, "true");
+    if (neutralized === raw) {
+      throw new Error("neutralization failed: 末尾の 'main \"$@\"' が見つからない（呼び出し形が変わった可能性）");
+    }
     const file = join(stubDir, "multi-agent.neutralized.sh");
     writeFileSync(file, neutralized);
     return file;
   }
 
-  /**
-   * bash ハーネスを実行する。ハーネスは必ず `set -euo pipefail` で始め、source 直後に
-   * SCRIPT_DIR を実 scripts へ上書きする（$0 由来の推定では perspectives を解決できない）。
-   */
+  /** bash ハーネスを実行する。必ず `set -euo pipefail` で始める（途中失敗を握り潰さない）。 */
   function runHarness(body: string[], workDir: string) {
-    const harness = ["set -euo pipefail", 'source "$NEUT"', 'SCRIPT_DIR="$SCRIPTS_DIR"', ...body];
+    const harness = ["set -euo pipefail", 'source "$NEUT"', ...body];
     return spawnSync("bash", ["-c", harness.join("\n")], {
       encoding: "utf8",
       timeout: 30_000,
-      env: { ...process.env, NEUT: neutralizedScript(), SCRIPTS_DIR, WORKDIR: workDir },
+      env: { ...process.env, NEUT: neutralizedScript(), WORKDIR: workDir },
     });
   }
 
-  it("2回目の実行で、1回目のみに存在した perspective の結果がレポートに含まれない（マルチ CLI）", () => {
-    const workDir = mkdtempSync(join(tmpdir(), "ma-stale-"));
+  // 3 タスク種すべてで plan 駆動の収集ロジックを検証する（report builder は共通実装）。
+  const TASK_REPORTS = [
+    { type: "review", fn: "generate_review_report" },
+    { type: "explore", fn: "generate_explore_report" },
+    { type: "implement", fn: "generate_implement_report" },
+  ];
+
+  for (const { type, fn } of TASK_REPORTS) {
+    it(`${type}: レポートは EXECUTION_PLAN のエントリのみ収録し、プラン外の stale を混入させない`, () => {
+      const workDir = mkdtempSync(join(tmpdir(), `ma-${type}-`));
+      try {
+        const r = runHarness(
+          [
+            `MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; DESCRIPTION=test; TASK_TYPE=${type}`,
+            'OUTPUT_DIR="$WORKDIR/out"',
+            'mkdir -p "$OUTPUT_DIR/codex-cli" "$OUTPUT_DIR/claude-code"',
+            "# 今回のプラン分（codex-cli:alpha, claude-code:beta）",
+            'echo CURRENT-CODEX  > "$OUTPUT_DIR/codex-cli/alpha.md"',
+            'echo CURRENT-CLAUDE > "$OUTPUT_DIR/claude-code/beta.md"',
+            "# プラン外: 前回のみの stale と、ユーザー自身の Markdown",
+            'echo STALE-GAMMA > "$OUTPUT_DIR/codex-cli/gamma.md"',
+            'echo USER-NOTES  > "$OUTPUT_DIR/codex-cli/my-notes.md"',
+            "EXECUTION_PLAN=$'codex-cli:alpha\\nclaude-code:beta'",
+            `${fn} >/dev/null 2>&1`,
+            "# レポートは読むだけ — ディスク上のプラン外ファイルは消えない（非破壊）",
+            'test -f "$OUTPUT_DIR/codex-cli/gamma.md" && test -f "$OUTPUT_DIR/codex-cli/my-notes.md" && echo NONDESTRUCTIVE_OK',
+            'cat "$OUTPUT_DIR/integrated-report.md"',
+          ],
+          workDir,
+        );
+        expect(r.status).toBe(0);
+        // 今回のプラン分（マルチ CLI）は両方収録
+        expect(r.stdout).toContain("CURRENT-CODEX");
+        expect(r.stdout).toContain("CURRENT-CLAUDE");
+        // プラン外の stale / ユーザーファイルは収録されない ← 受け入れ基準
+        expect(r.stdout).not.toContain("STALE-GAMMA");
+        expect(r.stdout).not.toContain("USER-NOTES");
+        // 非破壊: ディスク上のファイルは削除されない
+        expect(r.stdout).toContain("NONDESTRUCTIVE_OK");
+      } finally {
+        rmSync(workDir, { recursive: true, force: true });
+      }
+    });
+  }
+
+  it("部分実行（--cli 相当）: 他 CLI の既存結果はレポート非収録だが、ディスク上は破壊しない", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-partial-"));
     try {
       const r = runHarness(
         [
           "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
-          'OUTPUT_DIR="$WORKDIR/.review-results"',
-          'mkdir -p "$OUTPUT_DIR/codex-cli" "$OUTPUT_DIR/claude-code"',
-          "# run 1: 実行された managed perspective（codex-cli / claude-code 跨ぎ）",
-          'echo STALE-CODEX-SEC   > "$OUTPUT_DIR/codex-cli/security-analysis.md"',
-          'echo RUN1-CODEX-REVIEW > "$OUTPUT_DIR/codex-cli/code-review.md"',
-          'echo STALE-CLAUDE-TEST > "$OUTPUT_DIR/claude-code/test-analysis.md"',
-          "# 非 managed な残骸: 別 task type の perspective 結果とユーザー自身の Markdown",
-          'echo STALE-EXPLORE > "$OUTPUT_DIR/codex-cli/api-surface-analysis.md"',
-          'echo USER-NOTES    > "$OUTPUT_DIR/codex-cli/my-notes.md"',
+          'OUTPUT_DIR="$WORKDIR/out"',
+          'mkdir -p "$OUTPUT_DIR/codex-cli" "$OUTPUT_DIR/gemini-cli"',
+          "# 前回は全 CLI 実行、今回は codex-cli のみ実行（部分実行）",
+          'echo OLD-GEMINI > "$OUTPUT_DIR/gemini-cli/code-review.md"',
+          'echo NEW-CODEX  > "$OUTPUT_DIR/codex-cli/code-review.md"',
+          'EXECUTION_PLAN="codex-cli:code-review"',
           "generate_review_report >/dev/null 2>&1",
-          "# run 2: cleanup 後、codex-cli の code-review のみ実行",
-          "cleanup_stale_results",
-          "# managed stale は両 CLI 跨ぎで削除される（マルチ CLI 分離）",
-          'test ! -f "$OUTPUT_DIR/codex-cli/security-analysis.md" || { echo LEAK-CODEX; exit 3; }',
-          'test ! -f "$OUTPUT_DIR/claude-code/test-analysis.md"   || { echo LEAK-CLAUDE; exit 3; }',
-          "# 非 managed（ユーザーファイル/別 task 残骸）は削除しない",
-          'test -f "$OUTPUT_DIR/codex-cli/my-notes.md"             || { echo USER-FILE-DELETED; exit 4; }',
-          'test -f "$OUTPUT_DIR/codex-cli/api-surface-analysis.md" || { echo NONMANAGED-DELETED; exit 4; }',
-          'echo RUN2-CODEX-REVIEW > "$OUTPUT_DIR/codex-cli/code-review.md"',
-          "generate_review_report >/dev/null 2>&1",
+          "# gemini の既存結果はディスクに残る（破壊しない）",
+          'test -f "$OUTPUT_DIR/gemini-cli/code-review.md" && echo GEMINI-KEPT',
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
       );
       expect(r.status).toBe(0);
-      // 今回実行した code-review の最新結果は含まれる
-      expect(r.stdout).toContain("RUN2-CODEX-REVIEW");
-      // 1回目のみの stale（両 CLI）は含まれない ← 受け入れ基準
-      expect(r.stdout).not.toContain("STALE-CODEX-SEC");
-      expect(r.stdout).not.toContain("STALE-CLAUDE-TEST");
-      // 非 managed の残骸はレポートに載らない（バウンドされた収集）
-      expect(r.stdout).not.toContain("STALE-EXPLORE");
-      expect(r.stdout).not.toContain("USER-NOTES");
-    } finally {
-      rmSync(workDir, { recursive: true, force: true });
-    }
-  });
-
-  it("execute_tasks が実行時に cleanup_stale_results を走らせる（実行時の配線ガード）", () => {
-    const workDir = mkdtempSync(join(tmpdir(), "ma-wire-"));
-    try {
-      const r = runHarness(
-        [
-          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=false",
-          'OUTPUT_DIR="$WORKDIR/.review-results"',
-          "# 実アダプタ/CLI 起動を防ぐため run_single_task を no-op 化",
-          "run_single_task() { return 0; }",
-          'mkdir -p "$OUTPUT_DIR/codex-cli"',
-          'echo STALE > "$OUTPUT_DIR/codex-cli/security-analysis.md"',
-          "# 1 エントリのプランで execute_tasks を実行 → 内部で cleanup が走るはず",
-          'EXECUTION_PLAN="codex-cli:code-review"',
-          "execute_tasks >/dev/null 2>&1",
-          'test ! -f "$OUTPUT_DIR/codex-cli/security-analysis.md" && echo WIRED_OK || echo WIRING_BROKEN',
-        ],
-        workDir,
-      );
-      expect(r.status).toBe(0);
-      expect(r.stdout).toContain("WIRED_OK");
-      expect(r.stdout).not.toContain("WIRING_BROKEN");
-    } finally {
-      rmSync(workDir, { recursive: true, force: true });
-    }
-  });
-
-  it("空文字・未設定どちらの OUTPUT_DIR でもガードが働き削除ロジックに入らず正常終了する", () => {
-    const workDir = mkdtempSync(join(tmpdir(), "ma-guard-"));
-    try {
-      const r = runHarness(
-        [
-          "TASK_TYPE=review",
-          "# 空文字ケース: rm 系ロジックへ進まず no-op で return 0",
-          'OUTPUT_DIR=""',
-          "cleanup_stale_results",
-          "# 未設定ケース: set -u 下でも ${OUTPUT_DIR:-} ガードで unbound を踏まず return 0",
-          "unset OUTPUT_DIR",
-          "cleanup_stale_results",
-          "echo GUARD_OK",
-        ],
-        workDir,
-      );
-      expect(r.status).toBe(0);
-      expect(r.stdout).toContain("GUARD_OK");
+      // 今回分のみ収録
+      expect(r.stdout).toContain("NEW-CODEX");
+      // 今回プラン外の他 CLI 結果はレポートに載らない（今回分のみ）
+      expect(r.stdout).not.toContain("OLD-GEMINI");
+      // ただしディスク上は破壊されない（旧 cleanup 方式の破壊的挙動を回避）
+      expect(r.stdout).toContain("GEMINI-KEPT");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
