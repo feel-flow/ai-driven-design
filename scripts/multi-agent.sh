@@ -543,6 +543,27 @@ run_single_task() {
     "${extra_args[@]}"
 }
 
+# ── Cleanup Stale Results ──
+# generate_report() collects EVERY *.md under ${OUTPUT_DIR}/${cli}/, so results
+# from a previous run linger and get reported as "this run's" results (issue #450).
+# Remove the prior run's per-CLI result files before executing, so the integrated
+# report contains only the current run. Runs for review/explore/implement alike,
+# since all three share this single execution path.
+cleanup_stale_results() {
+  # Defense-in-depth: never operate on an unset/empty OUTPUT_DIR, even though
+  # apply_task_defaults guarantees it is populated by this point.
+  [[ -n "$OUTPUT_DIR" ]] || return 0
+
+  for cli_name in $ALL_CLIS; do
+    local cli_dir="${OUTPUT_DIR}/${cli_name}"
+    [[ -d "$cli_dir" ]] || continue
+
+    # Remove only the per-perspective result files (*.md). `-f` keeps this a
+    # no-op — not an errexit-tripping failure — when the glob matches nothing.
+    rm -f "$cli_dir"/*.md
+  done
+}
+
 # ── Execute All Tasks ──
 execute_tasks() {
   if [[ -z "$EXECUTION_PLAN" ]]; then
@@ -551,6 +572,7 @@ execute_tasks() {
   fi
 
   mkdir -p "$OUTPUT_DIR"
+  cleanup_stale_results
 
   local pids=""
   local tasks=""

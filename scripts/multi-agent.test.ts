@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, chmodSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, chmodSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -151,4 +151,60 @@ describe("multi-agent.sh config loading (set -e regression)", () => {
       expect(r.output).toContain("Execution Plan");
     },
   );
+});
+
+// 前回実行の stale 結果がレポートに混入しない回帰（issue #450）
+// end-to-end 実行はアダプタが実 CLI を叩くため、末尾の main を無効化して source し、
+// cleanup_stale_results / generate_review_report を直接検証する。
+describe("multi-agent.sh stale-result cleanup (issue #450)", () => {
+  /** main を無効化した multi-agent.sh を temp に書き出しパスを返す */
+  function neutralizedScript(): string {
+    const raw = readFileSync(SCRIPT, "utf8");
+    const neutralized = raw.replace(/^main "\$@"$/m, "true");
+    const file = join(stubDir, "multi-agent.neutralized.sh");
+    writeFileSync(file, neutralized);
+    return file;
+  }
+
+  it("2回目の実行で、1回目のみに存在した perspective の結果がレポートに含まれない", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-stale-"));
+    const harness = [
+      'set -uo pipefail',
+      'source "$NEUT"',
+      "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+      'OUTPUT_DIR="$WORKDIR/.review-results"',
+      'mkdir -p "$OUTPUT_DIR/codex-cli"',
+      "# run 1: security + performance を実行",
+      'echo STALE-SECURITY > "$OUTPUT_DIR/codex-cli/security.md"',
+      'echo RUN1-PERF > "$OUTPUT_DIR/codex-cli/performance.md"',
+      "generate_review_report >/dev/null 2>&1",
+      "# run 2: cleanup 後 performance のみ実行",
+      "cleanup_stale_results",
+      'echo RUN2-PERF > "$OUTPUT_DIR/codex-cli/performance.md"',
+      "generate_review_report >/dev/null 2>&1",
+      'cat "$OUTPUT_DIR/integrated-report.md"',
+    ].join("\n");
+
+    try {
+      const r = spawnSync("bash", ["-c", harness], {
+        encoding: "utf8",
+        timeout: 30_000,
+        env: { ...process.env, NEUT: neutralizedScript(), WORKDIR: workDir },
+      });
+      expect(r.status).toBe(0);
+      // 今回実行した performance の最新結果は含まれる
+      expect(r.stdout).toContain("RUN2-PERF");
+      // 1回目のみの security（stale）は含まれない ← 受け入れ基準
+      expect(r.stdout).not.toContain("STALE-SECURITY");
+      // 1回目の performance 本文も残らない（上書きされている）
+      expect(r.stdout).not.toContain("RUN1-PERF");
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("execute_tasks が実行ループ前に cleanup_stale_results を呼ぶ（配線の回帰ガード）", () => {
+    const raw = readFileSync(SCRIPT, "utf8");
+    expect(raw).toMatch(/mkdir -p "\$OUTPUT_DIR"\s*\n\s*cleanup_stale_results/);
+  });
 });
