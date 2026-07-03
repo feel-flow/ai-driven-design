@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.33.0"
+version: "1.34.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-07-03"
 owner: "@fffokazaki"
-ace_entry_count: 65
+ace_entry_count: 67
 tags: [ace, playbook, knowledge-management]
 references:
   - docs/ACE_FRAMEWORK.md
@@ -1625,7 +1625,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #449 / Issue #448 |
 | Related    | ACE-445-1            |
 | Date       | 2026-07-02           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1813,7 +1813,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | security   |
 | Origin     | PR #464    |
 | Date       | 2026-07-03 |
-| Helpful    | 0          |
+| Helpful    | 1          |
 | Harmful    | 0          |
 | Status     | active     |
 
@@ -1863,9 +1863,60 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 **Action**: cross-model の指摘は「妥当な核」と「提示された修正案」を分けて扱う。修正案が Issue / 設計で明示的に決めた方針と矛盾するなら、`receiving-code-review` に沿って実害を検証してから push back する。破壊的変更系の指摘は「その破壊に実際に依存する呼び出し元が存在するか」を `grep` / 検索で確認し、実害ゼロなら方針は維持しつつ意図的 breaking change として PR 本文・commit に明記する。関連: [ACE-445-1](#ace-445-1)（同系列合意より cross-model）/ [ACE-447-3](#ace-447-3)（clean verdict を待たない）。
 
+<a id="ace-469-1"></a>
+
+### ACE-469-1: opt-in 公開ゲートの fail-safe は構造破壊入力（閉じデリミタ欠落）で破れる — パーサは走査境界を先に確定し、壊れた構造は skip でなく fail-loud に回す
+
+| フィールド | 値         |
+| ---------- | ---------- |
+| Category   | security   |
+| Origin     | PR #469    |
+| Related    | ACE-464-3  |
+| Date       | 2026-07-03 |
+| Helpful    | 0          |
+| Harmful    | 0          |
+| Status     | active     |
+
+**Insight**: 「フラグ明示時のみ許可（opt-in）」のゲートは値の判定が正しくても、**値を探す走査の境界**が壊れた入力で崩れると突破される。frontmatter パーサが「キーが見つかったら即 return」だと、閉じデリミタ欠落時に走査が本文へ溢れ、本文中の記法例・引用が「明示されたフラグ」として誤認される（= internal 文書が public 判定）。境界（閉じデリミタ）の存在を**先に**確定し、走査をブロック内に限定する。さらに「開始デリミタあり・閉じなし」は構造的破損であり、fail-safe の quiet skip（未指定と同じ扱い）に混ぜると作者ミスが無言で沈むため、typo 値と同じ fail-loud 経路に回す。
+
+**Context**: PR #469 の `sync-to-public.mjs`（visibility: public の文書だけを internal→public 同期）で、初版 `readVisibility` は `visibility:` 行に当たり次第 return していた。閉じ `---` の無いファイルでは本文まで走査され、本文の例文 `visibility: public` で公開されうる欠陥を Toolkit（errors/tests）と Codex が独立に同一箇所として検出。「閉じデリミタ確認 → ブロック内限定走査 → broken は invalidFiles に集約して書き込みゼロで exit 1」に修正した。
+
+**Action**: opt-in ゲートのパーサを書く/レビューするときは「値の許容判定」でなく「**走査がどこで止まるか**」を先に疑う。(a) ブロック境界の存在確認 → (b) 境界内のみ走査 → (c) 境界破損は quiet skip でなく fail-loud、の順で実装し、「閉じデリミタ欠落 + 本文にフラグ例文」の合成フィクスチャで「同期されない/中断する」をテストに固定する。関連: [ACE-464-3](#ace-464-3)（入口で一度 fail-loud 集約）/ [ACE-462-1](#ace-462-1)（想定外入力は安全側へ）。
+
+<a id="ace-469-2"></a>
+
+### ACE-469-2: コピーして使う雛形ファイルに opt-in フラグの「許可値」を焼き込まない — 雛形経由で全新規文書が公開既定になる
+
+| フィールド | 値         |
+| ---------- | ---------- |
+| Category   | security   |
+| Origin     | PR #469    |
+| Date       | 2026-07-03 |
+| Helpful    | 0          |
+| Harmful    | 0          |
+| Status     | active     |
+
+**Insight**: opt-in 設計（未指定 = 安全側）はファイル単体では正しくても、**「必ずコピーして使え」と案内している雛形**に許可値（`visibility: public` 等)を書くと、コピーの瞬間に全新規文書へ許可が継承され、実質「公開が既定」に反転する。opt-in の安全性は「明示コストが漏れ側にある」ことに依存しており、雛形はそのコストをゼロにしてしまう。一括付与スクリプトで「対象ディレクトリの全ファイル」に機械的にフラグを撒くと、この种の「ファイル自体は公開してよいが、雛形としての性質上フラグを持たせてはいけない」例外を見落とす。
+
+**Context**: PR #469 で docs/specs/ を公開分類とし一括で `visibility: public` を付与した際、`spec-template.md`（ガイドが「spec 作成時は必ずコピー」と指示する雛形）にも付与してしまった。internal リポジトリで雛形から作られる新規 spec（クライアント固有設計が最も書かれる場所）が公開既定になる漏洩リスクとして Codex code-reviewer が Critical 検出。雛形からフラグを削除し、「雛形には含めない。公開したい spec のみ作成後に明示」を FRONTMATTER_GUIDE §5.5 に明文化した。
+
+**Action**: opt-in フラグを既存ファイル群へ一括付与するときは、付与前に「このファイルはコピー元（テンプレート/雛形/サンプル）として案内されていないか」を分類に加える。雛形は許可値を持たせず（キー自体を書かない）、必要なら「作成後に明示せよ」を雛形の案内文とガイドに書く。レビュー観点としては「雛形・スキャフォールド・generator の出力既定値」は opt-in 反転の定番経路として必ず確認する。
+
 ---
 
 ## Changelog
+
+### [1.34.0] - 2026-07-03
+
+#### 追加
+
+- ACE-469-1: opt-in 公開ゲートの fail-safe は構造破壊入力（閉じデリミタ欠落）で破れる — PR #469 の sync-to-public.mjs で、frontmatter パーサが閉じデリミタ未確認のまま値を採用し本文走査で internal 文書が公開されうる欠陥を Toolkit + Codex が独立検出した経験から抽出
+- ACE-469-2: コピーして使う雛形ファイルに opt-in フラグの許可値を焼き込まない — PR #469 の一括 visibility 付与で spec-template.md に public を書き、雛形コピー経由で新規 spec が公開既定になる漏洩リスクを Codex が Critical 検出した経験から抽出
+
+#### カウンター更新
+
+- ACE-449-2 (Helpful 0→1): FRONTMATTER_GUIDE §5.5 の記法例（インラインコメント）が同期スクリプトを fail させる乖離を検出し、例文をパーサ対応 + 回帰テストで固定した再適用
+- ACE-464-3 (Helpful 0→1): sync-to-public.mjs の不正 visibility / 壊れた frontmatter 検証を「1st pass で全分類 → 書き込みゼロで exit 1」の入口 fail-loud 集約として設計した再適用
 
 ### [1.33.0] - 2026-07-03
 
