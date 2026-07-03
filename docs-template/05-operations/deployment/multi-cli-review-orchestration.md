@@ -201,14 +201,6 @@ fallback:
   copilot-cli: codex-cli
   gemini-cli: codex-cli
   cursor-cli: codex-cli
-
-toolkit_delegation:
-  code-reviewer: codex-cli
-  silent-failure-hunter: codex-cli
-  type-design-analyzer: claude-code
-  pr-test-analyzer: codex-cli
-  comment-analyzer: gemini-cli
-  code-simplifier: cursor-cli
 ```
 
 ### Step 3: 動作確認
@@ -378,9 +370,6 @@ bash scripts/multi-review.sh --cli claude-code --cli codex-cli
 
 # セキュリティ分析だけ
 bash scripts/multi-review.sh --perspective security-analysis
-
-# pr-review-toolkit 移譲モード
-bash scripts/multi-review.sh --delegate-toolkit
 ```
 
 ### 結果の確認
