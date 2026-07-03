@@ -543,6 +543,36 @@ run_single_task() {
     "${extra_args[@]}"
 }
 
+# ── Path-Segment Safety ──
+# A CLI / perspective name is used as a single path segment under OUTPUT_DIR.
+# Reject anything that is not a plain identifier so a crafted --cli/--perspective
+# value (e.g. "../../secret") cannot escape OUTPUT_DIR when we build result paths.
+is_safe_token() {
+  [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]] && [[ "$1" != "." && "$1" != ".." ]]
+}
+
+# ── Clear This Run's Planned Outputs ──
+# The report reads ${cli}/${perspective}.md for each plan entry; adapters only
+# (over)write that file on success, leaving a prior run's file in place on
+# failure/timeout. Deleting exactly this run's own targets up front means a task
+# that produces no output leaves NO stale same-name file to be mis-reported as
+# current (issue #450) — instead the report surfaces it as "no output". Scoped to
+# the plan's own (cli, perspective) targets only; nothing else on disk (other
+# CLIs, other perspectives, unrelated user files) is touched.
+clear_planned_outputs() {
+  [[ -n "${OUTPUT_DIR:-}" ]] || return 0
+  local entry cli_name persp_name
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    cli_name="${entry%%:*}"
+    persp_name="${entry#*:}"
+    if ! is_safe_token "$cli_name" || ! is_safe_token "$persp_name"; then
+      continue
+    fi
+    rm -f "${OUTPUT_DIR}/${cli_name}/${persp_name}.md"
+  done <<< "$EXECUTION_PLAN"
+}
+
 # ── Execute All Tasks ──
 execute_tasks() {
   if [[ -z "$EXECUTION_PLAN" ]]; then
@@ -551,6 +581,7 @@ execute_tasks() {
   fi
 
   mkdir -p "$OUTPUT_DIR"
+  clear_planned_outputs
 
   local pids=""
   local tasks=""
@@ -627,18 +658,25 @@ HEADER
 
   local has_results=false
 
-  # issue #450: include exactly the results THIS run produced by iterating the
-  # execution plan instead of globbing ${cli}/*.md. A prior run's stale
-  # perspective (absent from this plan) is never read, and no result file is
-  # deleted or modified — the report only reads result files and writes
-  # report_file. So a shared --output-dir re-run, or a partial --cli/--perspective
-  # run, is non-destructive. A planned entry whose output file is missing (CLI
-  # failure or name mismatch) is surfaced in the report, not silently dropped.
+  # issue #450: report exactly THIS run's entries by iterating the execution plan
+  # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
+  # read, and each entry's target file was cleared before execution
+  # (clear_planned_outputs), so a prior run's result — whether a different
+  # perspective or a same-named stale file left by a failed task — cannot appear
+  # as current. The report only reads result files and writes report_file; no
+  # result file is deleted or modified here, so a shared --output-dir re-run or a
+  # partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped.
   local entry
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
+    # Never build a path from an unsafe segment (guards report against a crafted
+    # --cli/--perspective traversal such as "../../secret").
+    if ! is_safe_token "$cli_name" || ! is_safe_token "$perspective_name"; then
+      continue
+    fi
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -693,18 +731,25 @@ HEADER
 
   local has_results=false
 
-  # issue #450: include exactly the results THIS run produced by iterating the
-  # execution plan instead of globbing ${cli}/*.md. A prior run's stale
-  # perspective (absent from this plan) is never read, and no result file is
-  # deleted or modified — the report only reads result files and writes
-  # report_file. So a shared --output-dir re-run, or a partial --cli/--perspective
-  # run, is non-destructive. A planned entry whose output file is missing (CLI
-  # failure or name mismatch) is surfaced in the report, not silently dropped.
+  # issue #450: report exactly THIS run's entries by iterating the execution plan
+  # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
+  # read, and each entry's target file was cleared before execution
+  # (clear_planned_outputs), so a prior run's result — whether a different
+  # perspective or a same-named stale file left by a failed task — cannot appear
+  # as current. The report only reads result files and writes report_file; no
+  # result file is deleted or modified here, so a shared --output-dir re-run or a
+  # partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped.
   local entry
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
+    # Never build a path from an unsafe segment (guards report against a crafted
+    # --cli/--perspective traversal such as "../../secret").
+    if ! is_safe_token "$cli_name" || ! is_safe_token "$perspective_name"; then
+      continue
+    fi
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 
@@ -757,18 +802,25 @@ HEADER
 
   local has_results=false
 
-  # issue #450: include exactly the results THIS run produced by iterating the
-  # execution plan instead of globbing ${cli}/*.md. A prior run's stale
-  # perspective (absent from this plan) is never read, and no result file is
-  # deleted or modified — the report only reads result files and writes
-  # report_file. So a shared --output-dir re-run, or a partial --cli/--perspective
-  # run, is non-destructive. A planned entry whose output file is missing (CLI
-  # failure or name mismatch) is surfaced in the report, not silently dropped.
+  # issue #450: report exactly THIS run's entries by iterating the execution plan
+  # instead of globbing ${cli}/*.md. A perspective absent from this plan is never
+  # read, and each entry's target file was cleared before execution
+  # (clear_planned_outputs), so a prior run's result — whether a different
+  # perspective or a same-named stale file left by a failed task — cannot appear
+  # as current. The report only reads result files and writes report_file; no
+  # result file is deleted or modified here, so a shared --output-dir re-run or a
+  # partial --cli/--perspective run is non-destructive. A planned entry with no
+  # output file (CLI failure) is surfaced, not silently dropped.
   local entry
   while IFS= read -r entry; do
     [[ -z "$entry" ]] && continue
     local cli_name="${entry%%:*}"
     local perspective_name="${entry#*:}"
+    # Never build a path from an unsafe segment (guards report against a crafted
+    # --cli/--perspective traversal such as "../../secret").
+    if ! is_safe_token "$cli_name" || ! is_safe_token "$perspective_name"; then
+      continue
+    fi
     local result_file="${OUTPUT_DIR}/${cli_name}/${perspective_name}.md"
     has_results=true
 

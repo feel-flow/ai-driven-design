@@ -191,8 +191,9 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
     { type: "implement", fn: "generate_implement_report" },
   ];
 
+  // 境界条件（プラン外除外/非破壊・空プラン・欠落可視化）を 3 タスク種すべてで検証する。
   for (const { type, fn } of TASK_REPORTS) {
-    it(`${type}: レポートは EXECUTION_PLAN のエントリのみ収録し、プラン外の stale を混入させない`, () => {
+    it(`${type}: レポートは EXECUTION_PLAN のエントリのみ収録し、プラン外の stale/ユーザーファイルを混入させない（非破壊）`, () => {
       const workDir = mkdtempSync(join(tmpdir(), `ma-${type}-`));
       try {
         const r = runHarness(
@@ -215,14 +216,60 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
           workDir,
         );
         expect(r.status).toBe(0);
-        // 今回のプラン分（マルチ CLI）は両方収録
         expect(r.stdout).toContain("CURRENT-CODEX");
         expect(r.stdout).toContain("CURRENT-CLAUDE");
-        // プラン外の stale / ユーザーファイルは収録されない ← 受け入れ基準
         expect(r.stdout).not.toContain("STALE-GAMMA");
         expect(r.stdout).not.toContain("USER-NOTES");
-        // 非破壊: ディスク上のファイルは削除されない
         expect(r.stdout).toContain("NONDESTRUCTIVE_OK");
+      } finally {
+        rmSync(workDir, { recursive: true, force: true });
+      }
+    });
+
+    it(`${type}: 空プランでは (No ${type} results found.) に落ちる`, () => {
+      const workDir = mkdtempSync(join(tmpdir(), `ma-empty-${type}-`));
+      try {
+        const r = runHarness(
+          [
+            `MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; DESCRIPTION=test; TASK_TYPE=${type}`,
+            'OUTPUT_DIR="$WORKDIR/out"',
+            'mkdir -p "$OUTPUT_DIR/codex-cli"',
+            "# ディスクに残骸があってもプランが空なら何も収録しない",
+            'echo STALE > "$OUTPUT_DIR/codex-cli/alpha.md"',
+            'EXECUTION_PLAN=""',
+            `${fn} >/dev/null 2>&1`,
+            'cat "$OUTPUT_DIR/integrated-report.md"',
+          ],
+          workDir,
+        );
+        expect(r.status).toBe(0);
+        expect(r.stdout).toContain(`(No ${type} results found.)`);
+        expect(r.stdout).not.toContain("STALE");
+      } finally {
+        rmSync(workDir, { recursive: true, force: true });
+      }
+    });
+
+    it(`${type}: プラン内エントリの出力欠落を黙殺せずレポートに可視化する`, () => {
+      const workDir = mkdtempSync(join(tmpdir(), `ma-missing-${type}-`));
+      try {
+        const r = runHarness(
+          [
+            `MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; DESCRIPTION=test; TASK_TYPE=${type}`,
+            'OUTPUT_DIR="$WORKDIR/out"',
+            'mkdir -p "$OUTPUT_DIR/codex-cli"',
+            "# codex-cli:alpha は成功、gemini-cli:alpha は出力欠落（CLI 失敗相当）",
+            'echo OK-CODEX > "$OUTPUT_DIR/codex-cli/alpha.md"',
+            "EXECUTION_PLAN=$'codex-cli:alpha\\ngemini-cli:alpha'",
+            `${fn} >/dev/null 2>&1`,
+            'cat "$OUTPUT_DIR/integrated-report.md"',
+          ],
+          workDir,
+        );
+        expect(r.status).toBe(0);
+        expect(r.stdout).toContain("OK-CODEX");
+        expect(r.stdout).toContain("gemini-cli — alpha");
+        expect(r.stdout).toContain("No output produced by this task");
       } finally {
         rmSync(workDir, { recursive: true, force: true });
       }
@@ -242,71 +289,70 @@ describe("multi-agent.sh plan-scoped report (issue #450)", () => {
           'echo NEW-CODEX  > "$OUTPUT_DIR/codex-cli/code-review.md"',
           'EXECUTION_PLAN="codex-cli:code-review"',
           "generate_review_report >/dev/null 2>&1",
-          "# gemini の既存結果はディスクに残る（破壊しない）",
           'test -f "$OUTPUT_DIR/gemini-cli/code-review.md" && echo GEMINI-KEPT',
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
       );
       expect(r.status).toBe(0);
-      // 今回分のみ収録
       expect(r.stdout).toContain("NEW-CODEX");
-      // 今回プラン外の他 CLI 結果はレポートに載らない（今回分のみ）
       expect(r.stdout).not.toContain("OLD-GEMINI");
-      // ただしディスク上は破壊されない（旧 cleanup 方式の破壊的挙動を回避）
       expect(r.stdout).toContain("GEMINI-KEPT");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
   });
 
-  it("空プランでは (No ... results found.) に落ちる（境界条件）", () => {
-    const workDir = mkdtempSync(join(tmpdir(), "ma-empty-"));
+  it("同名 cli/perspective の前回 stale は execute_tasks の事前クリアで混入せず、欠落として可視化される", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-samepath-"));
     try {
       const r = runHarness(
         [
-          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
+          "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review; PARALLEL=false",
           'OUTPUT_DIR="$WORKDIR/out"',
-          'mkdir -p "$OUTPUT_DIR"',
-          '# ディスクに残骸があってもプランが空なら何も収録しない',
           'mkdir -p "$OUTPUT_DIR/codex-cli"',
-          'echo STALE > "$OUTPUT_DIR/codex-cli/code-review.md"',
-          'EXECUTION_PLAN=""',
+          "# 前回の同名 stale。今回 CLI は失敗して上書きしない（run_single_task 失敗で模擬）",
+          'echo STALE-PREV > "$OUTPUT_DIR/codex-cli/code-review.md"',
+          "run_single_task() { return 1; }",
+          'EXECUTION_PLAN="codex-cli:code-review"',
+          "# execute_tasks は失敗検知で非0（|| true）。事前クリアで stale ファイルは消える",
+          "execute_tasks >/dev/null 2>&1 || true",
           "generate_review_report >/dev/null 2>&1",
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
       );
       expect(r.status).toBe(0);
-      expect(r.stdout).toContain("(No review results found.)");
-      expect(r.stdout).not.toContain("STALE");
+      // 前回の同名 stale は current として混入しない
+      expect(r.stdout).not.toContain("STALE-PREV");
+      // 代わりに欠落として可視化される
+      expect(r.stdout).toContain("No output produced by this task");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
   });
 
-  it("プラン内エントリの出力が欠落しても黙って落とさずレポートに可視化する（silent-failure 回避）", () => {
-    const workDir = mkdtempSync(join(tmpdir(), "ma-missing-"));
+  it("パストラバーサルな perspective/cli 名は OUTPUT_DIR 外を読まない", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "ma-traversal-"));
     try {
       const r = runHarness(
         [
           "MODE=cross-model; STRATEGY=balanced; BASE_BRANCH=develop; TASK_TYPE=review",
           'OUTPUT_DIR="$WORKDIR/out"',
-          'mkdir -p "$OUTPUT_DIR/codex-cli"',
-          "# codex-cli:code-review は成功、gemini-cli:code-review は出力欠落（CLI 失敗相当）",
-          'echo OK-CODEX > "$OUTPUT_DIR/codex-cli/code-review.md"',
-          "EXECUTION_PLAN=$'codex-cli:code-review\\ngemini-cli:code-review'",
+          'mkdir -p "$OUTPUT_DIR/codex-cli" "$WORKDIR/secretdir"',
+          "# OUTPUT_DIR の外に秘密ファイル。traversal で読めてしまわないことを確認",
+          'echo TOP-SECRET > "$WORKDIR/secretdir/secret.md"',
+          "# $OUTPUT_DIR/codex-cli/../../secretdir/secret.md == $WORKDIR/secretdir/secret.md",
+          'EXECUTION_PLAN="codex-cli:../../secretdir/secret"',
           "generate_review_report >/dev/null 2>&1",
           'cat "$OUTPUT_DIR/integrated-report.md"',
         ],
         workDir,
       );
       expect(r.status).toBe(0);
-      // 成功分は収録
-      expect(r.stdout).toContain("OK-CODEX");
-      // 欠落したエントリは見出しごと可視化される（黙殺しない）
-      expect(r.stdout).toContain("gemini-cli — code-review");
-      expect(r.stdout).toContain("No output produced by this task");
+      // ガードにより不正セグメントはスキップ → 秘密は読まれない
+      expect(r.stdout).not.toContain("TOP-SECRET");
+      expect(r.stdout).toContain("(No review results found.)");
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
