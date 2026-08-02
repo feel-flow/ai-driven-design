@@ -9,7 +9,7 @@
 # Env:
 #   SKIP_COPILOT_REVIEW=1            Skip review
 #   REQUIRE_COPILOT_REVIEW=1         Hard fail if copilot CLI not found (default: soft skip)
-#   COPILOT_MODEL=claude-sonnet-4.5  Override model (default: claude-sonnet-4.5)
+#   COPILOT_MODEL                    Override model (default: Copilot CLI config default)
 #   REVIEW_BASE_BRANCH=main          Override base branch for --branch mode (default: develop)
 #   REVIEW_TIMEOUT_SEC=600           Max seconds per reviewer (default: 600)
 
@@ -47,8 +47,14 @@ fi
 
 
 # Configuration
-COPILOT_MODEL="${COPILOT_MODEL:-claude-sonnet-4.5}"
 REVIEW_TIMEOUT_SEC="${REVIEW_TIMEOUT_SEC:-600}"
+
+# モデルは既定では指定せず、Copilot CLI の設定／既定へ委譲する（ACE-70-2）。
+# env が明示された場合だけ --model を追加する。安全展開は macOS bash 3.2 + set -u 対応。
+COPILOT_MODEL_ARGS=()
+if [ -n "${COPILOT_MODEL:-}" ]; then
+    COPILOT_MODEL_ARGS=("--model" "$COPILOT_MODEL")
+fi
 
 # Resolve timeout command (GNU timeout or macOS gtimeout)
 TIMEOUT_CMD=""
@@ -64,11 +70,11 @@ invoke_cli() {
     local output=$2
 
     if [ -n "$TIMEOUT_CMD" ]; then
-        "$TIMEOUT_CMD" "$REVIEW_TIMEOUT_SEC" copilot -p "$prompt" --model "$COPILOT_MODEL" \
+        "$TIMEOUT_CMD" "$REVIEW_TIMEOUT_SEC" copilot -p "$prompt" ${COPILOT_MODEL_ARGS[@]+"${COPILOT_MODEL_ARGS[@]}"} \
             < "$DIFF_FILE" > "$output"
     else
         echo -e "${YELLOW}Warning: 'timeout' command not found. No timeout protection.${NC}" >&2
-        copilot -p "$prompt" --model "$COPILOT_MODEL" \
+        copilot -p "$prompt" ${COPILOT_MODEL_ARGS[@]+"${COPILOT_MODEL_ARGS[@]}"} \
             < "$DIFF_FILE" > "$output"
     fi
 }
@@ -82,5 +88,6 @@ elif [ "$rc" -ne 0 ]; then
     exit 1  # Error
 fi
 
-run_all_reviewers "Copilot Code Review (model: ${COPILOT_MODEL})"
+MODEL_DISPLAY="${COPILOT_MODEL:-copilot config default}"
+run_all_reviewers "Copilot Code Review (model: ${MODEL_DISPLAY})"
 exit $?
