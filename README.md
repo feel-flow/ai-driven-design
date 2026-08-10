@@ -154,168 +154,18 @@ docs/
 
 ## 関連書籍
 
-本フレームワークの背景と実践を解説する書籍を含む、AI開発シリーズの全 11 冊です。
-
-### Agent Skills 実践ガイド シリーズ
-
 <table>
   <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-agent-skills.jpg" width="140" alt="Agent Skills 実践ガイド">
+    <td width="200" valign="top" align="center">
+      <a href="https://www.amazon.co.jp/dp/B0H8NZM4BH">
+        <img src="./images/book-ai-sdd-official-guide.png" width="180" alt="AI仕様駆動開発 公式ガイド">
+      </a>
     </td>
     <td valign="top">
-      <h4>Agent Skills 実践ガイド</h4>
-      <p><em>AIエージェントに専門知識を渡す技術</em></p>
-      <p>Agent Skillsのオープン標準に基づき、AIエージェントに専門知識を渡す方法を解説。レビュー、執筆、ナレッジ参照、コード生成など、多様な活用パターンを実例とともに紹介。Claude Code, Cursor, GitHub Copilot, OpenAI Codex, Gemini CLI など27以上のツールで使えるスキルの設計と実装を学ぶ。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-thinking-frameworks.jpg" width="140" alt="Vol.1 思考AI編">
-    </td>
-    <td valign="top">
-      <h4>Vol.1 思考AI編</h4>
-      <p><em>15のスキルで「考える力」を実装する</em></p>
-      <p>15の思考フレームワーク（ロジカルシンキング、仮説思考 ほか）をAgent SkillsとしてAIに実装し、たった1言で「考える力」を呼び出す技術を体系化。AIを道具として使いこなし、自分の判断力を拡張したい人のための本。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-analysis-frameworks.jpg" width="140" alt="Vol.2 分析AI編">
-    </td>
-    <td valign="top">
-      <h4>Vol.2 分析AI編</h4>
-      <p><em>20のスキルで「分析する力」を実装する</em></p>
-      <p>SWOT・3C・BCGなど、コンサルの分析フレームワーク20選をAgent SkillsとしてAIに実装し、たった1言で「分析する力」を呼び出す技術を体系化。AIを道具として使いこなし、自分の分析力を拡張したい方のための本。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-story-frameworks.jpg" width="140" alt="Vol.3 提案AI編">
-    </td>
-    <td valign="top">
-      <h4>Vol.3 提案AI編</h4>
-      <p><em>15のスキルで「提案を通す力」を実装する</em></p>
-      <p>ストーリーテリング・期待値コントロール・交渉術の15スキルをAgent SkillsとしてAIに実装し、たった1言で「提案を通す力」を呼び出す技術を体系化。AIを道具として使いこなし、自分の提案力を拡張したい人のための本。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-### 単巻
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-spec-driven-development.jpg" width="140" alt="AI仕様駆動開発">
-    </td>
-    <td valign="top">
-      <h4>AI仕様駆動開発</h4>
-      <p><em>AIエージェント開発の新常識</em></p>
-      <p>AIが仕様に基づいて安全に開発を実行できるよう、コア7文書構成で開発プロセスを定義。手戻りゼロの開発フローを実現する体系的なメソッド。Claude Code / GitHub Copilot / Cursor を使うエンジニア・テックリード向け。本リポジトリの背景となる書籍。</p>
-      <p>
-        <strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0GHHVX1NY">Kindleストアで見る</a> ｜
-        <strong>ペーパーバック</strong>: <a href="https://amzn.asia/d/03bcN32G">Amazon.co.jpで見る</a>
-      </p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-small-is-accurate.jpg" width="140" alt="コンテキストエンジニアリング入門">
-    </td>
-    <td valign="top">
-      <h4>コンテキストエンジニアリング入門</h4>
-      <p><em>9割のエンジニアが知らないLLMの3つの死角</em></p>
-      <p>AI仕様駆動開発の原点となる理論書。Lost in the Middle、Lost at the Beginning of Reasoning、70%問題——LLMが抱える3つの死角を科学的に解説し、コンテキスト縮小戦略とスコープ収束パターンでAIの精度を意図的に設計する方法を学ぶ。</p>
-      <p>
-        <strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0F1S6KF5Q">Kindleストアで見る</a> ｜
-        <strong>ペーパーバック</strong>: <a href="https://amzn.asia/d/07ycceB8">Amazon.co.jpで見る</a>
-      </p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-dev-lifecycle.jpg" width="140" alt="AI開発マネジメント">
-    </td>
-    <td valign="top">
-      <h4>AI開発マネジメント</h4>
-      <p><em>7つのフェーズ・21のAgent Skillで開発ライフサイクルを制する</em></p>
-      <p>要件定義からリリースまで、AI開発ライフサイクルを7つのフェーズに分解し、各フェーズで必要となる21のAgent Skillを体系化。プロジェクトを設計・計画・実装・検証・運用するための実践メソッド。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-multi-agent-development.jpg" width="140" alt="AIマルチエージェント開発">
-    </td>
-    <td valign="top">
-      <h4>AIマルチエージェント開発</h4>
-      <p><em>仕様駆動 × オーケストレーションで実現する次世代AI開発</em></p>
-      <p>仕様をSSOT（単一情報源）として、開発ワークフロー全体をオーケストレーターが状態管理し、Subagentを動的編成・監視・制御する次世代フレームワーク。5レイヤーアーキテクチャとACEナレッジループで、マルチエージェント開発をスケールさせる設計論。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <img src="./images/book-ai-orchestrator.jpg" width="140" alt="AI時代の新しい職業図鑑">
-    </td>
-    <td valign="top">
-      <h4>AI時代の新しい職業図鑑</h4>
-      <p><em>AIオーケストレーターという働き方</em></p>
-      <p>学生・ビジネスパーソン向けのキャリアガイド。AIオーケストレーターという新しい職業を定義し、必要なスキルセット、キャリアパス、就職市場での位置づけを解説。AI時代のキャリア戦略を学ぶ。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <div>📕<br><sub>Cover<br>準備中</sub></div>
-    </td>
-    <td valign="top">
-      <h4>Claudeで作る外資コンサル品質スライド</h4>
-      <p><em>AI戦略スライド生成設計メソッド</em></p>
-      <p>Claude Opus 4.6を活用し、McKinsey、BCG、Bain、Accenture、Deloitte、PwC、EY、KPMG など外資系コンサルティングファーム品質のスライドを生成する設計メソッドを体系化。プロンプト設計からファーム別スタイル再現まで、再現性ある手法を解説。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="160" valign="top" align="center">
-      <div>📗<br><sub>Cover<br>準備中</sub></div>
-    </td>
-    <td valign="top">
-      <h4>ハーネスエンジニアリング入門</h4>
-      <p><em>AIバイブコーディングが破綻する前に決めておく6層の設計規律</em></p>
-      <p>AI前提のバイブコーディングで、型 → 設定 → リポジトリ → サービス → ランタイム → UI の 6 層ハーネスで設計規律を敷き、不変条件を Agent Skills としてパッケージ化。Clean Architecture・Ports & Adapters との統合整理を含む、AI が破綻させない土台の作り方。</p>
-      <p><strong>Kindle</strong>: 準備中</p>
+      <h3>AI仕様駆動開発 公式ガイド</h3>
+      <p><em>標準仕様と公式実装リファレンス</em></p>
+      <p>株式会社フィールフロウが公開する、AI仕様駆動開発の公式ガイドです。AI仕様駆動開発の全体像、標準仕様、公式実装、導入手順、適合性評価を一冊にまとめています。</p>
+      <p><strong>Kindle</strong>: <a href="https://www.amazon.co.jp/dp/B0H8NZM4BH">Kindleストアで見る</a></p>
     </td>
   </tr>
 </table>
