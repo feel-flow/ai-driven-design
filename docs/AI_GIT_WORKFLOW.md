@@ -365,7 +365,7 @@ bash scripts/review-level.sh --base develop
 Toolkit レビュー後、Codex CLI でクロスモデルレビューを実行し、異なるAIモデルの観点でレビュー品質を向上させます：
 
 ```bash
-bash scripts/codex-review.sh --branch
+bash scripts/codex-review.sh --base develop
 ```
 
 レビュー結果は [Review Response Policy](../docs-template/05-operations/deployment/review-response-policy.md) に従って対応（Critical/Warning は確認不要で即対応）。TodoWrite で対応項目を管理します。

@@ -29,7 +29,7 @@ Copilot CLI を活用し、各レビュースキルを**独立したLLMセッシ
   → 結果テーブル表示 + 詳細レポート
 
   # または他の CLI で実行:
-  → run_in_terminal: bash scripts/codex-review.sh [--staged|--branch]
+  → run_in_terminal: bash scripts/codex-review.sh [--staged|--base <branch>]
   → run_in_terminal: bash scripts/copilot-review.sh [--staged|--branch]
   → run_in_terminal: bash scripts/gemini-review.sh [--staged|--branch]
   → run_in_terminal: bash scripts/cursor-review.sh [--staged|--branch]
@@ -88,7 +88,7 @@ scripts/
 
 1. 利用可能な CLI に応じてレビュースクリプトを実行する
    - Claude CLI: `bash scripts/claude-review.sh --branch`
-   - Codex CLI: `bash scripts/codex-review.sh --branch`
+   - Codex CLI: `bash scripts/codex-review.sh --base develop`
    - Copilot CLI: `bash scripts/copilot-review.sh --branch`
    - Gemini CLI: `bash scripts/gemini-review.sh --branch`
    - Cursor CLI: `bash scripts/cursor-review.sh --branch`
@@ -107,19 +107,19 @@ scripts/
 
 ### 必須スキル（常に実行）
 
-| スキル | 説明 |
-|--------|------|
-| Code Review | バグ、スタイル違反、コード品質問題の検出 |
-| Error Handler Hunt | サイレント失敗の検出 |
+| スキル             | 説明                                     |
+| ------------------ | ---------------------------------------- |
+| Code Review        | バグ、スタイル違反、コード品質問題の検出 |
+| Error Handler Hunt | サイレント失敗の検出                     |
 
 ### 条件付きスキル（変更内容に応じて実行）
 
-| スキル | 実行条件 |
-|--------|----------|
-| Test Analysis | テストファイルの追加・変更、またはテスト対象コードの変更 |
-| Type Design Analysis | 型定義（interface, type, class）の追加・変更 |
-| Comment Analysis | JSDoc、コメント、README等のドキュメントの変更 |
-| Code Simplification | 30行超の関数、3段以上のネスト |
+| スキル               | 実行条件                                                 |
+| -------------------- | -------------------------------------------------------- |
+| Test Analysis        | テストファイルの追加・変更、またはテスト対象コードの変更 |
+| Type Design Analysis | 型定義（interface, type, class）の追加・変更             |
+| Comment Analysis     | JSDoc、コメント、README等のドキュメントの変更            |
+| Code Simplification  | 30行超の関数、3段以上のネスト                            |
 
 ### 明示的な指定
 
@@ -134,9 +134,11 @@ scripts/
 # 📋 Review Router Report
 
 ## 実行モード
+
 - [x] Copilot CLI セッション分離 / [ ] 動的読み込み（フォールバック）
 
 ## 実行されたスキル
+
 - [x] Code Review
 - [x] Error Handler Hunt
 - [ ] Test Analysis（該当なし）
@@ -145,24 +147,29 @@ scripts/
 - [ ] Code Simplification（該当なし）
 
 ## 🔴 Critical Issues（即時対応必要）
+
 - [ファイル名:行番号] 問題の説明
   - スキル: Code Review / Error Handler Hunt
   - 修正提案: ...
 
 ## 🟡 Important Issues（対応推奨）
+
 - [ファイル名:行番号] 問題の説明
   - スキル: ...
   - 修正提案: ...
 
 ## 📊 Type Design Scores（該当する場合）
-| 型名 | Encapsulation | Invariant | Usefulness | Enforcement | 総合 |
-|------|--------------|-----------|------------|-------------|------|
-| ... | .../10 | .../10 | .../10 | .../10 | .../10 |
+
+| 型名 | Encapsulation | Invariant | Usefulness | Enforcement | 総合   |
+| ---- | ------------- | --------- | ---------- | ----------- | ------ |
+| ...  | .../10        | .../10    | .../10     | .../10      | .../10 |
 
 ## ✅ Positive Findings
+
 - [良い実装の例]
 
 ## 📝 Summary
+
 - Critical: X件
 - Important: X件
 - 総合評価: [PASS / NEEDS_WORK / CRITICAL_BLOCK]
@@ -170,11 +177,11 @@ scripts/
 
 ### 総合評価の判定基準
 
-| 判定 | 条件 |
-|------|------|
-| `PASS` | Critical Issues が0件 |
-| `NEEDS_WORK` | Critical Issues が0件だが Important Issues がある |
-| `CRITICAL_BLOCK` | Critical Issues が1件以上 |
+| 判定             | 条件                                              |
+| ---------------- | ------------------------------------------------- |
+| `PASS`           | Critical Issues が0件                             |
+| `NEEDS_WORK`     | Critical Issues が0件だが Important Issues がある |
+| `CRITICAL_BLOCK` | Critical Issues が1件以上                         |
 
 ## 注意事項
 

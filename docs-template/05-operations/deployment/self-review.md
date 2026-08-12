@@ -131,7 +131,7 @@ PR Review Toolkit（Claude系）でのセルフレビューに加え、Codex CLI
 
 ```bash
 # Toolkit レビュー後に実行
-bash scripts/codex-review.sh --branch
+bash scripts/codex-review.sh --base develop
 ```
 
 ### レビュー結果の対応

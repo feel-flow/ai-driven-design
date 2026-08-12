@@ -294,7 +294,7 @@ Claude系（Toolkit）とGPT系（Codex CLI）で異なるモデルの観点か�
 
 ```bash
 # Toolkit セルフレビュー後に実行
-bash scripts/codex-review.sh --branch
+bash scripts/codex-review.sh --base develop
 ```
 
 > **レビュー結果の対応**: 全てのレビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します。Critical/Warning は確認不要で即対応。
@@ -421,7 +421,7 @@ Closes #${ISSUE_NUM}
 
 # クロスモデルレビュー（GPT系の観点、read-only）
 # 基準ブランチは REVIEW_BASE_BRANCH で上書き可（デフォルト: develop）
-bash scripts/codex-review.sh --branch
+bash scripts/codex-review.sh --base develop
 ```
 
 さらに多観点で確認したい場合は、Multi-CLI 分散レビュー（オプション）を併用します：
