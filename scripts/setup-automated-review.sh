@@ -5,7 +5,7 @@
 # ============================================================================
 #
 # 概要:
-#   新レビューフレームワーク（review-common.sh + review-prompts.sh + CLIアダプタ）
+#   レビューフレームワーク（共通基盤 + 各 CLI アダプタ + Codex toolkit シム）
 #   を使った自動コードレビュー環境を設定します。
 #   pre-commit hookでAI CLIがコードをレビューし、問題があればコミットをブロックします。
 #
@@ -128,7 +128,7 @@ AI CLI を使った自動コードレビューをセットアップします。
   scripts/review-common.sh       共通レビュー基盤（並列実行・結果表示）
   scripts/review-prompts.sh      5種レビュワーのプロンプト定義
   scripts/claude-review.sh       Claude Code アダプタ
-  scripts/codex-review.sh        Codex CLI アダプタ
+  scripts/codex-review.sh        ff-dev-toolkit の Codex レビューシム
   scripts/copilot-review.sh      Copilot CLI アダプタ
   scripts/gemini-review.sh       Gemini CLI アダプタ
   scripts/cursor-review.sh       Cursor Agent アダプタ
@@ -382,7 +382,7 @@ Based on results:
 bash scripts/claude-review.sh --staged
 
 # Use a different AI CLI
-bash scripts/codex-review.sh --branch
+bash scripts/codex-review.sh --base develop
 bash scripts/gemini-review.sh --branch
 
 # Copilot CLI is metered — opt in only if you accept the cost
@@ -425,7 +425,7 @@ setup_npm_scripts() {
             "prepare": "husky",
             "code-review": "bash scripts/claude-review.sh --staged",
             "code-review:branch": "bash scripts/claude-review.sh --branch",
-            "code-review:codex": "bash scripts/codex-review.sh --branch",
+            "code-review:codex": "bash scripts/codex-review.sh --base develop",
             "code-review:copilot": "bash scripts/copilot-review.sh --branch",
             "code-review:gemini": "bash scripts/gemini-review.sh --branch",
             "code-review:cursor": "bash scripts/cursor-review.sh --branch"
@@ -479,7 +479,7 @@ print_summary() {
     echo ""
     echo -e "${GREEN}CLIアダプタ:${NC}"
     echo "  scripts/claude-review.sh       Claude Code"
-    echo "  scripts/codex-review.sh        Codex CLI"
+    echo "  scripts/codex-review.sh        Codex CLI（ff-dev-toolkit へ委譲）"
     echo "  scripts/copilot-review.sh      Copilot CLI（従量課金・オプトイン）"
     echo "  scripts/gemini-review.sh       Gemini CLI"
     echo "  scripts/cursor-review.sh       Cursor Agent"

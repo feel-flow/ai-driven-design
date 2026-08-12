@@ -42,7 +42,7 @@ PR Review Toolkit（Claude系）でのセルフレビュー後に続けて実行
 
 ```bash
 # Toolkit レビュー後に実行（codex exec ベース）
-bash scripts/codex-review.sh --branch
+bash scripts/codex-review.sh --base develop
 ```
 
 レビュー結果は [PRレビュー対応ポリシー](./review-response-policy.md) に従って対応します。

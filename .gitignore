@@ -32,3 +32,6 @@ coverage/
 
 # Codex CLI
 .codex/
+
+# ff-dev-toolkit のシムが参照するオーケストレータの実パス（マシン固有）
+scripts/.ff-dev-toolkit-root

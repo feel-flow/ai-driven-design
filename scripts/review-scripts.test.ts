@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, chmodSync, rmSync, mkdirSync } from "node:f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-// レビュースクリプト群（claude/codex/copilot/gemini/cursor-review.sh + review-common.sh）の
+// 自前レビュー基盤（claude/copilot/gemini/cursor-review.sh + review-common.sh）の
 // 決定論的 smoke test（Issue #452）。
 // PR #449 で multi-agent.sh の長期潜伏バグが発覚した教訓（ACE-449-1）に基づき、
 // レビューインフラ自体の分岐を実 CLI なしで回帰テストする。
@@ -26,7 +26,6 @@ interface ReviewScript {
 
 const SCRIPTS: ReviewScript[] = [
   { script: "claude-review.sh", cli: "claude", envPrefix: "CLAUDE" },
-  { script: "codex-review.sh", cli: "codex", envPrefix: "CODEX" },
   { script: "copilot-review.sh", cli: "copilot", envPrefix: "COPILOT" },
   { script: "gemini-review.sh", cli: "gemini", envPrefix: "GEMINI" },
   { script: "cursor-review.sh", cli: "cursor-agent", envPrefix: "CURSOR" },

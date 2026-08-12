@@ -1,6 +1,6 @@
 #!/bin/bash
 # Shared Review Prompt Templates
-# Sourced by claude-review.sh, codex-review.sh, copilot-review.sh
+# Sourced by claude-review.sh, copilot-review.sh
 #
 # Each reviewer outputs a structured report with a PASS/FAIL verdict.
 # Prompts are language/framework-agnostic so they work for any project

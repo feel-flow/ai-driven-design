@@ -239,7 +239,7 @@ npm run lint:md
 ### Cross-Model Review Results
 
 - [ ] PR Review Toolkit: 実施済み
-- [ ] Codex CLI (`bash scripts/codex-review.sh --branch`): 実施済み
+- [ ] Codex CLI (`bash scripts/codex-review.sh --base develop`): 実施済み
 - [ ] [Review Response Policy](docs-template/05-operations/deployment/review-response-policy.md) に従い対応済み
 
 ## Test plan

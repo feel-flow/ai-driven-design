@@ -123,7 +123,7 @@ project-root/
 │   ├── review-common.sh          # 共通基盤（並列実行・結果表示・差分取得）
 │   ├── review-prompts.sh         # 5種レビュワーのプロンプト定義
 │   ├── claude-review.sh          # Claude Code アダプタ
-│   ├── codex-review.sh           # Codex CLI アダプタ
+│   ├── codex-review.sh           # ff-dev-toolkit の Codex レビューシム
 │   ├── copilot-review.sh         # Copilot CLI アダプタ（従量課金・オプトイン）
 │   ├── gemini-review.sh          # Gemini CLI アダプタ
 │   ├── cursor-review.sh          # Cursor Agent アダプタ
