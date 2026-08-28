@@ -11,7 +11,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "error-handling, result-pattern, custom-errors, logging, silent-error"
-  references: "docs-template/03-implementation/PATTERNS.md, docs-template/03-implementation/FALLBACK.md, docs-template/MASTER.md"
+  references: "docs/03-implementation/PATTERNS.md, docs/03-implementation/FALLBACK.md, docs/MASTER.md"
 ---
 
 # エラーハンドリング基準
@@ -68,11 +68,18 @@ abstract class AppError extends Error {
   }
 }
 
+// バリデーション詳細（any を使わない / MASTER.md）。PATTERNS.md と同じ形状
+interface ValidationDetail {
+  field: string;
+  message: string;
+  constraint?: string;
+}
+
 // バリデーションエラー
 class ValidationError extends AppError {
   constructor(
     message: string,
-    public details: any[],
+    public readonly details: readonly ValidationDetail[],
   ) {
     super(message, "VALIDATION_ERROR", 400);
   }
@@ -245,7 +252,7 @@ logger.error("Failed to process user", error, {
 
 ## 8. AI生成コードのフォールバックアンチパターン
 
-> 包括的なフォールバック戦略（階層モデル・レイヤー別パターン含む）は [FALLBACK.md](../../../03-implementation/FALLBACK.md) を参照。
+> 包括的なフォールバック戦略（階層モデル・レイヤー別パターン含む）は [FALLBACK.md](../../../docs/03-implementation/FALLBACK.md) を参照。
 
 AI（Claude Code, Copilot, Cursor等）は `try-catch` + デフォルト値返却を自動挿入する傾向がある。
 このパターンは開発中のバグを隠蔽し、本番で初めて問題が発覚するリスクを生む。
@@ -284,7 +291,17 @@ const data = await fetchData().catch(() => defaultValue);
 フォールバックが必要な場合は、`fallbackInProdOnly()` ユーティリティ（推奨）または環境分岐を使用する：
 
 ```typescript
-// ✅ 環境別フォールバック（FALLBACK.md 準拠）
+// ✅ 推奨: ユーティリティを使う（禁止カテゴリの判定を内蔵している）
+try {
+  return await fetchData();
+} catch (error) {
+  return fallbackInProdOnly(defaultValue, error, { operation: "fetchData" });
+}
+
+// △ インライン環境分岐（カスタムログが必要な場合のみ）
+// 素の環境分岐は「フォールバック禁止カテゴリ」の判定を持たないため、
+// 認証・認可・バリデーション・データ整合性・セキュリティのエラーが
+// 本番で握りつぶされる。この形を使うなら禁止カテゴリの判定を必ず添える。
 try {
   return await fetchData();
 } catch (error) {
@@ -293,6 +310,15 @@ try {
   logger.error("Failed to fetch data", normalizedError, {
     operation: "fetchData",
   });
+
+  // 禁止カテゴリは環境に関係なく常にスロー（FALLBACK.md Section 1）
+  if (
+    NEVER_FALLBACK_ERRORS.some(
+      (ErrorType) => normalizedError instanceof ErrorType,
+    )
+  ) {
+    throw normalizedError;
+  }
 
   const env = process.env.NODE_ENV;
   if (env === "development" || env === "test") {
@@ -305,10 +331,11 @@ try {
 
 ### レビュー時の判断基準
 
-| 状況                                                        | 対応                               |
-| ----------------------------------------------------------- | ---------------------------------- |
-| catch 内でデフォルト値を返している                          | 環境分岐を追加するよう指摘         |
-| `.catch(() => default)` パターン                            | try-catch + 環境分岐に書き換え     |
-| 認証/認可/バリデーション/データ整合性エラーにフォールバック | 環境問わずスローに修正             |
-| 既に `fallbackInProdOnly()` または環境分岐あり              | OK（ログ記録・エラー正規化を確認） |
-| フォールバックが明示的にビジネス要件                        | コメントで理由を明記させる         |
+| 状況                                                                     | 対応                                 |
+| ------------------------------------------------------------------------ | ------------------------------------ |
+| catch 内でデフォルト値を返している                                       | 環境分岐を追加するよう指摘           |
+| `.catch(() => default)` パターン                                         | try-catch + 環境分岐に書き換え       |
+| 認証/認可/バリデーション/データ整合性/セキュリティエラーにフォールバック | 環境問わずスローに修正               |
+| 既に `fallbackInProdOnly()` を使用                                       | OK（ログ記録・エラー正規化を確認）   |
+| 環境分岐のみ（禁止カテゴリの判定なし）                                   | 禁止カテゴリの判定を追加するよう指摘 |
+| フォールバックが明示的にビジネス要件                                     | コメントで理由を明記させる           |

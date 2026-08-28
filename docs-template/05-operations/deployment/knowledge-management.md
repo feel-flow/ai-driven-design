@@ -287,6 +287,6 @@ GitHubのDiscussionsはタグ機能が制限的です。代わりに、本文内
 - **親ドキュメント**: [DEPLOYMENT.md](../DEPLOYMENT.md) - 完全なテンプレートと詳細手順
 - **ACE サイクル**: [ace-cycle.md](./ace-cycle.md) - ACE Playbook 更新の具体手順
 - **Playbook テンプレート**: [PLAYBOOK.md](../../08-knowledge/PLAYBOOK.md) - 構造化ナレッジの追記先
-- **ACE フレームワーク概念**: [ACE_FRAMEWORK.md](../../../docs/ACE_FRAMEWORK.md) - ACE の理論的背景
+- **ACE フレームワーク概念**: [ACE_FRAMEWORK.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md) - ACE の理論的背景
 - **ワークフロー全体**: DEPLOYMENT.md「AI駆動Git Workflow」
 - **GitHub CLI**: [gh discussion](https://cli.github.com/manual/gh_discussion)

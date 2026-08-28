@@ -8,13 +8,13 @@ owner: "@fffokazaki"
 ace_entry_count: 67
 tags: [ace, playbook, knowledge-management]
 references:
-  - docs/ACE_FRAMEWORK.md
-  - docs-template/05-operations/deployment/ace-cycle.md
+  - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
+  - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs-template/05-operations/deployment/ace-cycle.md
 ---
 
 # ACE Playbook
 
-> **Parent**: [BEST_PRACTICES.md](./BEST_PRACTICES.md) | **関連**: [ACE サイクル運用手順](../05-operations/deployment/ace-cycle.md) | [ACE フレームワーク概念](../../docs/ACE_FRAMEWORK.md)
+> **Parent**: [BEST_PRACTICES.md](./BEST_PRACTICES.md) | **関連**: [ACE サイクル運用手順](../05-operations/deployment/ace-cycle.md) | [ACE フレームワーク概念](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md)
 
 ## 概要
 

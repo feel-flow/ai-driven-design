@@ -8,7 +8,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "type-design, type-safety, branded-types, encapsulation, generics"
-  references: "docs-template/MASTER.md, docs-template/03-implementation/PATTERNS.md, docs-template/02-design/ARCHITECTURE.md"
+  references: "docs/MASTER.md, docs/03-implementation/PATTERNS.md, docs/02-design/ARCHITECTURE.md"
 ---
 
 # Type Design Analyzer Agent
@@ -165,6 +165,6 @@ function findById<T extends { id: string }>(
 
 ## 参照ドキュメント
 
-- `docs-template/03-implementation/PATTERNS.md` — 型定義パターン
-- `docs-template/02-design/ARCHITECTURE.md` — アーキテクチャ設計（プロジェクト固有の設計決定を記載後に参照）
-- `docs-template/MASTER.md` — TypeScript strict mode ルール
+- `docs/03-implementation/PATTERNS.md` — 型定義パターン
+- `docs/02-design/ARCHITECTURE.md` — アーキテクチャ設計（プロジェクト固有の設計決定を記載後に参照）
+- `docs/MASTER.md` — TypeScript strict mode ルール

@@ -7,7 +7,7 @@ AI Spec-Driven DevelopmentプロジェクトでGitHubリポジトリを初期設
 このガイドでは、以下を設定します：
 
 1. **GitHubラベル** - Issue/PR管理用ラベル
-2. **リリースノート** - 本リポジトリでは [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) に従い **手動**（`gh release create` 等）を前提とする。Release Drafter **用の GitHub Actions ワークフロー**を使う場合は任意（テンプレ利用・fork 先では従来どおり有効化してもよい）。
+2. **リリースノート** - 本テンプレートのソースリポジトリでは [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) に従い **手動**（`gh release create` 等）を前提とする。Release Drafter **用の GitHub Actions ワークフロー**を使う場合は任意（テンプレ利用・fork 先では従来どおり有効化してもよい）。
 3. **推奨ワークフロー** - 標準的な開発フロー
 
 `.github/release-drafter.yml`（設定ファイル）は、**手動でリリースノートをまとめる際のカテゴリ分け**の参考として残すことがあります（ワークフローが無くても意味のあるラベル構造の説明として利用可能）。
@@ -105,7 +105,7 @@ gh pr edit 123 --add-label "minor"
 gh pr edit 123 --add-label "patch"
 ```
 
-**バージョン方針**（`major` / `minor` / `patch` ラベル）は、手動リリース時も同じ考え方で用いることができます。自動ドラフト用 Actions を使う場合は Release Drafter が次バージョンを解釈します（[移行設計](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) 参照）。
+**バージョン方針**（`major` / `minor` / `patch` ラベル）は、手動リリース時も同じ考え方で用いることができます。自動ドラフト用 Actions を使う場合は Release Drafter が次バージョンを解釈します（[移行設計](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) 参照）。
 
 ## 2. Release Drafterの設定（参考・任意の自動化）
 
@@ -261,13 +261,13 @@ gh pr create --title "perf: Optimize build process" --label "enhancement"
 
 ### Release Drafterが動作しない
 
-1. 自動ドラフト用の **ワークフロー YAML** をリポジトリで使う方針か確認（本リポ主軸は [移行設計](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) の手動フロー）
+1. 自動ドラフト用の **ワークフロー YAML** をリポジトリで使う方針か確認（ソースリポの主軸は [移行設計](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) の手動フロー）
 2. ワークフロー利用時は GitHub Actions が有効か確認
 3. PRに適切なラベルが付いているか確認
 
 ## 6. 関連ドキュメント
 
-- [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) - 本リポのローカル品質ゲート・手動リリース（Actions 非依存の場合）
+- [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) - ソースリポのローカル品質ゲート・手動リリース（Actions 非依存の場合）
 - [Git Workflow](./git-workflow.md) - 開発フローの詳細
 - [Automated Code Review](./automated-code-review.md) - 自動レビューの設定
 - [AI Tools Integration](./ai-tools-integration.md) - AIツールの統合
@@ -278,7 +278,7 @@ gh pr create --title "perf: Optimize build process" --label "enhancement"
 
 - ✅ **標準化されたラベル体系** - GitHubデフォルト + 最小限のカスタム
 - ✅ **バージョニングの見通し** - ラベルに基づくセマンティック方針（手動 or Release Drafter 自動）
-- ✅ **リリースノート** - 自動化する場合は Release Drafter。本リポ主軸は [移行設計](../../../docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) の手動フロー
+- ✅ **リリースノート** - 自動化する場合は Release Drafter。ソースリポの主軸は [移行設計](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) の手動フロー
 - ✅ **効率的なワークフロー** - スクリプトによる補助（`gh` 等）
 
 AI Spec-Driven Developmentの推奨設定が完了しました。

@@ -1,12 +1,13 @@
 ---
 id: design-principles
 title: 本リポジトリの設計原則
-version: 1.0.0
+version: 1.1.0
 status: active
 created: 2026-05-07
-updated: 2026-05-07
+updated: 2026-08-28
 owner: feel-flow
 phase: extension
+changeImpact: low
 references:
   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
   - docs-template/MASTER.md
@@ -82,6 +83,9 @@ visibility: public
 - `docs-template/` への変更は **テンプレ利用者の受け取り物に直接影響する**。レビューでは「テンプレ利用者は特定ツールなしでも使えるか？」を必ず問う
 - リポ自身の運用に必要なインフラ（Obsidian / Notion / 特殊な lint 設定 等）は配布境界の **外** に置く
 - `docs/` は本リポのメンテナンスや発信のための文書置き場であり、配布されない（テンプレ利用者には届かない）
+- 配布対象内のリンクは **配布ツリー外（`docs/` 等）を相対パスで指さない**。指す必要がある場合は公開リポの絶対 URL（`https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/...`）にする。相対パスは本リポでしか解決せず、コピーした利用者側ではリンク切れになる（[ACE-447-2](../docs-template/08-knowledge/PLAYBOOK.md#ace-447-2)）
+- `docs-template/.github/` 配下のパス表記は **利用者側のレイアウト**（リポジトリ直下に `.github/` と `docs/` が並ぶ）を前提に書く。本リポのドッグフード配置（文書が `docs-template/` 直下にある）を前提にすると、利用者側で参照がまとめて壊れる（Issue [#483](https://github.com/feel-flow/ai-spec-driven-development/issues/483)）
+- ただし Issue / PR テンプレートは**リンクにしない**。テンプレート本文は Issue / PR body として展開され、相対リンクが `issues/N/` `pull/N/` 起点になって 404 になるため、配布版では inline code で書く（[ACE-046](../docs-template/08-knowledge/PLAYBOOK.md#ace-046)。本リポのドッグフード側は自リポの `blob/HEAD/` 絶対 URL を使う）
 
 ---
 
@@ -194,6 +198,10 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 [ACE-022]: ../docs-template/08-knowledge/PLAYBOOK.md#ace-022
 
 ## 改訂履歴
+
+### 1.1.0 - 2026-08-28
+
+- P2「含意」に配布物内リンクの規約 3 点を追記（配布ツリー外は絶対 URL / 配布版 `.github/` は利用者側レイアウト前提 / Issue・PR テンプレはリンクにしない）。Issue #483 で downstream 展開時にリンクが全滅した事例から
 
 ### 1.0.0 - 2026-05-07
 

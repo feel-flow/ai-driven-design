@@ -18,16 +18,18 @@ assignees: ""
 
 ## 参照ドキュメント（AIへ：必ず読んでください）
 
+<!-- パスは docs/ 配下に文書を配置した場合のもの。Issue 本文では相対リンクが issues/N/ 起点で誤って解決され 404 になる（ACE-046）ため、リンクにせず inline code で記載している。リンク化する場合は自リポジトリの https://github.com/<owner>/<repo>/blob/HEAD/<path> 形式の絶対 URL に置換すること -->
+
 > **必須参照**: MASTER, ARCHITECTURE, DOMAIN
 
-- [ ] [MASTER.md](../../MASTER.md)
-- [ ] [ARCHITECTURE.md](../../02-design/ARCHITECTURE.md)
-- [ ] [DOMAIN.md](../../02-design/DOMAIN.md)
+- [ ] `docs/MASTER.md`
+- [ ] `docs/02-design/ARCHITECTURE.md`
+- [ ] `docs/02-design/DOMAIN.md`
 
 > **推奨参照**: PATTERNS, TESTING
 
-- [ ] [PATTERNS.md](../../03-implementation/PATTERNS.md)
-- [ ] [TESTING.md](../../04-quality/TESTING.md)
+- [ ] `docs/03-implementation/PATTERNS.md`
+- [ ] `docs/04-quality/TESTING.md`
 
 ## 関連Issue
 
@@ -69,13 +71,13 @@ assignees: ""
 > 新機能・新ツール・新インフラを導入する Issue では、**「採用しないことになった場合に削除対象となる範囲」を着手前に見積もる**。撤退コスト > 採用メリット × 期待値 なら採用しない判断が正しい。
 
 <!-- prettier-ignore -->
-| 項目                      | 試算値                                      |
-| ------------------------- | ------------------------------------------- |
-| 新規ファイル数            | [N ファイル予定]                            |
-| 編集ファイル数            | [N ファイル予定]                            |
-| 専用 constants/types      | [あり / なし — 機能名: ...]                 |
-| `docs-template/` への影響 | [N ファイル混入 / 影響なし]                 |
-| 撤退判断のしきい値        | [例: 2 週間以内に重大バグが N 件出たら撤退] |
+| 項目                 | 試算値                                      |
+| -------------------- | ------------------------------------------- |
+| 新規ファイル数       | [N ファイル予定]                            |
+| 編集ファイル数       | [N ファイル予定]                            |
+| 専用 constants/types | [あり / なし — 機能名: ...]                 |
+| 配布物への影響       | [N ファイル混入 / 影響なし]                 |
+| 撤退判断のしきい値   | [例: 2 週間以内に重大バグが N 件出たら撤退] |
 
 ## その他
 

@@ -10,7 +10,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "coding-standards, naming-conventions, anti-magic-number, security, design-patterns"
-  references: "docs-template/03-implementation/PATTERNS.md, docs-template/MASTER.md"
+  references: "docs/03-implementation/PATTERNS.md, docs/MASTER.md"
 ---
 
 # コードレビュー基準

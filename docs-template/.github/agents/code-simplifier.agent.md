@@ -8,7 +8,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "simplification, complexity, readability, yagni, refactoring"
-  references: "docs-template/MASTER.md, docs-template/03-implementation/PATTERNS.md"
+  references: "docs/MASTER.md, docs/03-implementation/PATTERNS.md"
 ---
 
 # Code Simplifier Agent
@@ -124,5 +124,5 @@ function process(data) {
 
 ## 参照ドキュメント
 
-- `docs-template/03-implementation/PATTERNS.md` — 実装パターン
-- `docs-template/MASTER.md` — ファイルサイズ制限・構造ルール
+- `docs/03-implementation/PATTERNS.md` — 実装パターン
+- `docs/MASTER.md` — ファイルサイズ制限・構造ルール

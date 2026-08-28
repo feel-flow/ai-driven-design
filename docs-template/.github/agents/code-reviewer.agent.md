@@ -9,7 +9,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "code-review, naming-conventions, magic-number, security, design-patterns"
-  references: "docs-template/MASTER.md, docs-template/03-implementation/PATTERNS.md"
+  references: "docs/MASTER.md, docs/03-implementation/PATTERNS.md"
 ---
 
 # Code Reviewer Agent
@@ -95,6 +95,6 @@ const TIMEOUT_MS = 30000;
 
 ## 参照ドキュメント
 
-- `docs-template/MASTER.md` — プロジェクト全体のルール
-- `docs-template/03-implementation/PATTERNS.md` — 実装パターン
-- `docs-template/.github/skills/code-review-standards/SKILL.md` — コーディング規約 Skill
+- `docs/MASTER.md` — プロジェクト全体のルール
+- `docs/03-implementation/PATTERNS.md` — 実装パターン
+- `.github/skills/code-review-standards/SKILL.md` — コーディング規約 Skill

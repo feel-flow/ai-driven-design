@@ -140,7 +140,8 @@ interface ValidationDetail {
 class ValidationError extends AppError {
   constructor(
     message: string,
-    public details: ValidationDetail[],
+    // readonly: 呼び出し元へ返した配列を書き換えられないようにする
+    public readonly details: readonly ValidationDetail[],
   ) {
     super(message, "VALIDATION_ERROR", 400);
   }
@@ -161,6 +162,28 @@ class ForbiddenError extends AppError {
 class ConflictError extends AppError {
   constructor(message: string) {
     super(message, "CONFLICT", 409);
+  }
+}
+
+// 認証エラー（未認証）。認可エラー(ForbiddenError)と合わせて
+// FALLBACK.md のフォールバック禁止カテゴリを構成する
+class UnauthorizedError extends AppError {
+  constructor(message: string) {
+    super(message, "UNAUTHORIZED", 401);
+  }
+}
+
+// セキュリティ違反（改ざん検知・署名不一致・レート制限違反など）
+class SecurityError extends AppError {
+  constructor(message: string) {
+    super(message, "SECURITY_VIOLATION", 403);
+  }
+}
+
+// 予期しない内部エラー（詳細はログに残し、利用者には露出しない）
+class InternalError extends AppError {
+  constructor(message: string) {
+    super(message, "INTERNAL_ERROR", 500);
   }
 }
 ```

@@ -9,7 +9,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "testing, coverage, test-quality, aaa-pattern, test-pyramid"
-  references: "docs-template/MASTER.md, docs-template/04-quality/TESTING.md"
+  references: "docs/MASTER.md, docs/04-quality/TESTING.md"
 ---
 
 # Test Analyzer Agent
@@ -132,6 +132,6 @@ it("test user", () => {});
 
 ## 参照ドキュメント
 
-- `docs-template/MASTER.md` — テストカバレッジ目標
-- `docs-template/04-quality/TESTING.md` — テスト戦略
-- `docs-template/.github/skills/test-patterns/SKILL.md` — テストパターン Skill
+- `docs/MASTER.md` — テストカバレッジ目標
+- `docs/04-quality/TESTING.md` — テスト戦略
+- `.github/skills/test-patterns/SKILL.md` — テストパターン Skill
