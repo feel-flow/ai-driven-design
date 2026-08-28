@@ -14,14 +14,40 @@ import { join, resolve, dirname, normalize, relative } from "node:path";
 // 実際に ISSUE_TEMPLATE / PR テンプレ / agents / skills の約 30 箇所が
 // 上流レイアウト前提になっていた（Issue #483-1）。
 //
-// 検出範囲の限界: 参照先が「配布ツリーに存在するか」までを見る。
-// /init-docs が初期配置するのは 20 ファイルのみで、05-operations/deployment/ 配下などは
-// 配置されない。そこへの参照はこのテストでは緑のまま通る（初期セット外への参照は
-// リンクではなく所在の案内テキストにする、という規約側で担保する）。
+// 配布ツリーに存在することと、/init-docs が実際に配置することは別物である。
+// リンクは「展開先に必ず在る」ことが前提なので初期セット内に限り、初期セット外
+// （05-operations/deployment/ 配下など）は所在の案内として inline code で書く。
+// この線引きを INITIAL_SET で機械検証する（Issue #488）。
 
 const REPO_ROOT = resolve(__dirname, "..");
 const TEMPLATE_ROOT = join(REPO_ROOT, "docs-template");
 const DIST_GITHUB = join(TEMPLATE_ROOT, ".github");
+
+// /init-docs が初期配置する 20 ファイル。出典は ff-dev-toolkit の
+// skills/init-docs/SKILL.md「2. ディレクトリ構造の作成」。
+// 00-planning/ と 08-knowledge/ は初期セットに含まれない（後者は /ace-setup が作成）。
+const INITIAL_SET = new Set([
+  "docs/MASTER.md",
+  "docs/01-context/PROJECT.md",
+  "docs/01-context/CONSTRAINTS.md",
+  "docs/02-design/ARCHITECTURE.md",
+  "docs/02-design/DOMAIN.md",
+  "docs/02-design/API.md",
+  "docs/02-design/DATABASE.md",
+  "docs/03-implementation/PATTERNS.md",
+  "docs/03-implementation/CONVENTIONS.md",
+  "docs/03-implementation/INTEGRATIONS.md",
+  "docs/03-implementation/DECISION_TREE.md",
+  "docs/03-implementation/FALLBACK.md",
+  "docs/04-quality/TESTING.md",
+  "docs/04-quality/VALIDATION.md",
+  "docs/05-operations/DEPLOYMENT.md",
+  "docs/06-reference/GLOSSARY.md",
+  "docs/06-reference/DECISIONS.md",
+  "docs/07-project-management/ROADMAP.md",
+  "docs/07-project-management/TASKS.md",
+  "docs/07-project-management/RISKS.md",
+]);
 
 /** 利用者側レイアウトのパス（.github/... または docs/...）を実ファイルへ写像する */
 function toTemplatePath(deployedPath: string): string | null {
@@ -81,7 +107,7 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
     expect(broken).toEqual([]);
   });
 
-  it("inline code のパス表記が利用者側レイアウトで解決する", () => {
+  it("inline code のパス表記が配布ツリー内に存在する", () => {
     const broken: string[] = [];
     for (const file of MD_FILES) {
       const content = readFileSync(file, "utf8");
@@ -110,6 +136,28 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
       }
     }
     expect(broken).toEqual([]);
+  });
+
+  // リンクは「展開先に必ず在る」ことが前提。/init-docs が配置しないファイルへ
+  // リンクを張ると、パスが正しくても展開先で切れる（Issue #483-1 で
+  // review-response-policy.md / agent-deletion-prevention-harness.md が該当した）。
+  it("相対リンクの参照先が /init-docs の初期セット内にある", () => {
+    const outside: string[] = [];
+    for (const file of MD_FILES) {
+      const content = readFileSync(file, "utf8");
+      const fromDir = dirname(deployedLocation(file));
+      for (const match of content.matchAll(RELATIVE_LINK)) {
+        const target = normalize(join(fromDir, match[1]));
+        // .github/ 配下は配布物同士の参照なので初期セットの対象外
+        if (target.startsWith(".github/")) continue;
+        if (!INITIAL_SET.has(target)) {
+          outside.push(
+            `${relative(REPO_ROOT, file)} → ${target}（初期セット外。リンクではなく inline code で所在を案内する）`,
+          );
+        }
+      }
+    }
+    expect(outside).toEqual([]);
   });
 
   it("上流レイアウト固有のパス（docs-template/）を含まない", () => {
