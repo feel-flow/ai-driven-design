@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.34.0"
+version: "1.35.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-07-03"
+updated: "2026-08-28"
 owner: "@fffokazaki"
-ace_entry_count: 67
+ace_entry_count: 70
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1390,7 +1390,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | documentation-quality                                                 |
 | Origin     | PR #437 / Issue #433-#436                                             |
 | Date       | 2026-05-20                                                            |
-| Helpful    | 1                                                                     |
+| Helpful    | 2                                                                     |
 | Harmful    | 0                                                                     |
 | Status     | active                                                                |
 | Related    | [ACE-016](#ace-016)（anchor URL 欠落）/ [ACE-044](#ace-044) carve-out |
@@ -1548,7 +1548,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #447 / Issue #446  |
 | Related    | ACE-046, ACE-443-1    |
 | Date       | 2026-06-23            |
-| Helpful    | 0                     |
+| Helpful    | 1                     |
 | Harmful    | 0                     |
 | Status     | active                |
 
@@ -1902,9 +1902,79 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 **Action**: opt-in フラグを既存ファイル群へ一括付与するときは、付与前に「このファイルはコピー元（テンプレート/雛形/サンプル）として案内されていないか」を分類に加える。雛形は許可値を持たせず（キー自体を書かない）、必要なら「作成後に明示せよ」を雛形の案内文とガイドに書く。レビュー観点としては「雛形・スキャフォールド・generator の出力既定値」は opt-in 反転の定番経路として必ず確認する。
 
+<a id="ace-484-1"></a>
+
+### ACE-484-1: テンプレート欠陥の修正は「実際にコピーされる実体」を先に特定する — 報告先リポジトリと配布実体が別だと直しても下流に届かない
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | process              |
+| Origin     | PR #484 / Issue #483 |
+| Date       | 2026-08-28           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 同じ名前のテンプレートが複数リポジトリに実体を持つとき、「欠陥が報告されたリポジトリ」と「実際にコピー元として読まれるリポジトリ」は一致するとは限らない。着手時に**セットアップコマンドがどのパスを読むか**を確認しないと、直したのに下流の出力が変わらない。再現確認の段階で「報告された欠陥が手元で再現しない」が出たら、それは Issue の誤りではなく**別実体を見ているサイン**として扱う。
+
+**Context**: Issue #483（downstream 展開時のテンプレート欠陥 8 件）を本リポの `docs-template/` に照合したところ、2 件（ACE 追記先の三説併存 / カテゴリ 8 種 vs 11 種）が再現しなかった。原因を追うと、`/init-docs` と `/ace-setup` の SKILL.md はいずれも `${FF_DEV_TOOLKIT_ROOT}/docs-template/` を読んでおり、**実際のコピー元は ff-dev-toolkit プラグイン同梱の docs-template** だった。プラグイン側は PLAYBOOK が 11 カテゴリ・`playbook/` 分割方式へ進化しており、公開リポ側は 8 カテゴリ・800 行分割のままという乖離が生じていた。プラグイン側の実ファイルを確認すると 8 件すべてが再現した。
+
+**Action**: 配布物の欠陥修正に着手する前に、(1) セットアップ手順（SKILL.md / スクリプト）が参照するパスを grep し、(2) そのパスの実体と自リポの該当ファイルを `diff -rq` して乖離の有無を確認する。乖離があれば「どちらが SSOT か」を先に決め、修正 PR には**この修正だけでは下流の挙動が変わらない**旨と移植先 Issue を明記する。再現しない項目は「Issue の誤り」ではなく「実体差」を第一仮説にする。関連: [ACE-021](#ace-021)（テンプレ配布リポ分離）。
+
+<a id="ace-484-2"></a>
+
+### ACE-484-2: 配布物のリンク規約は Playbook に書くだけでは適用漏れが残る — 利用者側レイアウトを再現する機械検証で固定する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | testing              |
+| Origin     | PR #484 / Issue #483 |
+| Date       | 2026-08-28           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 「配布物のリンクはこう書く」という規約を Playbook に記録しても、適用は人手の grep に依存するため配布ツリーの一部に取り残しが残る。しかも配布物のリンクは **(a) パスが利用者側レイアウトで解決するか** と **(b) レンダリング文脈（Issue / PR body）で解決するか** の 2 軸で壊れるため、片方だけ直して「直った」と誤認しやすい。規約は、利用者側レイアウトを仮想的に組んで全参照を解決する**テスト**として固定しないと再発する。
+
+**Context**: 本リポには [ACE-046](#ace-046)（PR/Issue body の相対リンクは `issues/N/` 起点で 404。配布版は plain text にする）と [ACE-447-2](#ace-447-2)（配布物内リンクは配布ツリー外を指さない）が既に記録されていたが、`docs-template/.github/ISSUE_TEMPLATE/*.md` の 14 リンクには未適用のまま残っていた。PR #484 は初手で「パスのベースを `../../docs/` に直す」だけの修正をしており、(a) は満たしたが (b) を落としていた。これを Codex CLI と Toolkit `code-reviewer` が**独立に同一箇所を Critical 検出**し、両方が根拠として既存の ACE-046 を引用した。追加した回帰テストを develop 時点の内容に対して走らせると、`docs-template/` 混入 13 ファイルと Issue body で壊れる相対リンク 18 箇所を検出して落ちる。
+
+**Action**: 配布物のパス・リンク規約を新設または適用したら、同じ PR で機械検証を足す。検証は「利用者側レイアウト（リポジトリ直下に `.github/` と `docs/` が並ぶ）を写像で再現し、相対リンク・inline code パス・frontmatter references をすべて解決する」形にし、**修正前の内容に対して実際に落ちること**を確認してから緑にする（`scripts/distribution-github-templates.test.ts`）。テスト名は検証していることだけを名乗る（「利用者側レイアウトで解決する」と「配布ツリー内に存在する」は別物で、後者は `/init-docs` の初期セット外への参照を緑のまま通す）。関連: [ACE-046](#ace-046) / [ACE-447-2](#ace-447-2)。
+
+<a id="ace-484-3"></a>
+
+### ACE-484-3: フォーマッタを caret 範囲で許すと push ゲートが環境依存で赤くなる — 「触っていないファイルが落ちる」で切り分けが溶ける
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | tooling              |
+| Origin     | PR #484 / Issue #485 |
+| Date       | 2026-08-28           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 整形結果がバージョンで変わるツール（prettier 等）を `^` 範囲で許し、かつ pre-push でフル品質ゲートを強制していると、パッチ版が上がっただけで**自分が触っていないファイルが赤くなり全員の push が止まる**。症状が「自分の差分と無関係」に見えるため、原因をコードや自分の変更に求めて時間を溶かす。`npm ci` で環境を揃えられれば復旧できるが、lockfile と package.json が同期していないとその逃げ道も塞がる。
+
+**Context**: PR #484 の作業中、`npm run quality:local` が未変更 3 ファイル（`COPILOT_AGENTS.md` / `best-practices/01-coding-standards.md` / `FAQ.md`）で失敗した。`git stash` して develop 状態でも同じ 3 件が落ちるため既存の破綻と判明。実体はローカル `node_modules` の prettier が 3.9.6、lockfile は 3.8.3 で、union 型の折り返しと表整形の結果が版間で異なっていた（3.9.6 は 1 行へ結合、3.8.3 は分割を維持）。復旧のため `npm ci` を試みたが `@emnapi/*` の同期崩れで失敗し、`npm install --no-save prettier@3.8.3` で lockfile 準拠に戻して全項目グリーンになった。3.9.6 の整形結果でコミットしていれば、次に 3.8.3 の環境が触ったとき差分が反転する。
+
+**Action**: 整形系の devDependency は**厳密固定**（`^` を外す）し、`npm ci` が通る状態（package.json と package-lock.json の同期）を維持する。ゲートの前提を「`npm ci` で環境を揃えてから `npm run quality:local`」と手順書に明記する。切り分け手順としては、未変更ファイルがゲートで落ちたら (1) `git stash` して既定ブランチ状態で再実行し既存破綻か切り分ける、(2) `npx <tool> --version` と lockfile の版を突き合わせる、の順に確認する。整形差分を「とりあえず直す」前に版を疑うこと。
+
 ---
 
 ## Changelog
+
+### [1.35.0] - 2026-08-28
+
+#### 追加
+
+- ACE-484-1: テンプレート欠陥の修正は「実際にコピーされる実体」を先に特定する — Issue #483 の 8 件を照合したところ 2 件が再現せず、`/init-docs` の実際のコピー元が ff-dev-toolkit プラグイン同梱の docs-template だと判明した経験から抽出
+- ACE-484-2: 配布物のリンク規約は Playbook に書くだけでは適用漏れが残る — ACE-046 が記録済みだったのに ISSUE_TEMPLATE の 14 リンクへ未適用で、Codex と Toolkit が独立に同一箇所を Critical 検出した経験から抽出
+- ACE-484-3: フォーマッタを caret 範囲で許すと push ゲートが環境依存で赤くなる — prettier 3.9.6 と lockfile 3.8.3 の整形差で未変更 3 ファイルが落ち、`npm ci` も同期崩れで塞がっていた経験から抽出（Issue #485）
+
+#### カウンター更新
+
+- ACE-046 (Helpful 1→2): 「配布版テンプレはリンクを外して inline code にする」が PR #484 の Critical をそのまま解決。Codex と Toolkit code-reviewer が独立に本エントリを根拠として引用した
+- ACE-447-2 (Helpful 0→1): 「配布物内リンクは配布ツリー外を指さない」を 7 ファイル・13 箇所へ適用し、公開リポの `blob/HEAD/` 絶対 URL 化で解消した再適用
 
 ### [1.34.0] - 2026-07-03
 
