@@ -73,10 +73,28 @@ function deployedLocation(absPath: string): string {
   return join(".github", relative(DIST_GITHUB, absPath));
 }
 
+/** 相対リンクの href を、利用者リポジトリ内の絶対パスへ解決する */
+function resolveLinkTarget(deployedFile: string, href: string): string {
+  return normalize(join(dirname(deployedFile), href));
+}
+
+/**
+ * その参照先をリンクとして書いてよいか。
+ * .github/ 配下は配布物一式がまとめてコピーされるので常に在る。
+ * docs/ 配下は /init-docs が配置する初期セットに限る。
+ */
+function isLinkableTarget(target: string): boolean {
+  return target.startsWith(".github/") || INITIAL_SET.has(target);
+}
+
 const MD_FILES = listMarkdown(DIST_GITHUB);
 
-// 相対リンク（http / アンカーで始まらない .md リンク）。ACE-046 の拡張 grep と同じ形。
-const RELATIVE_LINK = /\]\(([^h)#][^)]*\.md)\)/g;
+// 相対リンク（絶対 URL・ページ内アンカー・mailto を除く .md リンク）。
+// 末尾の `#anchor` を許容する — `foo.md#section` は本リポで一般的な書き方で、
+// これを取りこぼすとガードを素通りする（ACE-046 の拡張 grep より広い）。
+// キャプチャ 1 = アンカーを除いたパス部分。
+const RELATIVE_LINK =
+  /\]\((?!https?:\/\/|#|mailto:)([^)\s#]+\.md)(?:#[^)\s]*)?\)/g;
 // inline code のパス表記。`docs/...` `.github/...` のみを対象にする
 // （`src/services/auth.ts` のような架空の実装例は対象外）。
 // 角括弧・山括弧を含むものはプレースホルダー（例: `docs/[フォルダ]/[ファイル名].md`）として除外する。
@@ -121,7 +139,9 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
     expect(broken).toEqual([]);
   });
 
-  it("frontmatter の references が配布ツリー内に存在する", () => {
+  // frontmatter の references はエージェントが実行時に解決する機械可読パスなので、
+  // 散文の言及ではなくリンクと同じ扱いにする（存在 + 初期セット内の両方を要求する）。
+  it("frontmatter の references が配布ツリーに実在し INITIAL_SET 内にある", () => {
     const broken: string[] = [];
     for (const file of MD_FILES) {
       const content = readFileSync(file, "utf8");
@@ -130,7 +150,13 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
           if (ref === "") continue;
           const templatePath = toTemplatePath(ref);
           if (templatePath === null || !existsSync(templatePath)) {
-            broken.push(`${relative(REPO_ROOT, file)} → ${ref}`);
+            broken.push(
+              `${relative(REPO_ROOT, file)} → ${ref}（配布ツリーに無い）`,
+            );
+          } else if (!isLinkableTarget(ref)) {
+            broken.push(
+              `${relative(REPO_ROOT, file)} → ${ref}（初期セット外。展開先には配置されない）`,
+            );
           }
         }
       }
@@ -141,16 +167,14 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
   // リンクは「展開先に必ず在る」ことが前提。/init-docs が配置しないファイルへ
   // リンクを張ると、パスが正しくても展開先で切れる（Issue #483-1 で
   // review-response-policy.md / agent-deletion-prevention-harness.md が該当した）。
-  it("相対リンクの参照先が /init-docs の初期セット内にある", () => {
+  it("相対リンクの参照先が INITIAL_SET 内にある", () => {
     const outside: string[] = [];
     for (const file of MD_FILES) {
       const content = readFileSync(file, "utf8");
-      const fromDir = dirname(deployedLocation(file));
+      const deployed = deployedLocation(file);
       for (const match of content.matchAll(RELATIVE_LINK)) {
-        const target = normalize(join(fromDir, match[1]));
-        // .github/ 配下は配布物同士の参照なので初期セットの対象外
-        if (target.startsWith(".github/")) continue;
-        if (!INITIAL_SET.has(target)) {
+        const target = resolveLinkTarget(deployed, match[1]);
+        if (!isLinkableTarget(target)) {
           outside.push(
             `${relative(REPO_ROOT, file)} → ${target}（初期セット外。リンクではなく inline code で所在を案内する）`,
           );
@@ -158,6 +182,18 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
       }
     }
     expect(outside).toEqual([]);
+  });
+
+  // INITIAL_SET は別リポジトリ（ff-dev-toolkit）にある一覧の手書きスナップショット。
+  // 配布ツリー側でリネーム・削除が起きた場合はここで落ちる。逆方向（/init-docs が
+  // 初期セットを増やした場合）は CI からプラグインを読めないため検出できず、
+  // 定数の出典コメントで担保する。
+  it("INITIAL_SET の全エントリが配布ツリーに実在する", () => {
+    const missing = [...INITIAL_SET].filter((p) => {
+      const templatePath = toTemplatePath(p);
+      return templatePath === null || !existsSync(templatePath);
+    });
+    expect(missing).toEqual([]);
   });
 
   it("上流レイアウト固有のパス（docs-template/）を含まない", () => {
@@ -188,5 +224,58 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
       }
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+// 上のテスト群は実ファイルだけを入力にしており、しかも「違反ゼロ」を期待する形なので、
+// 検出器（正規表現・分類）が壊れても緑のまま素通りする。合成入力で検出器自体を固定する。
+describe("検出器の自己検証", () => {
+  const extract = (md: string) =>
+    [...md.matchAll(RELATIVE_LINK)].map((m) => m[1]);
+
+  it("相対リンクを抽出する（アンカー付き・拡張子前の記号を含む）", () => {
+    expect(extract("- [MASTER](../../docs/MASTER.md)")).toEqual([
+      "../../docs/MASTER.md",
+    ]);
+    // アンカー付きを取りこぼすとガードを素通りする
+    expect(
+      extract("[節](../../docs/03-implementation/FALLBACK.md#section-1)"),
+    ).toEqual(["../../docs/03-implementation/FALLBACK.md"]);
+    // 先頭が h / # 以外という素朴な判定だと落ちる形
+    expect(extract("[hooks](hooks/setup.md)")).toEqual(["hooks/setup.md"]);
+  });
+
+  it("リンクでないものを拾わない", () => {
+    expect(extract("[外部](https://example.com/a.md)")).toEqual([]);
+    expect(extract("[見出しへ](#section)")).toEqual([]);
+    expect(extract("`docs/MASTER.md` は inline code")).toEqual([]);
+  });
+
+  it("参照先を利用者側レイアウトのパスへ解決する", () => {
+    expect(
+      resolveLinkTarget(
+        ".github/ISSUE_TEMPLATE/bug.md",
+        "../../docs/MASTER.md",
+      ),
+    ).toBe("docs/MASTER.md");
+    expect(
+      resolveLinkTarget(
+        ".github/skills/error-handling-standards/SKILL.md",
+        "../../../docs/03-implementation/FALLBACK.md",
+      ),
+    ).toBe("docs/03-implementation/FALLBACK.md");
+  });
+
+  it("リンクとして許される参照先を判定する", () => {
+    expect(isLinkableTarget("docs/MASTER.md")).toBe(true);
+    expect(isLinkableTarget(".github/skills/test-patterns/SKILL.md")).toBe(
+      true,
+    );
+    // /init-docs が配置しない = リンクにしてはいけない
+    expect(
+      isLinkableTarget(
+        "docs/05-operations/deployment/review-response-policy.md",
+      ),
+    ).toBe(false);
   });
 });
