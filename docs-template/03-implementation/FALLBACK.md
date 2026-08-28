@@ -113,6 +113,17 @@ updated: "YYYY-MM-DD"
 ### ユーティリティ関数
 
 ```typescript
+// フォールバック禁止カテゴリ（Section 1 参照）に対応するエラー型。
+// Section 1 の 4 カテゴリと 1:1 で対応させる。プロジェクトで定義した
+// AppError サブクラスに合わせて追加・改名すること。
+const NEVER_FALLBACK_ERRORS = [
+  UnauthorizedError, // 認証
+  ForbiddenError, // 認可
+  ValidationError, // バリデーション
+  ConflictError, // データ整合性
+  SecurityError, // セキュリティ
+] as const;
+
 /**
  * 本番環境でのみフォールバック値を返し、開発・テスト環境ではエラーをスローする。
  * AI生成コードのサイレントエラー防止に使用する。
@@ -127,15 +138,11 @@ function fallbackInProdOnly<T>(
   const normalizedError =
     error instanceof Error ? error : new Error(String(error));
 
-  // フォールバック禁止カテゴリ（Section 1 参照）は環境に関係なく常にスロー
-  // ※ プロジェクトで定義した AppError サブクラスに合わせて追加すること:
-  //    認証: UnauthorizedError, 認可: ForbiddenError,
-  //    バリデーション: ValidationError, データ整合性: ConflictError
-  //    セキュリティ: SecurityError 等
+  // フォールバック禁止カテゴリは環境に関係なく常にスロー
   if (
-    normalizedError instanceof ValidationError ||
-    normalizedError instanceof ForbiddenError ||
-    normalizedError instanceof ConflictError
+    NEVER_FALLBACK_ERRORS.some(
+      (ErrorType) => normalizedError instanceof ErrorType,
+    )
   ) {
     throw normalizedError;
   }
@@ -190,6 +197,8 @@ async function getUser(id: string): Promise<User> {
 }
 
 // 方法2: インラインで環境分岐（カスタムログが必要な場合）
+// ※ フォールバック禁止カテゴリのエラーが到達しうる箇所では方法1を使う。
+//    インライン分岐は禁止カテゴリの判定を持たないため、本番で握りつぶす。
 async function getConfig(key: string): Promise<string> {
   try {
     return await configService.get(key);

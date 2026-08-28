@@ -8,7 +8,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "comments, documentation, jsdoc, comment-rot, todo"
-  references: "docs-template/MASTER.md, docs-template/03-implementation/PATTERNS.md"
+  references: "docs/MASTER.md, docs/03-implementation/PATTERNS.md"
 ---
 
 # Comment Analyzer Agent
@@ -132,5 +132,5 @@ async function getUser(
 
 ## 参照ドキュメント
 
-- `docs-template/03-implementation/PATTERNS.md` — コーディング規約
-- `docs-template/MASTER.md` — プロジェクトルール
+- `docs/03-implementation/PATTERNS.md` — コーディング規約
+- `docs/MASTER.md` — プロジェクトルール

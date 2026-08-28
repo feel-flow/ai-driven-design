@@ -265,6 +265,10 @@ import sgMail from "@sendgrid/mail";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+// マジックナンバー禁止: 意味のある値は名前付き定数に切り出す（MASTER.md）
+const SENDGRID_MAX_MESSAGES_PER_BATCH = 1000; // 件。SendGrid の 1 リクエスト上限
+const SENDGRID_BATCH_INTERVAL_MS = 1000; // ms。レート制限を避けるバッチ間の待機
+
 // メールサービス実装
 class EmailService {
   private readonly FROM_EMAIL = "noreply@example.com";
@@ -301,12 +305,12 @@ class EmailService {
       html: content,
     }));
 
-    // バッチ送信（最大1000件）
-    const chunks = this.chunkArray(messages, 1000);
+    // バッチ送信
+    const chunks = this.chunkArray(messages, SENDGRID_MAX_MESSAGES_PER_BATCH);
 
     for (const chunk of chunks) {
       await sgMail.send(chunk);
-      await this.delay(1000); // レート制限対策
+      await this.delay(SENDGRID_BATCH_INTERVAL_MS); // レート制限対策
     }
   }
 }
@@ -333,6 +337,9 @@ const s3Client = new S3Client({
   },
 });
 
+// 署名付き URL の既定有効期限（秒）。短いほど漏洩時の影響が小さい
+const PRESIGNED_URL_DEFAULT_TTL_SECONDS = 3600; // 1 時間
+
 // ファイルストレージサービス
 class StorageService {
   private readonly BUCKET_NAME = process.env.S3_BUCKET_NAME;
@@ -354,7 +361,7 @@ class StorageService {
 
   async getPresignedUrl(
     key: string,
-    expiresIn: number = 3600,
+    expiresIn: number = PRESIGNED_URL_DEFAULT_TTL_SECONDS,
   ): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.BUCKET_NAME,
@@ -391,7 +398,10 @@ class NotificationService {
     }
   }
 
-  async notifyError(error: Error, context: any): Promise<void> {
+  async notifyError(
+    error: Error,
+    context: Record<string, unknown>,
+  ): Promise<void> {
     await this.sendSlackNotification({
       text: "⚠️ エラーが発生しました",
       blocks: [
@@ -535,9 +545,17 @@ const redis = new Redis({
   password: process.env.REDIS_PASSWORD,
 });
 
+// ジョブ種別は判別可能ユニオンで列挙する（any を使わない / MASTER.md）
+type EmailJob =
+  | { type: "welcome"; data: { user: User } }
+  | { type: "passwordReset"; data: { user: User; token: string } };
+
+const EMAIL_JOB_MAX_ATTEMPTS = 3; // 回。失敗時の再試行上限
+const EMAIL_JOB_BACKOFF_BASE_MS = 2000; // ms。指数バックオフの基準値
+
 // キューサービス
 class QueueService {
-  private emailQueue: Bull.Queue;
+  private emailQueue: Bull.Queue<EmailJob>;
 
   constructor() {
     this.emailQueue = new Bull("email", {
@@ -553,30 +571,36 @@ class QueueService {
 
   private setupProcessors(): void {
     this.emailQueue.process(async (job) => {
-      const { type, data } = job.data;
+      const payload = job.data;
 
-      switch (type) {
+      switch (payload.type) {
         case "welcome":
-          await this.emailService.sendWelcomeEmail(data.user);
+          await this.emailService.sendWelcomeEmail(payload.data.user);
           break;
         case "passwordReset":
-          await this.emailService.sendPasswordResetEmail(data.user, data.token);
+          await this.emailService.sendPasswordResetEmail(
+            payload.data.user,
+            payload.data.token,
+          );
           break;
+        default: {
+          // 網羅性チェック: ジョブ種別を追加したらここでコンパイルエラーになる
+          // （default を握りつぶすと未知ジョブが無言で消える）
+          const unhandled: never = payload;
+          throw new Error(`Unhandled email job: ${JSON.stringify(unhandled)}`);
+        }
       }
     });
   }
 
-  async queueEmail(type: string, data: any): Promise<void> {
-    await this.emailQueue.add(
-      { type, data },
-      {
-        attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 2000,
-        },
+  async queueEmail(job: EmailJob): Promise<void> {
+    await this.emailQueue.add(job, {
+      attempts: EMAIL_JOB_MAX_ATTEMPTS,
+      backoff: {
+        type: "exponential",
+        delay: EMAIL_JOB_BACKOFF_BASE_MS,
       },
-    );
+    });
   }
 }
 ```
@@ -669,13 +693,17 @@ describe("Payment Integration", () => {
 ### 再試行ロジック
 
 ```typescript
+// 再試行の既定値（マジックナンバー禁止 / MASTER.md）
+const DEFAULT_MAX_RETRIES = 3; // 回
+const DEFAULT_RETRY_BASE_DELAY_MS = 1000; // ms。2^i 倍で伸びる基準値
+
 // 指数バックオフによる再試行
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000,
+  maxRetries: number = DEFAULT_MAX_RETRIES,
+  baseDelay: number = DEFAULT_RETRY_BASE_DELAY_MS,
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: unknown;
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -690,13 +718,12 @@ async function retryWithBackoff<T>(
     }
   }
 
-  throw lastError;
+  // 握りつぶさず、最後のエラーを Error として再スローする
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-// 使用例
-const result = await retryWithBackoff(
-  () => stripe.paymentIntents.create(params),
-  3,
-  1000,
+// 使用例（既定値で足りる場合は引数を省略する）
+const result = await retryWithBackoff(() =>
+  stripe.paymentIntents.create(params),
 );
 ```

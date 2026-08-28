@@ -1,7 +1,7 @@
 # ACE サイクル運用手順（Generate → Reflect → Curate）
 
 > **Parent**: [DEPLOYMENT.md](../DEPLOYMENT.md) | **Workflow Step**: 10
-> **関連**: [knowledge-management.md](./knowledge-management.md) | [PLAYBOOK.md](../../08-knowledge/PLAYBOOK.md) | [ACE フレームワーク概念](../../../docs/ACE_FRAMEWORK.md)
+> **関連**: [knowledge-management.md](./knowledge-management.md) | [PLAYBOOK.md](../../08-knowledge/PLAYBOOK.md) | [ACE フレームワーク概念](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md)
 
 ## 概要
 
@@ -312,7 +312,7 @@ ACE_REUSE_STALE_DAYS=120 npm run ace:reuse-report
 
 ## 関連リソース
 
-- **概念説明**: [ACE フレームワーク](../../../docs/ACE_FRAMEWORK.md) - ACE の理論的背景
+- **概念説明**: [ACE フレームワーク](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md) - ACE の理論的背景
 - **Playbook テンプレート**: [PLAYBOOK.md](../../08-knowledge/PLAYBOOK.md) - エントリの追記先
 - **ナレッジ管理**: [knowledge-management.md](./knowledge-management.md) - GitHub Discussions ベースの管理
 - **autonomous 化**: [ace-autonomous.md](./ace-autonomous.md) - subagent + worktree（任意）

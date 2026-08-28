@@ -22,8 +22,15 @@
 ### Cross-Model Review Results
 
 - [ ] PR Review Toolkit: 実施済み
-- [ ] Codex CLI (`bash scripts/codex-review.sh --base develop`): 実施済み
-- [ ] [Review Response Policy](../05-operations/deployment/review-response-policy.md) に従い対応済み
+- [ ] クロスモデルレビュー（Toolkit とは別モデルの AI CLI）: 実施済み
+- [ ] レビュー指摘対応方針（Critical / Warning は必ず修正、Suggestion は妥当なものを対応）に従い対応済み
+
+<!--
+クロスモデルレビューは、このリポジトリに実際に配置されている手段で実行する:
+- `scripts/codex-review.sh` を配置済みの場合（`bash scripts/setup-multi-agent.sh` 実行後）: `bash scripts/codex-review.sh --base develop`
+- 未配置の場合: 利用中の AI CLI で同等のレビューを行う（例: `/multi-review --cli codex-cli --base develop`）
+対応方針の詳細版は `docs/05-operations/deployment/review-response-policy.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）。
+-->
 
 ## Test plan
 

@@ -82,6 +82,8 @@ visibility: public
 - `docs-template/` への変更は **テンプレ利用者の受け取り物に直接影響する**。レビューでは「テンプレ利用者は特定ツールなしでも使えるか？」を必ず問う
 - リポ自身の運用に必要なインフラ（Obsidian / Notion / 特殊な lint 設定 等）は配布境界の **外** に置く
 - `docs/` は本リポのメンテナンスや発信のための文書置き場であり、配布されない（テンプレ利用者には届かない）
+- 配布対象内のリンクは **配布ツリー外（`docs/` 等）を相対パスで指さない**。指す必要がある場合は公開リポの絶対 URL（`https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/...`）にする。相対パスは本リポでしか解決せず、コピーした利用者側ではリンク切れになる（[ACE-447-2](../docs-template/08-knowledge/PLAYBOOK.md#ace-447-2)）
+- `docs-template/.github/` 配下のリンク・パス表記は **利用者側のレイアウト**（リポジトリ直下に `.github/` と `docs/` が並ぶ）を前提に書く。本リポのドッグフード配置（文書が `docs-template/` 直下にある）を前提にすると、利用者側で参照がまとめて壊れる（Issue [#483](https://github.com/feel-flow/ai-spec-driven-development/issues/483)）
 
 ---
 

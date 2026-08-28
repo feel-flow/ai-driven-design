@@ -1,6 +1,6 @@
 # ACE ナレッジキャプチャの autonomous 化（subagent + worktree）
 
-> **Parent**: [DEPLOYMENT.md](../DEPLOYMENT.md) | **関連**: [ace-cycle.md](./ace-cycle.md) | [knowledge-management.md](./knowledge-management.md) | [ACE フレームワーク概念](../../../docs/ACE_FRAMEWORK.md)
+> **Parent**: [DEPLOYMENT.md](../DEPLOYMENT.md) | **関連**: [ace-cycle.md](./ace-cycle.md) | [knowledge-management.md](./knowledge-management.md) | [ACE フレームワーク概念](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md)
 
 ## 概要
 
@@ -74,7 +74,7 @@ GUI の Git クライアントや一部の CI では、マージ実行時に **`
 ## Shadow 運用（段階導入）
 
 1. `ACE_SUBAGENT_ENABLED=1` かつ `ACE_SUBAGENT_AUTO_MERGE=0` で **draft PR のみ**自動生成し、人間がレビュー。
-2. 3〜5 PR 程度で成功率・ロールバック有無を記録（[CASE_STUDIES.md](../../../docs/CASE_STUDIES.md) へ追記可能）。
+2. 3〜5 PR 程度で成功率・ロールバック有無を記録（[CASE_STUDIES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/CASE_STUDIES.md) へ追記可能）。
 3. 問題なければ `ACE_SUBAGENT_AUTO_MERGE=1` を限定メンバーまたは特定ブランチのみで有効化。
 
 ## Playbook 肥大化と別 Issue 起票
@@ -96,7 +96,7 @@ docs-only の自動 PR で、構造検証（例: `ace:verify`）が CI で保証
 ## 関連 Issue・実装参照
 
 - 本フレームワークへのテンプレ追加: [GitHub #367](https://github.com/feel-flow/ai-spec-driven-development/issues/367)
-- 実装元（別プロダクト）: FeelFlow ID Platform 等での運用検証後、[CASE_STUDIES.md](../../../docs/CASE_STUDIES.md) にメトリクスを追記する（プレースホルダー済み）
+- 実装元（別プロダクト）: FeelFlow ID Platform 等での運用検証後、[CASE_STUDIES.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/CASE_STUDIES.md) にメトリクスを追記する（プレースホルダー済み）
 
 ## Changelog
 

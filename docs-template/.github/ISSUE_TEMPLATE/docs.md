@@ -26,7 +26,7 @@ assignees: ""
 
 > **必須参照**: MASTER
 
-- [ ] [MASTER.md](../../MASTER.md)
+- [ ] [MASTER.md](../../docs/MASTER.md)
 
 > **対象文書**
 
@@ -38,7 +38,7 @@ assignees: ""
 
 ## 対象ファイル
 
-- `docs-template/xxx/YYY.md`
+- `docs/xxx/YYY.md`
 
 ## 変更内容
 

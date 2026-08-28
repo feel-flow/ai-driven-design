@@ -316,10 +316,16 @@ async function fetchDashboard(userId: string): Promise<Dashboard> {
 
 ```typescript
 // カスタムエラークラス
+// 詳細は「どのフィールドが、なぜ不正か」に固定する（MASTER.md: any 型の使用禁止）
+type ValidationIssue = {
+  field: string;
+  message: string;
+};
+
 class ValidationError extends Error {
   constructor(
     message: string,
-    public details: any[],
+    public details: ValidationIssue[],
   ) {
     super(message);
     this.name = "ValidationError";

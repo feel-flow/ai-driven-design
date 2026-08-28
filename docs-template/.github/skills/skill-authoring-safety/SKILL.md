@@ -12,7 +12,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "skill-authoring, safety, deletion-prevention, hooks, powershell, temp-files"
-  references: "docs-template/05-operations/deployment/agent-deletion-prevention-harness.md, docs-template/MASTER.md"
+  references: "docs/05-operations/deployment/agent-deletion-prevention-harness.md, docs/MASTER.md"
 ---
 
 # スキル作成安全ガード
@@ -169,5 +169,5 @@ temp や cleanup を扱うスキルでは、必ず「安全上の必須ルール
 
 ## 8. 関連ドキュメント
 
-- [../../../05-operations/deployment/agent-deletion-prevention-harness.md](../../../05-operations/deployment/agent-deletion-prevention-harness.md)
-- [../../../MASTER.md](../../../MASTER.md)
+- [MASTER.md](../../../docs/MASTER.md)
+- `docs/05-operations/deployment/agent-deletion-prevention-harness.md` — 初期セット外。必要になった時点でテンプレート配布元からコピーする

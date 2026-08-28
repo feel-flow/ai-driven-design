@@ -31,11 +31,11 @@ assignees: ""
 > **必須参照**: 関連Issue, PATTERNS
 
 - [ ] #XX [関連する過去のIssue]
-- [ ] [PATTERNS.md](../../03-implementation/PATTERNS.md)
+- [ ] [PATTERNS.md](../../docs/03-implementation/PATTERNS.md)
 
 > **推奨参照**: TESTING
 
-- [ ] [TESTING.md](../../04-quality/TESTING.md)
+- [ ] [TESTING.md](../../docs/04-quality/TESTING.md)
 
 ## 関連Issue
 
