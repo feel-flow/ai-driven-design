@@ -12,7 +12,7 @@ metadata:
   version: "1.0.0"
   author: feel-flow
   tags: "skill-authoring, safety, deletion-prevention, hooks, powershell, temp-files"
-  references: "docs/05-operations/deployment/agent-deletion-prevention-harness.md, docs/MASTER.md"
+  references: "docs/MASTER.md"
 ---
 
 # スキル作成安全ガード

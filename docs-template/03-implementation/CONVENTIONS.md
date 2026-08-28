@@ -315,22 +315,11 @@ async function fetchDashboard(userId: string): Promise<Dashboard> {
 ### エラーハンドリング
 
 ```typescript
-// カスタムエラークラス
-// 詳細は「どのフィールドが、なぜ不正か」に固定する（MASTER.md: any 型の使用禁止）
-type ValidationIssue = {
-  field: string;
-  message: string;
-};
-
-class ValidationError extends Error {
-  constructor(
-    message: string,
-    public details: ValidationIssue[],
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
+// エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を正典とする。
+// ここで別定義を作らない（同名・別形状のクラスが並立すると、どちらが正か
+// 判断できなくなる）。ValidationError.details は ValidationDetail[]
+// （field / message / constraint?）で、any は使わない。
+import { ValidationError, InternalError } from "./errors";
 
 // エラーハンドリング
 try {
@@ -343,7 +332,7 @@ try {
 
   // 予期しないエラー
   logger.error("Unexpected error", error);
-  throw new InternalServerError("Processing failed");
+  throw new InternalError("Processing failed");
 }
 ```
 

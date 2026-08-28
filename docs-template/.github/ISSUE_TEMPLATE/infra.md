@@ -18,14 +18,16 @@ assignees: ""
 
 ## 参照ドキュメント（AIへ：必ず読んでください）
 
+<!-- パスは docs/ 配下に文書を配置した場合のもの。Issue 本文では相対リンクが issues/N/ 起点で誤って解決され 404 になる（ACE-046）ため、リンクにせず inline code で記載している。リンク化する場合は自リポジトリの https://github.com/<owner>/<repo>/blob/HEAD/<path> 形式の絶対 URL に置換すること -->
+
 > **必須参照**: MASTER, DEPLOYMENT
 
-- [ ] [MASTER.md](../../docs/MASTER.md)
-- [ ] [DEPLOYMENT.md](../../docs/05-operations/DEPLOYMENT.md)
+- [ ] `docs/MASTER.md`
+- [ ] `docs/05-operations/DEPLOYMENT.md`
 
 > **推奨参照**: ARCHITECTURE
 
-- [ ] [ARCHITECTURE.md](../../docs/02-design/ARCHITECTURE.md)
+- [ ] `docs/02-design/ARCHITECTURE.md`
 
 ## 関連Issue
 

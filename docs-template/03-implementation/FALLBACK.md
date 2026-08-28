@@ -114,8 +114,10 @@ updated: "YYYY-MM-DD"
 
 ```typescript
 // フォールバック禁止カテゴリ（Section 1 参照）に対応するエラー型。
-// Section 1 の 4 カテゴリと 1:1 で対応させる。プロジェクトで定義した
-// AppError サブクラスに合わせて追加・改名すること。
+// Section 1 の 4 カテゴリを型に落としたもの（「認証・認可」は 2 型に分かれる）。
+// クラス定義は PATTERNS.md「エラーハンドリング」の AppError 階層。
+// import するか、クラス宣言より後にこの const を置くこと（class は TDZ のため
+// 巻き上げでは救われず、モジュール読み込み時に ReferenceError になる）。
 const NEVER_FALLBACK_ERRORS = [
   UnauthorizedError, // 認証
   ForbiddenError, // 認可
@@ -266,8 +268,8 @@ async function getConfig(key: string): Promise<string> {
 
 - [ ] try-catch ブロックでエラーを握りつぶしていないか
 - [ ] フォールバック値（空配列、デフォルトオブジェクト等）を返す箇所に環境分岐があるか
-- [ ] AI生成コードのcatch句が `fallbackInProdOnly()` または `NODE_ENV` 分岐を使用しているか
-- [ ] 認証/認可/バリデーションエラーにフォールバックが入っていないか
+- [ ] AI生成コードのcatch句が `fallbackInProdOnly()` を使用しているか（`NODE_ENV` 分岐だけの場合は、禁止カテゴリの判定が添えてあるか）
+- [ ] 禁止カテゴリの 4 種すべて（認証・認可 / バリデーション / データ整合性 / セキュリティ）にフォールバックが入っていないか
 
 ### アプリケーションレベル
 

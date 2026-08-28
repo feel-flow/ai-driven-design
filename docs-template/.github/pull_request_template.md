@@ -27,8 +27,9 @@
 
 <!--
 クロスモデルレビューは、このリポジトリに実際に配置されている手段で実行する:
-- `scripts/codex-review.sh` を配置済みの場合（`bash scripts/setup-multi-agent.sh` 実行後）: `bash scripts/codex-review.sh --base develop`
-- 未配置の場合: 利用中の AI CLI で同等のレビューを行う（例: `/multi-review --cli codex-cli --base develop`）
+- `scripts/codex-review.sh` を配置済みの場合: `bash scripts/codex-review.sh --base <ベースブランチ>`
+  （未配置なら ff-dev-toolkit の `scripts/setup-multi-agent.sh` を実行すると配置される）
+- 配置しない場合: 利用中の AI CLI で同等のレビューを行う（例: `/multi-review --cli codex-cli --base <ベースブランチ>`）
 対応方針の詳細版は `docs/05-operations/deployment/review-response-policy.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）。
 -->
 

@@ -18,16 +18,18 @@ assignees: ""
 
 ## 参照ドキュメント（AIへ：必ず読んでください）
 
+<!-- パスは docs/ 配下に文書を配置した場合のもの。Issue 本文では相対リンクが issues/N/ 起点で誤って解決され 404 になる（ACE-046）ため、リンクにせず inline code で記載している。リンク化する場合は自リポジトリの https://github.com/<owner>/<repo>/blob/HEAD/<path> 形式の絶対 URL に置換すること -->
+
 > **必須参照**: MASTER, ARCHITECTURE, DOMAIN
 
-- [ ] [MASTER.md](../../docs/MASTER.md)
-- [ ] [ARCHITECTURE.md](../../docs/02-design/ARCHITECTURE.md)
-- [ ] [DOMAIN.md](../../docs/02-design/DOMAIN.md)
+- [ ] `docs/MASTER.md`
+- [ ] `docs/02-design/ARCHITECTURE.md`
+- [ ] `docs/02-design/DOMAIN.md`
 
 > **推奨参照**: PATTERNS, TESTING
 
-- [ ] [PATTERNS.md](../../docs/03-implementation/PATTERNS.md)
-- [ ] [TESTING.md](../../docs/04-quality/TESTING.md)
+- [ ] `docs/03-implementation/PATTERNS.md`
+- [ ] `docs/04-quality/TESTING.md`
 
 ## 関連Issue
 

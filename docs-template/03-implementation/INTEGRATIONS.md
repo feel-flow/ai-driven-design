@@ -398,6 +398,9 @@ class NotificationService {
     }
   }
 
+  // context は診断用の任意データ。any ではなく unknown を値に使い、利用前の
+  // ナローイングを強制する。※ interface で宣言した型は暗黙のインデックス
+  // シグネチャを持たず代入できない。type で宣言するか `{ ...ctx }` で展開する。
   async notifyError(
     error: Error,
     context: Record<string, unknown>,
@@ -545,7 +548,10 @@ const redis = new Redis({
   password: process.env.REDIS_PASSWORD,
 });
 
-// ジョブ種別は判別可能ユニオンで列挙する（any を使わない / MASTER.md）
+// ジョブ種別は判別可能ユニオンで列挙する（any を使わない / MASTER.md）。
+// 注意: job.data は Redis から復元された JSON であり、型注釈は実行時の保証にならない
+// （Date は string になり、旧デプロイが入れた未知種別も届く）。信頼境界では
+// zod 等でパースすること。ペイロードには User 実体ではなく userId を載せる方が安全。
 type EmailJob =
   | { type: "welcome"; data: { user: User } }
   | { type: "passwordReset"; data: { user: User; token: string } };
@@ -558,7 +564,7 @@ class QueueService {
   private emailQueue: Bull.Queue<EmailJob>;
 
   constructor() {
-    this.emailQueue = new Bull("email", {
+    this.emailQueue = new Bull<EmailJob>("email", {
       redis: {
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT),
@@ -585,9 +591,15 @@ class QueueService {
           break;
         default: {
           // 網羅性チェック: ジョブ種別を追加したらここでコンパイルエラーになる
-          // （default を握りつぶすと未知ジョブが無言で消える）
+          // （default を握りつぶすと未知ジョブが無言で消える）。
+          // 検出できるのはコンパイル時のみ。実データの検証は上記のとおり別途必要。
           const unhandled: never = payload;
-          throw new Error(`Unhandled email job: ${JSON.stringify(unhandled)}`);
+          // ペイロード本体はエラーメッセージに載せない（token 等の機密が
+          // failed job レコード・エラートラッカー・stderr に複製される）
+          const unknownType = (unhandled as { type?: unknown }).type;
+          throw new Error(
+            `Unhandled email job type: ${String(unknownType)} (jobId=${job.id})`,
+          );
         }
       }
     });
@@ -703,6 +715,11 @@ async function retryWithBackoff<T>(
   maxRetries: number = DEFAULT_MAX_RETRIES,
   baseDelay: number = DEFAULT_RETRY_BASE_DELAY_MS,
 ): Promise<T> {
+  // 0 以下だと一度も fn を呼ばずに throw し、真因を隠したエラーになる
+  if (maxRetries < 1) {
+    throw new Error(`maxRetries must be >= 1, got ${maxRetries}`);
+  }
+
   let lastError: unknown;
 
   for (let i = 0; i < maxRetries; i++) {

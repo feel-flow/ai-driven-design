@@ -400,7 +400,7 @@ EOF
 > CLAUDE.md に記載した作業スタイル、Git Workflow、セルフレビューチェックリストなどは、
 > `AGENTS.md`（Gemini等）や `.github/copilot-instructions.md`（GitHub Copilot）にも
 > 同様に記載することで、どのAIツールでも統一された開発体験が得られます。
-> 詳細は [AIツール設定ファイルのベストプラクティス](../docs/AI_CONFIG_BEST_PRACTICES.md) を参照してください。
+> 詳細は [AIツール設定ファイルのベストプラクティス](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/AI_CONFIG_BEST_PRACTICES.md) を参照してください。
 
 **例1: Reactプロジェクトの場合**
 ```markdown
@@ -600,7 +600,7 @@ MASTER.mdの以下の観点でチェックしてください：
 2. **重い処理はスキル（サブエージェント）で実行**
    - コードレビュー、全コードベーススキャンなど、10ファイル以上を読み込む処理はスキルとして実行
    - サブエージェントは独立コンテキストで動作し、メインセッションのトークン枠を消費しない
-   - 詳細は [Commands vs Skills ガイド](../docs/CLAUDE_CODE_COMMANDS_SKILLS.md) を参照
+   - 詳細は [Commands vs Skills ガイド](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/CLAUDE_CODE_COMMANDS_SKILLS.md) を参照
 
 3. **ファイルを分割してアップロード**
    - 大きなファイルは必要な部分のみ抽出
