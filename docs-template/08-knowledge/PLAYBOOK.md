@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.35.0"
+version: "1.36.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-08-28"
 owner: "@fffokazaki"
-ace_entry_count: 70
+ace_entry_count: 71
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1930,7 +1930,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | testing              |
 | Origin     | PR #484 / Issue #483 |
 | Date       | 2026-08-28           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1959,9 +1959,38 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 **Action**: 整形系の devDependency は**厳密固定**（`^` を外す）し、`npm ci` が通る状態（package.json と package-lock.json の同期）を維持する。ゲートの前提を「`npm ci` で環境を揃えてから `npm run quality:local`」と手順書に明記する。切り分け手順としては、未変更ファイルがゲートで落ちたら (1) `git stash` して既定ブランチ状態で再実行し既存破綻か切り分ける、(2) `npx <tool> --version` と lockfile の版を突き合わせる、の順に確認する。整形差分を「とりあえず直す」前に版を疑うこと。
 
+<a id="ace-489-1"></a>
+
+### ACE-489-1: 「違反ゼロ」を期待するガードは検出器が壊れても緑のまま通る — 合成入力で検出器自体を固定する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | testing              |
+| Origin     | PR #489 / Issue #488 |
+| Date       | 2026-08-28           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 規約違反を検出するテストは `expect(violations).toEqual([])` の形になりやすい。この形は**検出器（正規表現・分類ロジック）が何も拾わなくなっても緑になる**。しかも入力が実ファイルだけだと、違反が 0 件に収束していく（＝規約が守られるほど検出器の稼働確認が効かなくなる）という性質まで加わる。合成入力で「拾うべきものを拾い、拾ってはいけないものを拾わない」を別テストとして固定しないと、ガードは静かに空振りに退化する。ファイル収集の liveness 検証（`files.length > 0`）はこの穴を塞がない — 塞げるのは「ファイルを集められたか」だけで、「そこから抽出できたか」ではない。
+
+**Context**: PR #489 で配布物のリンク規約ガードを追加した際、リンク抽出の正規表現が `\]\(([^h)#][^)]*\.md)\)` の形で、`.md)` 直結にしか一致しなかった。`foo.md#section` のようなアンカー付きリンクは取りこぼし、**ガードが存在する状態で回避経路が残っていた**（配布ツリーには同じ書き方が 34 箇所ある）。Toolkit `code-reviewer` と Codex CLI が独立にこれを指摘。既存テストは実ファイル入力 + 違反ゼロ期待だったため、正規表現が壊れても検出できない構造でもあった。否定先読み（`(?!https?://|#|mailto:)`）へ変更し、抽出・パス解決・可否判定を合成入力で固定するテスト群を追加した。
+
+**Action**: 規約ガードを書くときは、違反検出のテストと**検出器の自己検証**をセットで置く。自己検証には (a) 拾うべき代表形（今回ならアンカー付き・サブディレクトリ相対）、(b) 拾ってはいけない形（絶対 URL・ページ内アンカー・inline code）、(c) 分類関数の境界値、を合成文字列で書く。リンク抽出の正規表現では「アンカー / クエリの後置」を最初に疑う。「先頭 1 文字で除外する」形（`[^h)#]`）は `](hooks/foo.md)` のような正当な相対パスまで落とすので、除外は否定先読みで意図を明示する。関連: [ACE-484-2](#ace-484-2)（規約は機械検証で固定する）。
+
 ---
 
 ## Changelog
+
+### [1.36.0] - 2026-08-28
+
+#### 追加
+
+- ACE-489-1: 「違反ゼロ」を期待するガードは検出器が壊れても緑のまま通る — PR #489 でリンク抽出の正規表現がアンカー付きリンクを取りこぼし、ガードがある状態で回避経路が残っていたのを Toolkit と Codex が独立検出した経験から抽出
+
+#### カウンター更新
+
+- ACE-484-2 (Helpful 0→1): 「配布物のリンク規約は機械検証で固定する」を適用してガードを追加し、同エントリの「テスト名は検証していることだけを名乗る」に従ってテスト名も是正した再適用
 
 ### [1.35.0] - 2026-08-28
 
