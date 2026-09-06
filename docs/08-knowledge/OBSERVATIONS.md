@@ -92,12 +92,27 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 
 ### OBS-005: ゲート通過を記録する仕組みが無いリポジトリでは、/close-issue の鮮度照合が毎回「判定不能」になる
 
-| Kind | problem | Count | 1 |
+| Kind | problem | Count | 2 |
 | First | 2026-09-06 | Last | 2026-09-06 |
 | Status | active | Issue | なし |
 
 `quality:local` がゲート記録（`record-gate-head.sh` 相当）を書かないため、`check-merge-freshness.sh` は実測対象を特定できず exit 2 を返し、実測とマージの窓は人手の再実行で埋めることになる → 再発が続けば、`quality:local` の末尾でゲート記録を書くか、pre-push hook に記録を組み込むことを本リポジトリの Issue として検討する。
 
 - 2026-09-06: PR #498 の /close-issue で `REASON=実測対象の記録がありません`。直前に HEAD で quality:local を手動再実行して代替した（初回）
+- 2026-09-06: PR #500 の /close-issue でも同じ REASON。fix commit 直前に quality:local を手動実行して代替（再発）
+
+---
+
+<a id="obs-006"></a>
+
+### OBS-006: Issue の AC に書く検証コマンドは、起票時に実行して「拾うべきものを拾う」ことを確かめてから書く
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+AC の grep を頭で組んで起票すると、検出式の穴（表記の必須化・境界の欠落）がそのまま「残存なし」の緑になり、レビューで検出器ごと差し戻される → 起票前に既知の残存 1 件を含む状態でコマンドを実行し、その 1 件が検出されることを見てから AC に書く。
+
+- 2026-09-06: Issue #499 の AC grep が `node.js` 表記を必須にしていて「Node 20+」を拾えず、Toolkit が Warning として検出器の是正を要求した（初回）
 
 ---
