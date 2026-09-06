@@ -178,6 +178,7 @@ class UserService {
   async createUser(userData: CreateUserRequest): Promise<Result<User>> {
     // 個人情報（メールアドレス等）はログに含めない（error-handling-standards SKILL.md）。
     // 追跡には requestId と、作成後に確定する userId を使う
+    // （req はリクエストコンテキストとして呼び出し側から受け取る前提の簡略表記）
     logger.info("Creating user", { requestId: req.id });
 
     try {
@@ -196,7 +197,7 @@ class UserService {
       // 作成に失敗した時点では userId は確定していないので requestId で追跡する
       logger.error("Failed to create user", err, { requestId: req.id });
 
-      return { success: false, error };
+      return { success: false, error: err };
     }
   }
 }

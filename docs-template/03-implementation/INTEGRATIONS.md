@@ -341,7 +341,7 @@ import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // マジックナンバー禁止: 意味のある値は名前付き定数に切り出す（MASTER.md）
-const SENDGRID_MAX_MESSAGES_PER_BATCH = 1000; // 件。SendGrid の 1 リクエスト上限
+const SENDGRID_MAX_MESSAGES_PER_BATCH = 1000; // 件。SendGrid の 1 リクエスト上限（sendMultiple では宛先 = personalization の数）
 const SENDGRID_BATCH_INTERVAL_MS = 1000; // ms。レート制限を避けるバッチ間の待機
 
 // メール送信の上流障害（transient）。cause に SendGrid のレスポンス（status / body）を保持する
@@ -418,8 +418,11 @@ class EmailService {
     for (const [chunkIndex, chunk] of chunks.entries()) {
       try {
         // send(配列) は各メールを個別に並列送信するためチャンク内で部分成功が起き、
-        // 「チャンク単位の成否」が実態と合わなくなる。sendMultiple は 1 リクエストで
-        // 複数宛先へ送る（同一本文の一括送信）ので、チャンク = 1 リクエストの成否になる
+        // 「チャンク単位の成否」が実態と合わなくなる。sendMultiple（= send(data, true)）は
+        // `to` を宛先ごとの personalization に展開して 1 リクエストで送る（他の宛先が
+        // To ヘッダに見えない）ので、チャンク = 1 リクエストの成否になる。
+        // 裏返しとして、1 件でも不正な宛先があるとリクエスト全体が 400 で拒否され
+        // チャンク全員が失敗する — 宛先はチャンク化前に検証・正規化しておくこと
         await sgMail.sendMultiple({
           to: chunk,
           from: this.FROM_EMAIL,
@@ -473,7 +476,7 @@ class EmailService {
   }
 }
 
-// 呼び出し例（reconciliationQueue は §8 キューシステム統合の Bull キュー相当）。
+// 呼び出し例（reconciliationQueue は §8 QueueService と同じ要領で定義した突合用キュー。本文では未定義）。
 // 判別可能ユニオンなので、never 付き switch で分岐すればステータスの追加に
 // コンパイルで気づける（戻り値を捨てれば TS は何も言わない — 捨てないこと）
 const result = await emailService.sendBulkEmail(recipients, subject, content);
@@ -483,14 +486,23 @@ switch (result.status) {
   case "partial": {
     // 失敗チャンクを自動では再送しない。transient には「SendGrid が受け付けた後に接続が
     // 切れた」（宛先には届いている）ケースも含まれ、category だけを根拠に再送すると
-    // 二重送信になる。メール送信は上流で重複排除できない副作用なので（FALLBACK.md
-    // 「副作用のある再試行は冪等キーで重複排除できる場合のみ」）、成否不明のチャンクは
-    // 送信記録（SendGrid Event Webhook 等）と突合してから未達分だけを再送する
+    // 二重送信になる。メール送信は冪等キーで上流に重複排除させられない副作用なので
+    // （FALLBACK.md §4 再試行ユーティリティの方針）、成否不明のチャンクは送信記録
+    // （SendGrid Event Webhook 等）と突合してから未達分だけを再送する。
+    // chunkIndex と upstreamStatus も渡す — 400（宛先不正: 他の宛先だけ再送）と
+    // 413（本文過大: 分割して再送）は errorCode が同じ UPSTREAM_REJECTED で区別できない。
+    // 前提: 元の宛先リストが永続化されチャンク化が決定的であること。失敗宛先はログに
+    // 出さない（PII）ので、enqueue 前に落ちた場合は chunkIndex からしか復元できない
     await reconciliationQueue.add({
       failedChunks: result.failedChunks.map((c) => ({
+        chunkIndex: c.chunkIndex,
         recipients: c.recipients,
         errorCode: c.error.code,
         category: c.error.category,
+        upstreamStatus:
+          c.error instanceof UpstreamRejectedError
+            ? c.error.upstreamStatus
+            : undefined,
       })),
     });
     break;

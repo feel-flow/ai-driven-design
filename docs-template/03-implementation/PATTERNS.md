@@ -271,13 +271,19 @@ function readHttpStatus(error: unknown): number | undefined {
     code?: unknown;
     response?: { status?: unknown };
   };
-  // SendGrid の ResponseError は HTTP ステータスを数値の `code` に入れる。他 SDK の数値 code
-  // （独自エラー番号）を拾わないよう、HTTP ステータスの範囲にある数値だけを採用する
+  // SendGrid の ResponseError は HTTP ステータスを数値の `code` に入れる（`response` に
+  // headers / body を持つ）。範囲チェックだけでは MongoDB の WriteConflict(112) のような
+  // 100〜599 に収まる独自エラー番号を弾けないので、HTTP レスポンスの形（`response` が
+  // オブジェクト）を伴う場合に限って数値 `code` を採用する
+  const looksLikeHttpResponseError =
+    typeof e.response === "object" && e.response !== null;
   const candidate =
     e.statusCode ??
     e.status ??
     e.response?.status ??
-    (typeof e.code === "number" && isHttpStatusRange(e.code)
+    (looksLikeHttpResponseError &&
+    typeof e.code === "number" &&
+    isHttpStatusRange(e.code)
       ? e.code
       : undefined);
   return typeof candidate === "number" ? candidate : undefined;
@@ -322,10 +328,13 @@ function isProgrammingError(error: unknown): boolean {
  * 汎用 Error / AxiosError のままだと category の判定がすべて素通りし、外部 API の
  * 401/403 がフォールバックや再試行の対象になる（FALLBACK.md §4）。
  * ステータスは `status` / `statusCode` / `response.status` に加え、SendGrid の
- * ResponseError のように数値の `code` に入っている場合も読む（HTTP ステータスの
- * 範囲にある数値のみ）。読めないとすべて transient に化ける。
- * 4xx は UpstreamRejectedError（never-fallback）— こちらの要求誤りなので本番でも
- * 握りつぶさない。5xx / 429 / ステータス不明は UpstreamError（transient）。
+ * ResponseError のように数値の `code` に入っている場合も読む（`response` を伴い、
+ * HTTP ステータスの範囲にある数値のみ）。読めないとすべて transient に化ける。
+ * 写像: 401 / 403 → 認証・認可（never-fallback）、404 → NotFoundError（permanent）、
+ * 409 → ConflictError（never-fallback）、429 / 5xx / ステータス不明 → UpstreamError
+ * （transient）、専用クラスを持たないその他の 4xx（400 / 422 等）→ UpstreamRejectedError
+ * （never-fallback。こちらの要求誤りなので本番でも握りつぶさない）。
+ * 1xx〜3xx をエラーとして投げる HTTP ラッパは想定外なので UpstreamError に寄せる。
  * cause には元の値をそのまま保持する（Error でない値も String() に潰さない —
  * 上流のステータスやレスポンス本文は cause からしか辿れない）。
  *
@@ -362,9 +371,12 @@ function normalizeExternalError(
       // HTTP ラッパ）。429 とともに一時障害として扱う
       return new UpstreamError(message, { cause });
     default:
-      return status >= HTTP_STATUS.INTERNAL_SERVER_ERROR
-        ? new UpstreamError(message, { cause })
-        : new UpstreamRejectedError(message, status, { cause });
+      // 4xx（専用クラスを持たないもの）だけが「こちらの要求誤り」。5xx と、エラーとして
+      // 投げられた 1xx〜3xx（リダイレクト等）は上流側の事情として transient に寄せる
+      return status >= HTTP_STATUS.BAD_REQUEST &&
+        status < HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? new UpstreamRejectedError(message, status, { cause })
+        : new UpstreamError(message, { cause });
   }
 }
 ```
@@ -765,9 +777,10 @@ function pickHttpDiagnostics(value: object): Record<string, unknown> {
     statusCode?: unknown;
     code?: unknown;
     body?: unknown;
-    response?: { status?: unknown; data?: unknown };
+    // axios は response.data、SendGrid の ResponseError は response.body に本文を持つ
+    response?: { status?: unknown; data?: unknown; body?: unknown };
   };
-  const body = v.body ?? v.response?.data;
+  const body = v.body ?? v.response?.data ?? v.response?.body;
   const diagnostics: Record<string, unknown> = {};
   const status = v.statusCode ?? v.status ?? v.response?.status;
   if (status !== undefined) diagnostics.status = status;
@@ -789,15 +802,24 @@ function pickHttpDiagnostics(value: object): Record<string, unknown> {
   return diagnostics;
 }
 
-// 任意の値を、投げずに上限つきの文字列へ落とす（循環参照・BigInt でも TypeError にしない）
-function describeValue(value: unknown): string {
+// ログに載せる非 HTTP 形状 cause の上位キー数の上限（マジックナンバー禁止）
+const ERROR_LOG_SHAPE_MAX_KEYS = 20;
+
+// HTTP 形状でないオブジェクトの「形」だけを残す。値は一切出さない — 任意オブジェクトを
+// JSON 化すると、境界で赤入れされていない cause（{ requestBody: { email, apiSecret } } 等）
+// の個人情報・秘密がそのままログに載る（SKILL.md「個人情報をログに含めない」）。
+// 型名と上位キー名があれば「何が来たか」は追える。Object.keys / constructor 参照は
+// Proxy 等で投げうるので、ログ経路として投げない
+function describeShape(value: object): Record<string, unknown> {
   try {
-    const text = JSON.stringify(value, (_key, v) =>
-      typeof v === "bigint" ? v.toString() : v,
-    );
-    return (text ?? String(value)).slice(0, ERROR_LOG_BODY_MAX_CHARS);
+    const keys = Object.keys(value);
+    return {
+      type: value.constructor?.name ?? Object.prototype.toString.call(value),
+      keys: keys.slice(0, ERROR_LOG_SHAPE_MAX_KEYS),
+      keyCount: keys.length,
+    };
   } catch {
-    return `[unserializable ${Object.prototype.toString.call(value)}]`;
+    return { type: Object.prototype.toString.call(value) };
   }
 }
 
@@ -808,12 +830,12 @@ function serializeError(error: unknown, depth = 0): Record<string, unknown> {
   if (!(error instanceof Error)) {
     // Error でない cause（{ status, body } 等）は String() に潰さず構造化する。
     // HTTP 形状でない値（GA4 のレスポンス等）は pickHttpDiagnostics が空になるので、
-    // 上限つきの文字列表現に落として「形状の情報」自体を残す
+    // 型名と上位キー名（値は含めない）で「形状の情報」自体を残す
     if (typeof error === "object" && error !== null) {
       const diagnostics = pickHttpDiagnostics(error);
       return Object.keys(diagnostics).length > 0
         ? diagnostics
-        : { value: describeValue(error) };
+        : { shape: describeShape(error) };
     }
     return { value: String(error) };
   }
@@ -971,8 +993,10 @@ Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言�
 #### 変更
 
 - `UpstreamRejectedError` の `category` を `permanent` → `never-fallback` に変更（上流の 4xx は自コードの要求誤りのサインで、本番でフォールバックすると欠陥が隠れる。Issue #514）
-- `readHttpStatus()` が数値の `code`（SendGrid `ResponseError` 等）を HTTP ステータス範囲（100〜599）のときだけ採用するよう拡張。401 / 403 が transient に化けなくなる
-- `serializeError()` の非 Error cause が HTTP 形状でない場合、`{}` に潰さず上限つきの文字列表現（`describeValue()`）で形状情報を残す
+- `readHttpStatus()` が数値の `code`（SendGrid `ResponseError` 等）を、`response` を伴いかつ HTTP ステータス範囲（100〜599）のときだけ採用するよう拡張。401 / 403 が transient に化けなくなる（MongoDB 等の独自エラー番号は `response` を持たないため誤採用しない）
+- `normalizeExternalError()` の既定分岐を「4xx → `UpstreamRejectedError`、それ以外（5xx とエラーとして投げられた 1xx〜3xx）→ `UpstreamError`」に修正（従来は 5xx 未満をすべて拒否扱いにしていた）
+- `serializeError()` の非 Error cause が HTTP 形状でない場合、`{}` に潰さず型名と上位キー名（`describeShape()`。値は含めない）で形状情報を残す
+- `pickHttpDiagnostics()` が SendGrid `ResponseError` の `response.body` も本文として拾うよう拡張
 
 ### [1.2.0] - 2026-09-06
 

@@ -11,7 +11,7 @@ description: >-
   and HTTP status code mapping. Use when implementing error handling,
   reviewing catch blocks, or designing error responses.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: feel-flow
   tags: "error-handling, result-pattern, custom-errors, logging, silent-error"
   references: "docs/03-implementation/PATTERNS.md, docs/03-implementation/FALLBACK.md, docs/MASTER.md"
@@ -87,7 +87,7 @@ interface ValidationDetail {
 
 // サブクラスの例（他の NotFoundError / ForbiddenError / ConflictError / UnauthorizedError /
 // SecurityError / InternalError / UpstreamError / UpstreamRejectedError は PATTERNS.md）
-// HTTP_STATUS は PATTERNS.md「エラーハンドリング」で定義（`./errors` から import）
+// HTTP_STATUS は PATTERNS.md「エラーハンドリング」で定義済み（AppError と同じモジュールから import）
 class ValidationError extends AppError {
   readonly category: ErrorCategory = "never-fallback";
   constructor(

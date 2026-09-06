@@ -31,7 +31,7 @@ changeImpact: "MEDIUM"
 - **バリデーションエラー** — 不正データの伝播防止
 - **データ整合性エラー** — トランザクション一貫性の維持
 - **セキュリティ関連エラー** — 脆弱性の露出防止
-- **上流の恒久的な拒否（4xx）** — こちらの要求が誤っているサイン。本番でフォールバックすると自コードの欠陥が隠れる
+- **上流の恒久的な拒否（400 / 422 等、専用クラスを持たない 4xx）** — こちらの要求が誤っているサイン。本番でフォールバックすると自コードの欠陥が隠れる（404 は NotFoundError = permanent、429 は transient として別扱い。写像は PATTERNS.md `normalizeExternalError()`）
 
 ### 可観測性の原則
 
@@ -233,15 +233,16 @@ async function getConfig(key: string): Promise<string> {
 
 ### 適用判断ガイド
 
-| シナリオ               | 開発時                 | 本番時                  |
-| ---------------------- | ---------------------- | ----------------------- |
-| DB/API通信エラー       | スロー（即座に検出）   | フォールバック + ログ   |
-| 設定値の取得失敗       | スロー（設定ミス検出） | デフォルト値 + アラート |
-| データ変換エラー       | スロー（型不整合検出） | 安全なデフォルト + ログ |
-| 認証/認可エラー        | スロー                 | スロー（環境問わず）    |
-| バリデーションエラー   | スロー                 | スロー（環境問わず）    |
-| データ整合性エラー     | スロー                 | スロー（環境問わず）    |
-| セキュリティ関連エラー | スロー                 | スロー（環境問わず）    |
+| シナリオ                                                   | 開発時                 | 本番時                  |
+| ---------------------------------------------------------- | ---------------------- | ----------------------- |
+| DB/API通信エラー（5xx / 429 / ステータス不明 = transient） | スロー（即座に検出）   | フォールバック + ログ   |
+| 設定値の取得失敗                                           | スロー（設定ミス検出） | デフォルト値 + アラート |
+| データ変換エラー                                           | スロー（型不整合検出） | 安全なデフォルト + ログ |
+| 認証/認可エラー                                            | スロー                 | スロー（環境問わず）    |
+| バリデーションエラー                                       | スロー                 | スロー（環境問わず）    |
+| データ整合性エラー                                         | スロー                 | スロー（環境問わず）    |
+| セキュリティ関連エラー                                     | スロー                 | スロー（環境問わず）    |
+| 上流の恒久的な拒否（4xx）                                  | スロー                 | スロー（環境問わず）    |
 
 ### 再試行ユーティリティ（Exponential Backoff + Jitter）
 
@@ -300,7 +301,8 @@ async function retryWithBackoff<T>(
   const isRetryable = (error: AppError) =>
     isRetryableError(error) && (options.isRetryable?.(error) ?? true);
   // 1 以上の整数でないのは呼び出し側の設定ミス。無限ループ構造のため、1 未満なら 1 回試行して
-  // 投げ（意図と食い違う）、NaN なら `attempt >= maxAttempts` が常に偽で止まらない。即座に投げる
+  // 投げ（意図と食い違う）、NaN なら `attempt >= maxAttempts` が常に偽で transient 失敗が
+  // 続く限り止まらない。即座に投げる
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
     throw new Error(`maxAttempts must be an integer >= 1, got ${maxAttempts}`);
   }
@@ -399,7 +401,8 @@ async function retryWithBackoff<T>(
 #### 変更
 
 - フォールバック禁止カテゴリに「上流の恒久的な拒否（4xx）」を追加（`UpstreamRejectedError` が never-fallback になったことに追従。Issue #514）
-- `retryWithBackoff()` の `maxAttempts` ガードを `!Number.isInteger(maxAttempts) || maxAttempts < 1` に変更（NaN を渡すと無限ループしていた）。コメントも無限ループ構造の実態に合わせて修正
+- `retryWithBackoff()` の `maxAttempts` ガードを `!Number.isInteger(maxAttempts) || maxAttempts < 1` に変更（NaN を渡すと transient 失敗が続く限り無限ループしていた）。コメントも無限ループ構造の実態に合わせて修正
+- 適用判断ガイドの表に「上流の恒久的な拒否」行を追加し、「DB/API通信エラー」行を transient（5xx / 429 / ステータス不明）に限定
 
 ### [1.1.0] - 2026-09-06
 
