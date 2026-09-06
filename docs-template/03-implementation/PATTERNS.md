@@ -1,6 +1,6 @@
 ---
 title: "PATTERNS"
-version: "1.2.0"
+version: "1.3.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
@@ -126,10 +126,10 @@ type AppErrorOptions = { cause?: unknown };
 
 // エラー分類。フォールバック可否・再試行可否は statusCode から推測せず、各サブクラスが
 // 宣言する（抽象メンバなので、サブクラスを追加した瞬間にコンパイルが宣言を要求する）。
-//   never-fallback: 認証・認可・バリデーション・データ整合性・セキュリティ
-//                   — 環境を問わずスロー、再試行しない（FALLBACK.md Section 1）
+//   never-fallback: 認証・認可・バリデーション・データ整合性・セキュリティ・上流の恒久拒否
+//                   （自コードの要求誤り）— 環境を問わずスロー、再試行しない（FALLBACK.md Section 1）
 //   transient:      外部サービスの一時障害 — 再試行可、本番ではフォールバック可
-//   permanent:      再試行しても結果が変わらない失敗（未検出・自コードのバグ・上流の恒久拒否）
+//   permanent:      再試行しても結果が変わらない失敗（未検出・自コードのバグ）
 //                   — 再試行しない、本番ではフォールバック可
 type ErrorCategory = "never-fallback" | "transient" | "permanent";
 
@@ -244,9 +244,11 @@ class UpstreamError extends AppError {
 // 外部サービスがこちらの要求を恒久的に拒否した（4xx）。利用者の入力検証エラー
 // （ValidationError）とは別物として扱う — 上流の拒否をローカルの入力エラーとして
 // 名乗ると、details をフィールドエラーとして描画するハンドラが誤動作し、
-// 上流の失敗理由（cause）も details からは辿れなくなる
+// 上流の失敗理由（cause）も details からは辿れなくなる。
+// 上流に拒否されたのは自コードの要求が誤っているサインなので、本番で黙って
+// フォールバックすると欠陥が隠れる — never-fallback（再試行もしない）
 class UpstreamRejectedError extends AppError {
-  readonly category: ErrorCategory = "permanent";
+  readonly category: ErrorCategory = "never-fallback";
   constructor(
     message: string,
     public readonly upstreamStatus: number,
@@ -266,10 +268,29 @@ function readHttpStatus(error: unknown): number | undefined {
   const e = error as {
     status?: unknown;
     statusCode?: unknown;
+    code?: unknown;
     response?: { status?: unknown };
   };
-  const candidate = e.statusCode ?? e.status ?? e.response?.status;
+  // SendGrid の ResponseError は HTTP ステータスを数値の `code` に入れる。他 SDK の数値 code
+  // （独自エラー番号）を拾わないよう、HTTP ステータスの範囲にある数値だけを採用する
+  const candidate =
+    e.statusCode ??
+    e.status ??
+    e.response?.status ??
+    (typeof e.code === "number" && isHttpStatusRange(e.code)
+      ? e.code
+      : undefined);
   return typeof candidate === "number" ? candidate : undefined;
+}
+
+const HTTP_STATUS_MIN = 100;
+const HTTP_STATUS_MAX = 599;
+function isHttpStatusRange(value: number): boolean {
+  return (
+    Number.isInteger(value) &&
+    value >= HTTP_STATUS_MIN &&
+    value <= HTTP_STATUS_MAX
+  );
 }
 
 // Node のシステムエラーコード（ECONNREFUSED / ENOTFOUND / ETIMEDOUT 等）を cause に持つか
@@ -300,6 +321,11 @@ function isProgrammingError(error: unknown): boolean {
  *
  * 汎用 Error / AxiosError のままだと category の判定がすべて素通りし、外部 API の
  * 401/403 がフォールバックや再試行の対象になる（FALLBACK.md §4）。
+ * ステータスは `status` / `statusCode` / `response.status` に加え、SendGrid の
+ * ResponseError のように数値の `code` に入っている場合も読む（HTTP ステータスの
+ * 範囲にある数値のみ）。読めないとすべて transient に化ける。
+ * 4xx は UpstreamRejectedError（never-fallback）— こちらの要求誤りなので本番でも
+ * 握りつぶさない。5xx / 429 / ステータス不明は UpstreamError（transient）。
  * cause には元の値をそのまま保持する（Error でない値も String() に潰さない —
  * 上流のステータスやレスポンス本文は cause からしか辿れない）。
  *
@@ -763,15 +789,33 @@ function pickHttpDiagnostics(value: object): Record<string, unknown> {
   return diagnostics;
 }
 
+// 任意の値を、投げずに上限つきの文字列へ落とす（循環参照・BigInt でも TypeError にしない）
+function describeValue(value: unknown): string {
+  try {
+    const text = JSON.stringify(value, (_key, v) =>
+      typeof v === "bigint" ? v.toString() : v,
+    );
+    return (text ?? String(value)).slice(0, ERROR_LOG_BODY_MAX_CHARS);
+  } catch {
+    return `[unserializable ${Object.prototype.toString.call(value)}]`;
+  }
+}
+
 // Error を構造化する。cause を保持する規約（§3）と対で、cause をログに出す実装が要る —
 // name / message / stack しか出さないと、ラップ時に保持した上流の失敗理由が
 // どこにも現れない
 function serializeError(error: unknown, depth = 0): Record<string, unknown> {
   if (!(error instanceof Error)) {
-    // Error でない cause（{ status, body } 等）は String() に潰さず構造化する
-    return typeof error === "object" && error !== null
-      ? pickHttpDiagnostics(error)
-      : { value: String(error) };
+    // Error でない cause（{ status, body } 等）は String() に潰さず構造化する。
+    // HTTP 形状でない値（GA4 のレスポンス等）は pickHttpDiagnostics が空になるので、
+    // 上限つきの文字列表現に落として「形状の情報」自体を残す
+    if (typeof error === "object" && error !== null) {
+      const diagnostics = pickHttpDiagnostics(error);
+      return Object.keys(diagnostics).length > 0
+        ? diagnostics
+        : { value: describeValue(error) };
+    }
+    return { value: String(error) };
   }
   const serialized: Record<string, unknown> = {
     name: error.name,
@@ -921,6 +965,14 @@ Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言�
 詳細は `docs/03-implementation/DEPENDENCY_LINT.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照。
 
 ## Changelog
+
+### [1.3.0] - 2026-09-06
+
+#### 変更
+
+- `UpstreamRejectedError` の `category` を `permanent` → `never-fallback` に変更（上流の 4xx は自コードの要求誤りのサインで、本番でフォールバックすると欠陥が隠れる。Issue #514）
+- `readHttpStatus()` が数値の `code`（SendGrid `ResponseError` 等）を HTTP ステータス範囲（100〜599）のときだけ採用するよう拡張。401 / 403 が transient に化けなくなる
+- `serializeError()` の非 Error cause が HTTP 形状でない場合、`{}` に潰さず上限つきの文字列表現（`describeValue()`）で形状情報を残す
 
 ### [1.2.0] - 2026-09-06
 

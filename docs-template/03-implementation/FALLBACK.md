@@ -1,6 +1,6 @@
 ---
 title: "FALLBACK"
-version: "1.1.0"
+version: "1.2.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
@@ -31,6 +31,7 @@ changeImpact: "MEDIUM"
 - **バリデーションエラー** — 不正データの伝播防止
 - **データ整合性エラー** — トランザクション一貫性の維持
 - **セキュリティ関連エラー** — 脆弱性の露出防止
+- **上流の恒久的な拒否（4xx）** — こちらの要求が誤っているサイン。本番でフォールバックすると自コードの欠陥が隠れる
 
 ### 可観測性の原則
 
@@ -254,7 +255,7 @@ const DEFAULT_RETRY_MAX_DELAY_MS = 10_000; // ms。待機時間の上限
 
 // 再試行してよいのは transient（外部サービスの一時障害）だけ。禁止カテゴリは何度
 // 送っても結果が変わらず、認証エラーの連打はアカウントロックやレート制限まで招く。
-// permanent（自コードのバグ・上流の恒久拒否）も再試行では直らず、真因の顕在化が遅れる。
+// permanent（未検出・自コードのバグ）も再試行では直らず、真因の顕在化が遅れる。
 function isRetryableError(error: AppError): boolean {
   return error.category === "transient";
 }
@@ -283,7 +284,7 @@ interface RetryOptions {
  * 一意制約違反まで transient に化けて再試行される。リポジトリ層のマッパーで
  * AppError に写した fn を渡すこと。
  *
- * @throws {Error} maxAttempts < 1 はプログラミングエラー（fn を一度も呼ばずに投げる）
+ * @throws {Error} maxAttempts が 1 以上の整数でない（0 以下・NaN・小数）のはプログラミングエラー（fn を一度も呼ばずに投げる）
  * @throws {AppError} 再試行不可のエラー、または上限到達時に正規化済みのエラーを再スロー
  */
 async function retryWithBackoff<T>(
@@ -298,9 +299,10 @@ async function retryWithBackoff<T>(
   } = options;
   const isRetryable = (error: AppError) =>
     isRetryableError(error) && (options.isRetryable?.(error) ?? true);
-  // 0 以下だと一度も fn を呼ばずに throw し、真因を隠したエラーになる
-  if (maxAttempts < 1) {
-    throw new Error(`maxAttempts must be >= 1, got ${maxAttempts}`);
+  // 1 以上の整数でないのは呼び出し側の設定ミス。無限ループ構造のため、1 未満なら 1 回試行して
+  // 投げ（意図と食い違う）、NaN なら `attempt >= maxAttempts` が常に偽で止まらない。即座に投げる
+  if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
+    throw new Error(`maxAttempts must be an integer >= 1, got ${maxAttempts}`);
   }
 
   for (let attempt = 1; ; attempt++) {
@@ -376,7 +378,7 @@ async function retryWithBackoff<T>(
 - [ ] try-catch ブロックでエラーを握りつぶしていないか
 - [ ] フォールバック値（空配列、デフォルトオブジェクト等）を返す箇所に環境分岐があるか
 - [ ] AI生成コードのcatch句が `fallbackInProdOnly()` を使用しているか（`NODE_ENV` 分岐だけの場合は、禁止カテゴリの判定が添えてあるか）
-- [ ] 禁止カテゴリの 4 種すべて（認証・認可 / バリデーション / データ整合性 / セキュリティ）にフォールバックが入っていないか
+- [ ] 禁止カテゴリの 5 種すべて（認証・認可 / バリデーション / データ整合性 / セキュリティ / 上流の恒久的な拒否）にフォールバックが入っていないか
 - [ ] `fallbackInProdOnly()` に渡すエラーを `normalizeExternalError()`（HTTP 境界）またはリポジトリ層のマッパー（DB 等）で AppError に写しているか（生エラーは deny-by-default でスローされる）
 - [ ] `retryWithBackoff()` の fn は HTTP 境界の呼び出しか（内部で無条件に正規化するため、ステータスを持たないエラー源を渡すと transient に化けて再試行される）
 - [ ] 新しいエラークラスが `category`（never-fallback / transient / permanent）を正しく宣言しているか
@@ -391,6 +393,13 @@ async function retryWithBackoff<T>(
 - [ ] Feature Flag による機能無効化が可能な構成か
 
 ## Changelog
+
+### [1.2.0] - 2026-09-06
+
+#### 変更
+
+- フォールバック禁止カテゴリに「上流の恒久的な拒否（4xx）」を追加（`UpstreamRejectedError` が never-fallback になったことに追従。Issue #514）
+- `retryWithBackoff()` の `maxAttempts` ガードを `!Number.isInteger(maxAttempts) || maxAttempts < 1` に変更（NaN を渡すと無限ループしていた）。コメントも無限ループ構造の実態に合わせて修正
 
 ### [1.1.0] - 2026-09-06
 

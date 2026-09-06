@@ -87,6 +87,7 @@ interface ValidationDetail {
 
 // サブクラスの例（他の NotFoundError / ForbiddenError / ConflictError / UnauthorizedError /
 // SecurityError / InternalError / UpstreamError / UpstreamRejectedError は PATTERNS.md）
+// HTTP_STATUS は PATTERNS.md「エラーハンドリング」で定義（`./errors` から import）
 class ValidationError extends AppError {
   readonly category: ErrorCategory = "never-fallback";
   constructor(
@@ -101,17 +102,17 @@ class ValidationError extends AppError {
 
 ## 3. エラーコードと HTTP ステータスコード
 
-| エラークラス          | エラーコード           | HTTP ステータス | 分類           | 用途                               |
-| --------------------- | ---------------------- | --------------- | -------------- | ---------------------------------- |
-| ValidationError       | `VALIDATION_ERROR`     | 400             | never-fallback | 入力バリデーション失敗             |
-| UnauthorizedError     | `UNAUTHORIZED`         | 401             | never-fallback | 未認証                             |
-| ForbiddenError        | `FORBIDDEN`            | 403             | never-fallback | 権限不足                           |
-| SecurityError         | `SECURITY_VIOLATION`   | 403             | never-fallback | 署名不一致・改ざん検知             |
-| NotFoundError         | `NOT_FOUND`            | 404             | permanent      | リソース未検出                     |
-| ConflictError         | `CONFLICT`             | 409             | never-fallback | 重複・競合                         |
-| InternalError         | `INTERNAL_ERROR`       | 500             | permanent      | 予期しない内部エラー               |
-| UpstreamError         | `UPSTREAM_UNAVAILABLE` | 502             | transient      | 外部サービスの一時障害（再試行可） |
-| UpstreamRejectedError | `UPSTREAM_REJECTED`    | 502             | permanent      | 外部サービスによる恒久的な拒否     |
+| エラークラス          | エラーコード           | HTTP ステータス | 分類           | 用途                                                                             |
+| --------------------- | ---------------------- | --------------- | -------------- | -------------------------------------------------------------------------------- |
+| ValidationError       | `VALIDATION_ERROR`     | 400             | never-fallback | 入力バリデーション失敗                                                           |
+| UnauthorizedError     | `UNAUTHORIZED`         | 401             | never-fallback | 未認証                                                                           |
+| ForbiddenError        | `FORBIDDEN`            | 403             | never-fallback | 権限不足                                                                         |
+| SecurityError         | `SECURITY_VIOLATION`   | 403             | never-fallback | 署名不一致・改ざん検知                                                           |
+| NotFoundError         | `NOT_FOUND`            | 404             | permanent      | リソース未検出                                                                   |
+| ConflictError         | `CONFLICT`             | 409             | never-fallback | 重複・競合                                                                       |
+| InternalError         | `INTERNAL_ERROR`       | 500             | permanent      | 予期しない内部エラー                                                             |
+| UpstreamError         | `UPSTREAM_UNAVAILABLE` | 502             | transient      | 外部サービスの一時障害（再試行可）                                               |
+| UpstreamRejectedError | `UPSTREAM_REJECTED`    | 502             | never-fallback | 外部サービスによる恒久的な拒否（自コードの要求誤り。本番でフォールバックしない） |
 
 すべて PATTERNS.md「エラーハンドリング」で定義済み。新しいエラー種別が必要な場合は、必ず AppError を継承し `category` を宣言して作成する（宣言しないとコンパイルエラーになる）。
 
@@ -307,7 +308,7 @@ try {
 
 // △ インライン環境分岐（カスタムログが必要な場合のみ）
 // 素の環境分岐は「フォールバック禁止カテゴリ」の判定を持たないため、
-// 認証・認可・バリデーション・データ整合性・セキュリティのエラーが
+// 認証・認可・バリデーション・データ整合性・セキュリティ・上流の恒久的な拒否のエラーが
 // 本番で握りつぶされる。この形を使うなら禁止カテゴリの判定を必ず添える。
 try {
   return await fetchData();
@@ -334,11 +335,11 @@ try {
 
 ### レビュー時の判断基準
 
-| 状況                                                                     | 対応                                 |
-| ------------------------------------------------------------------------ | ------------------------------------ |
-| catch 内でデフォルト値を返している                                       | 環境分岐を追加するよう指摘           |
-| `.catch(() => default)` パターン                                         | try-catch + 環境分岐に書き換え       |
-| 認証/認可/バリデーション/データ整合性/セキュリティエラーにフォールバック | 環境問わずスローに修正               |
-| 既に `fallbackInProdOnly()` を使用                                       | OK（ログ記録・エラー正規化を確認）   |
-| 環境分岐のみ（禁止カテゴリの判定なし）                                   | 禁止カテゴリの判定を追加するよう指摘 |
-| フォールバックが明示的にビジネス要件                                     | コメントで理由を明記させる           |
+| 状況                                                                                          | 対応                                 |
+| --------------------------------------------------------------------------------------------- | ------------------------------------ |
+| catch 内でデフォルト値を返している                                                            | 環境分岐を追加するよう指摘           |
+| `.catch(() => default)` パターン                                                              | try-catch + 環境分岐に書き換え       |
+| 認証/認可/バリデーション/データ整合性/セキュリティ/上流の恒久的な拒否のエラーにフォールバック | 環境問わずスローに修正               |
+| 既に `fallbackInProdOnly()` を使用                                                            | OK（ログ記録・エラー正規化を確認）   |
+| 環境分岐のみ（禁止カテゴリの判定なし）                                                        | 禁止カテゴリの判定を追加するよう指摘 |
+| フォールバックが明示的にビジネス要件                                                          | コメントで理由を明記させる           |

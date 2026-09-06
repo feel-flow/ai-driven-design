@@ -408,23 +408,24 @@ class EmailService {
     subject: string,
     content: string,
   ): Promise<BulkEmailResult> {
-    const messages = recipients.map((email) => ({
-      to: email,
-      from: this.FROM_EMAIL,
-      subject,
-      html: content,
-    }));
-
     // バッチ送信。チャンク単位で失敗を記録して続行する。
     // 途中で throw すると残りのチャンクは送られず、どこまで送れたかの記録も残らない。
     // 再実行すると送信済みの宛先に二重送信される（部分送信の記録が必要）。
-    const chunks = this.chunkArray(messages, SENDGRID_MAX_MESSAGES_PER_BATCH);
+    const chunks = this.chunkArray(recipients, SENDGRID_MAX_MESSAGES_PER_BATCH);
     let sentCount = 0;
     const failedChunks: FailedChunk[] = [];
 
     for (const [chunkIndex, chunk] of chunks.entries()) {
       try {
-        await sgMail.send(chunk);
+        // send(配列) は各メールを個別に並列送信するためチャンク内で部分成功が起き、
+        // 「チャンク単位の成否」が実態と合わなくなる。sendMultiple は 1 リクエストで
+        // 複数宛先へ送る（同一本文の一括送信）ので、チャンク = 1 リクエストの成否になる
+        await sgMail.sendMultiple({
+          to: chunk,
+          from: this.FROM_EMAIL,
+          subject,
+          html: content,
+        });
         sentCount += chunk.length;
       } catch (error) {
         const normalized = normalizeExternalError(
@@ -438,7 +439,7 @@ class EmailService {
         });
         failedChunks.push({
           chunkIndex,
-          recipients: chunk.map((m) => m.to),
+          recipients: chunk,
           error: normalized,
         });
       }
@@ -472,7 +473,7 @@ class EmailService {
   }
 }
 
-// 呼び出し例（retryQueue は §8 キューシステム統合の Bull キュー相当）。
+// 呼び出し例（reconciliationQueue は §8 キューシステム統合の Bull キュー相当）。
 // 判別可能ユニオンなので、never 付き switch で分岐すればステータスの追加に
 // コンパイルで気づける（戻り値を捨てれば TS は何も言わない — 捨てないこと）
 const result = await emailService.sendBulkEmail(recipients, subject, content);
@@ -480,16 +481,18 @@ switch (result.status) {
   case "all-sent":
     break;
   case "partial": {
-    // 一時障害のチャンクだけを再送キューへ積む（成功済み宛先への二重送信を避け、
-    // 宛先不正など permanent な失敗は再送しない）
-    const retryable = result.failedChunks.filter(
-      (c) => c.error.category === "transient",
-    );
-    if (retryable.length > 0) {
-      await retryQueue.add({
-        recipients: retryable.flatMap((c) => c.recipients),
-      });
-    }
+    // 失敗チャンクを自動では再送しない。transient には「SendGrid が受け付けた後に接続が
+    // 切れた」（宛先には届いている）ケースも含まれ、category だけを根拠に再送すると
+    // 二重送信になる。メール送信は上流で重複排除できない副作用なので（FALLBACK.md
+    // 「副作用のある再試行は冪等キーで重複排除できる場合のみ」）、成否不明のチャンクは
+    // 送信記録（SendGrid Event Webhook 等）と突合してから未達分だけを再送する
+    await reconciliationQueue.add({
+      failedChunks: result.failedChunks.map((c) => ({
+        recipients: c.recipients,
+        errorCode: c.error.code,
+        category: c.error.category,
+      })),
+    });
     break;
   }
   default: {
@@ -592,6 +595,9 @@ function safeStringify(value: unknown): string {
   }
 }
 
+// ログに残す通知本文のプレビュー長（マジックナンバー禁止）。ログ行を潰さない範囲で通知を識別する
+const SLACK_TEXT_PREVIEW_MAX_CHARS = 80; // 文字
+
 // 通知サービス
 class NotificationService {
   // metrics は PATTERNS.md「ログパターン」の Metrics 契約（投げない実装）を DI する
@@ -614,7 +620,7 @@ class NotificationService {
         "Slack notification failed",
       );
       logger.error("Failed to send Slack notification", normalized, {
-        textPreview: message.text.slice(0, 80),
+        textPreview: message.text.slice(0, SLACK_TEXT_PREVIEW_MAX_CHARS),
       });
       this.metrics.increment("notification.slack.failed", {
         reason: normalized.code,
