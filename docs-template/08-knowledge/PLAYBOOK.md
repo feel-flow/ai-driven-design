@@ -1,12 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.42.0"
+version: "1.43.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-09-06"
 owner: "@fffokazaki"
 changeImpact: "medium"
-ace_entry_count: 80
+ace_entry_count: 83
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -2104,7 +2104,57 @@ FALLBACK.md §4 を「`### ✅ OK` 見出しから `### 再試行ユーティリ
 
 ---
 
+<a id="ace-516-1"></a>
+
+### ACE-516-1: エラー分類を 1 クラスで変えたら、写像関数の実際の switch を docstring に列挙し、禁止カテゴリの列挙箇所を grep で総当たりする — 「4xx は never-fallback」のようなスローガンは実写像（404 = permanent、429 = transient）と食い違い、適用判断表・チェックリスト・SKILL の表のどれか 1 つが必ず取り残される
+
+| Category | architecture | Origin | PR #516 / Issue #514 |
+| Related | ACE-510-1 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+`UpstreamRejectedError.category` を permanent → never-fallback に 1 行変えたところ、禁止カテゴリの列挙が `ErrorCategory` コメント・FALLBACK.md §1 リスト・チェックリスト「4 種」・適用判断ガイド表・SKILL.md §3 表 / §7 コメント / §8 判断基準表の 7 箇所に写し取られており、Issue の追記だけでは適用判断表が漏れ、レビュー 1 巡目で silent-failure-hunter が拾った。さらに docstring と §1 に書いた「上流の 4xx は never-fallback」は `normalizeExternalError()` の実際の switch（401/403 → 認証、404 → NotFoundError = permanent、409 → Conflict、429 → transient、残りの 4xx だけ UpstreamRejected）と一致せず、`default:` が 1xx〜3xx まで拒否扱いにしていた既存欠陥も分類の格上げで顕在化した。分類を変えるときは (1) 写像関数の switch をそのまま docstring に書き写す（スローガンにしない）、(2) `grep -rn "認証・認可\|禁止カテゴリ\|N 種"` で列挙箇所を総当たりし、表・コメント・チェックリストを同じコミットで更新する、(3) 格上げで「本番で throw に変わる」経路が既定分岐に含まれていないか `default:` を読む。
+
+---
+
+<a id="ace-516-2"></a>
+
+### ACE-516-2: ログ経路で「形状情報を残す」ために任意オブジェクトを JSON 化しない — 診断 allowlist（status / code / body）を迂回して cause 内の PII・秘密がそのまま載る。型名 + 上位キー名だけを出し、catch 内では対象値に再度触らない
+
+| Category | security | Origin | PR #516 / Issue #514 |
+| Related | ACE-510-1 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+`serializeError()` の非 Error cause が HTTP 形状でないとき `{}` に潰れるのを直すために、上限つき `JSON.stringify` で全体を文字列化する `describeValue()` を入れたところ、Codex と Toolkit code-reviewer が同時に「`{ requestBody: { email, apiSecret } }` のような cause で、同 PR が別ファイルから消したメールアドレスが今度は 2000 文字分ログに載る」と指摘した。`pickHttpDiagnostics` が allowlist で守っていた境界を、その隣のフォールバック経路が丸ごと開けていた。値を出さず `{ type: constructor.name, keys: Object.keys(value).slice(0, N), keyCount }` に変えると形状の追跡には十分で、PII は構造的に載らない。さらに 2 巡目で「catch 内の `Object.prototype.toString.call(value)` も `Symbol.toStringTag` の getter を呼ぶため投げる」と指摘され、ログ経路の catch は固定値を返し対象値に再度触らない形にした。「投げないログ経路」は try 側だけでなく catch 側の式にも同じ規律が要る。
+
+---
+
+<a id="ace-516-3"></a>
+
+### ACE-516-3: SDK エラーから HTTP ステータスを推定するとき、数値の範囲（100〜599）だけで採用しない — MongoDB の WriteConflict(112) など別ドメインの整数番号が範囲に収まる。HTTP レスポンスの形（`response` オブジェクトの同伴）を必須条件にする
+
+| Category | architecture | Origin | PR #516 / Issue #514 |
+| Related | ACE-516-1 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+SendGrid の `ResponseError` は HTTP ステータスを数値の `code` に入れるため、`readHttpStatus()` に「`code` が 100〜599 の整数なら採用」を足した。silent-failure-hunter が「MongoDB の `MongoServerError.code` は 112 / 189 / 251 / 262 など範囲内の値を多数持ち、リポジトリ層のマッパーを飛ばして `retryWithBackoff` に渡す誤用（FALLBACK.md 自身が『よくある』と警告する経路）では、再試行すべき WriteConflict が `UpstreamRejectedError(upstreamStatus: 112)` = never-fallback になって 1 回目で投げる」と具体化した。範囲は必要条件であって十分条件ではない。SendGrid は `response.headers / body` を持ち Mongo エラーは `response` を持たないので、「`response` が非 null オブジェクト かつ 範囲内」を採用条件にした。他 SDK の独自番号と衝突しうるヒューリスティックは、値域ではなく**形**（同伴フィールドの存在）で判定する。
+
+---
+
 ## Changelog
+
+### [1.43.0] - 2026-09-06
+
+#### 追加
+
+- ACE-516-1: エラー分類を 1 クラスで変えたら写像関数の実際の switch を docstring 化し、禁止カテゴリの列挙箇所を grep で総当たりする — PR #516 で 7 箇所の列挙のうち適用判断表が漏れ、「4xx」スローガンが実写像と食い違った経験から抽出（Issue #514 / PR #516）
+- ACE-516-2: ログ経路で形状情報を残すために任意オブジェクトを JSON 化せず、型名 + キー名だけを出し catch 内で対象値に再度触らない — PR #516 で `describeValue` が診断 allowlist を迂回して PII を載せる指摘を Codex / Toolkit が同時に出し、2 巡目で catch 側の toStringTag getter も指摘された経験から抽出（Issue #514 / PR #516）
+- ACE-516-3: SDK エラーからのステータス推定は数値範囲でなく HTTP レスポンスの形（`response` 同伴）で判定する — PR #516 で MongoDB の 112 等が範囲チェックを通過して never-fallback に化ける失敗シナリオが示された経験から抽出（Issue #514 / PR #516）
 
 ### [1.42.0] - 2026-09-06
 

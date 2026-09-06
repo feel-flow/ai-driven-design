@@ -216,3 +216,17 @@ code-reviewer / silent-failure-hunter が挙げた「`InternalError` が再試�
 - 2026-09-06: PR #510 の 1 巡目（初回）
 
 ---
+
+<a id="obs-014"></a>
+
+### OBS-014: 厳密一致の置換スクリプトと prettier --write を同じブランチで交互に走らせると、再整形された表・折り返し行で後続の置換が空振りし、失敗検出と commit を 1 コマンドに連結していると部分コミットになる
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+Markdown 内コード例の編集を Python の厳密一致置換で当て、その後 prettier --write で整形すると、次の巡回では三項演算子の折り返しや表セルの余白が変わっていて同じ書き方の置換が 0 件になる。置換の assert 失敗を commit と同じシェル呼び出しに並べていたため、3 件中 1 件だけがコミットされ追加コミットが要った。
+
+- 2026-09-06: PR #516 で 2 回発生（1 巡目 fix の readHttpStatus 折り返し、2 巡目 fix の FALLBACK.md 表セル余白）。置換 → prettier → 検証 → commit を別コマンドに分けるか、置換を正規表現で余白非依存にすると回避できる（初回）
+
+---
