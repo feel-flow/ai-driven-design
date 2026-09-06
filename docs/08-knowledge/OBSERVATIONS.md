@@ -173,3 +173,17 @@ AC の grep を頭で組んで起票すると、検出式の穴（表記の必�
 - 2026-09-06: PR #502 の curate で最初の情報収集 1 ターンが全件 not found（初回）
 
 ---
+
+<a id="obs-011"></a>
+
+### OBS-011: Codex レビューシム（`codex-review.sh`）の実行中に commit / push すると、保存済みの観点ファイルがあっても残りの観点が「worktree 変更検出」で破棄され 1 巡が無駄になる
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+シムはバックグラウンドで 3 観点を並列に回し、完了前に HEAD が動くと未完了分を破棄して exit 1 になる。code-review / test-analysis が先に保存されたのを見て次の fix commit を作ると、acceptance-criteria が失われて再実行が必要になる → 完了通知（exit code）が来るまで commit しない。個別ファイルの保存ログを「完了」と読まない。
+
+- 2026-09-06: PR #505 の 2 巡目で acceptance-criteria 完了前に fix commit を作り、3 巡目の再実行で 1 回分を空費（初回）
+
+---
