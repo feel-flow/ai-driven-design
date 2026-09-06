@@ -125,7 +125,7 @@ bash scripts/multi-review.sh --dry-run
 ## 設定 (agent-config.yaml)
 
 v2.0 形式で、タスクタイプ別・エージェント別に設定可能。
-v1.0 (review-config.yaml) との後方互換あり（`review-config.yaml` は `agent-config.yaml` への symlink。既定で読まれるのは `agent-config.yaml`）。
+v1.0 (review-config.yaml) との後方互換あり。正式名は `agent-config.yaml`（`review-config.yaml` は互換のためのフォールバック名）。
 
 ## 安全策
 

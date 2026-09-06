@@ -161,7 +161,7 @@ chmod +x scripts/adapters/*.sh
 
 `scripts/agent-config.yaml` を環境に合わせて編集します。
 
-**設定ファイル名について**: オーケストレーター（`multi-agent.sh`）の既定は `scripts/agent-config.yaml` です。旧名の `scripts/review-config.yaml` は `agent-config.yaml` への symlink（実体は 1 ファイル）で、`agent-config.yaml` が存在しない場合のフォールバックとしてのみ参照されます。ドキュメント・コマンド例では `agent-config.yaml` を正式名として使ってください。
+**設定ファイル名について**: 正式名は `scripts/agent-config.yaml` です（オーケストレーター本体 `multi-agent.sh` の既定。`multi-review.sh` は `multi-agent.sh --task review` への薄いラッパー）。旧名の `scripts/review-config.yaml` は互換のためのフォールバック名で、テンプレート配布元リポジトリでは `agent-config.yaml` への symlink になっています。ドキュメント・コマンド例では `agent-config.yaml` を使ってください。
 
 > **Note**: 現行の `multi-agent.sh` が config から読み込むのは `mode` / `parallel` / `tasks.*`（cost_strategy / timeout / output_dir）のみで、**パースペクティブ割り当てとフォールバックはスクリプト内（`get_cli_perspectives_review()` 等）にハードコード**されています。割り当てを変更する場合は YAML とスクリプトの両方を同期して編集してください。
 
