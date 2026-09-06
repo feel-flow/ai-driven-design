@@ -125,7 +125,7 @@ Sentry.init({
 });
 
 // エラーキャプチャヘルパー
-export function captureError(error: Error, context?: Record<string, any>) {
+export function captureError(error: Error, context?: Record<string, unknown>) {
   Sentry.withScope((scope) => {
     if (context) {
       scope.setContext("additional", context);

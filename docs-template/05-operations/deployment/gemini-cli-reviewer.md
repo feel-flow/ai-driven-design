@@ -93,7 +93,7 @@ gemini -p "Review this file for security vulnerabilities:" < src/auth/handler.ts
 ### デフォルト設定
 
 ```yaml
-# review-config.yaml
+# agent-config.yaml
 agents:
   gemini-cli:
     command: gemini

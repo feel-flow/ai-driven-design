@@ -4,11 +4,11 @@
 
 ## 対象ツール
 
-| ツール | 生成ファイル | 配置場所 |
-|--------|-------------|---------|
-| Claude Code | `CLAUDE.md` | プロジェクトルート |
-| Cursor | `.cursorrules` | プロジェクトルート |
-| GitHub Copilot | `.github/copilot-instructions.md` | `.github/` |
+| ツール         | 生成ファイル                      | 配置場所           |
+| -------------- | --------------------------------- | ------------------ |
+| Claude Code    | `CLAUDE.md`                       | プロジェクトルート |
+| Cursor         | `.cursorrules`                    | プロジェクトルート |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/`         |
 
 ## 手順
 
@@ -40,27 +40,35 @@ AskUserQuestion を使用して、どのツール向けの設定を生成する�
 # CLAUDE.md
 
 ## MANDATORY: Always Read MASTER.md First
+
 [MASTER.md への参照指示]
 
 ## Project Overview
+
 [docs/MASTER.md から抽出]
 
 ## Architecture
+
 [docs/02-design/ARCHITECTURE.md から要約]
 
 ## Coding Standards
+
 [docs/03-implementation/PATTERNS.md から抽出]
+
 - 命名規則
 - エラーハンドリング方針
 - マジックナンバー禁止ルール
 
 ## Build Commands
+
 [プロジェクトの package.json / Makefile 等から検出]
 
 ## Development Workflow
+
 [docs/05-operations/ から抽出、なければデフォルト]
 
 ## Information Verification Protocol
+
 [MASTER.md の確認プロトコルをそのまま含める]
 ```
 
@@ -72,30 +80,39 @@ AskUserQuestion を使用して、どのツール向けの設定を生成する�
 # Project Rules for Cursor
 
 ## Language
+
 [プロジェクトの主要言語]
 
 ## Project Context
+
 [PROJECT.md からの要約]
 
 ## Coding Standards
+
 [PATTERNS.md からの抽出]
 
 ## Architecture
+
 [ARCHITECTURE.md からの要約]
 
 ## Git Workflow (Mandatory)
+
 [docs/05-operations/deployment/git-workflow.md から要約]
+
 - Issue 起票から着手し、ブランチ → 実装 → セルフレビュー → PR → マージの順で進める
 - ブランチ命名規約とコミットメッセージ形式を守る
 - PR にはセルフレビュー結果・テスト結果・Issue リンク（例: `Closes #123`）を含める
 
 ## Self-Review Checklist
+
 [docs/05-operations/deployment/self-review.md から要約]
 
 ## Out-of-Scope Issues
+
 - スコープ外の問題は即座に Issue を起票し、現行タスクは継続する（スコープ拡大はしない）
 
 ## Important Rules
+
 - Always read docs/MASTER.md first for project context
 - Follow the coding standards in docs/03-implementation/PATTERNS.md
 - Never use magic numbers — extract to named constants
@@ -110,18 +127,23 @@ AskUserQuestion を使用して、どのツール向けの設定を生成する�
 # GitHub Copilot Instructions
 
 ## Project Overview
+
 [PROJECT.md からの要約]
 
 ## Technology Stack
+
 [MASTER.md からの技術スタック]
 
 ## Coding Standards
+
 [PATTERNS.md からの抽出]
 
 ## Key Architecture Decisions
+
 [ARCHITECTURE.md からの要約]
 
 ## Reference Documents
+
 - docs/MASTER.md — Central coordination document
 - docs/01-context/PROJECT.md — Project vision and requirements
 - [その他のドキュメントリンク]
@@ -136,16 +158,18 @@ bash scripts/setup-multi-review.sh
 ```
 
 このスクリプトが行うこと:
+
 - yq（YAMLパーサー）の確認・インストール
 - 5つのAI CLI（Claude Code / Codex / Copilot / Gemini / Cursor）の検出
 - 未インストールCLIのインストールガイド表示
 - `multi-review.sh --dry-run` による動作確認
 
 セットアップ完了後、以下で利用できます:
+
 - Claude Code: `/multi-review`
 - ターミナル: `bash scripts/multi-review.sh`
 
-設定のカスタマイズは `scripts/review-config.yaml` で行えます。
+設定のカスタマイズは `scripts/agent-config.yaml` で行えます。
 
 ### 7. 完了報告
 

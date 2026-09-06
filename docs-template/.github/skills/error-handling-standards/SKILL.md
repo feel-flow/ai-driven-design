@@ -195,7 +195,7 @@ try {
 
 ```typescript
 class Logger {
-  error(message: string, error: Error, meta?: Record<string, any>): void {
+  error(message: string, error: Error, meta?: Record<string, unknown>): void {
     console.error(
       JSON.stringify({
         level: "error",
