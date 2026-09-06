@@ -440,7 +440,7 @@ fallback:
 
 ```bash
 bash scripts/multi-review.sh [options]
-  --config <path>         設定ファイル（デフォルト: scripts/review-config.yaml）
+  --config <path>         設定ファイル（デフォルト: scripts/agent-config.yaml）
   --mode <distributed|cross-model>
   --strategy <balanced|minimize_cost|maximize_quality>
   --cli <name>            特定CLIのみ実行（複数指定可）
@@ -491,7 +491,7 @@ bash scripts/multi-review.sh --mode cross-model --perspective code-review
 
 ### Step 3: 設定追加
 
-- [ ] `scripts/review-config.yaml` に新CLIエントリを追加
+- [ ] `scripts/agent-config.yaml` に新CLIエントリを追加
 - [ ] `cost_tier` を設定
 - [ ] `default_perspectives` を設定
 - [ ] `fallback` マッピングを更新

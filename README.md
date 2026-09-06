@@ -112,7 +112,7 @@ Claude Code からはスラッシュコマンドで実行できます:
 | Cursor Agent | Flat-rate | コード簡素化                                                |
 | Copilot CLI  | Metered   | —（従量課金のため既定外。`--cli copilot-cli` でオプトイン） |
 
-設定: [`scripts/review-config.yaml`](./scripts/review-config.yaml) | 詳細: [`multi-cli-review-orchestration.md`](./docs-template/05-operations/deployment/multi-cli-review-orchestration.md)
+設定: [`scripts/agent-config.yaml`](./scripts/agent-config.yaml) | 詳細: [`multi-cli-review-orchestration.md`](./docs-template/05-operations/deployment/multi-cli-review-orchestration.md)
 
 ## 7文書構造（起点）
 

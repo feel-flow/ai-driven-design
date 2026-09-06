@@ -815,14 +815,16 @@ GitHub Discussions への記録に加え、ACE Playbook への構造化記録を
 **標準チェックリスト**:
 
 ```
-1. [ ] GitHub Issue 作成
-2. [ ] feature ブランチ作成
-3. [ ] 実装
-4. [ ] テスト実行・合格確認
-5. [ ] セルフレビュー: PR Review Toolkit
-6. [ ] セルフレビュー: Codex CLI クロスモデルレビュー
-7. [ ] レビュー指摘修正・コミット
-8. [ ] Push + PR 作成
+1. [ ] Issue: GitHub Issue 作成
+2. [ ] Branch: feature ブランチ作成
+3. [ ] Implement: 実装・コミット
+4. [ ] Test: テスト実行・合格確認
+5. [ ] Self-Review: PR Review Toolkit + Codex CLI クロスモデルレビュー
+6. [ ] PR: Push + Pull Request 作成
+7. [ ] Review: レビュー指摘修正・コミット（修正ループ）
+8. [ ] Merge: Squash merge
+9. [ ] Cleanup: develop 復帰 + `git fetch --prune` + ブランチ削除
+10. [ ] ACE: `/ace-curate <PR番号>` でナレッジ体系化
 ```
 
 ## ワークフロー全体のベストプラクティス

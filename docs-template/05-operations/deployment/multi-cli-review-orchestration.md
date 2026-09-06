@@ -80,7 +80,7 @@ bash scripts/codex-review.sh --base develop
                     │   (Orchestrator)            │
                     │                             │
                     │  ┌───────────────────────┐  │
-                    │  │  review-config.yaml   │  │
+                    │  │  agent-config.yaml    │  │
                     │  │  (設定)               │  │
                     │  └───────────────────────┘  │
                     └──────────┬──────────────────┘
@@ -112,7 +112,7 @@ bash scripts/codex-review.sh --base develop
 ### データフロー
 
 1. **エントリーポイント** → `multi-review.sh` を呼び出し
-2. **設定読み込み** → `review-config.yaml` からCLI設定・戦略を取得
+2. **設定読み込み** → `agent-config.yaml` からCLI設定・戦略を取得
 3. **CLI検出** → `command -v` で利用可能なCLIを検出
 4. **フォールバック** → 未インストールCLIのパースペクティブを再分配
 5. **並列実行** → 各CLIアダプターを並列で実行
@@ -159,7 +159,9 @@ chmod +x scripts/adapters/*.sh
 
 ### Step 2: 設定ファイルのカスタマイズ
 
-`scripts/review-config.yaml` を環境に合わせて編集します。
+`scripts/agent-config.yaml` を環境に合わせて編集します。
+
+**設定ファイル名について**: オーケストレーター（`multi-agent.sh`）の既定は `scripts/agent-config.yaml` です。旧名の `scripts/review-config.yaml` は `agent-config.yaml` への symlink（実体は 1 ファイル）で、`agent-config.yaml` が存在しない場合のフォールバックとしてのみ参照されます。ドキュメント・コマンド例では `agent-config.yaml` を正式名として使ってください。
 
 > **Note**: 現行の `multi-agent.sh` が config から読み込むのは `mode` / `parallel` / `tasks.*`（cost_strategy / timeout / output_dir）のみで、**パースペクティブ割り当てとフォールバックはスクリプト内（`get_cli_perspectives_review()` 等）にハードコード**されています。割り当てを変更する場合は YAML とスクリプトの両方を同期して編集してください。
 

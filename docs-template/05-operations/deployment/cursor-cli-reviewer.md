@@ -79,7 +79,7 @@ $(git diff --cached)"
 ### デフォルト設定
 
 ```yaml
-# review-config.yaml
+# agent-config.yaml
 agents:
   cursor-cli:
     command: cursor-agent
