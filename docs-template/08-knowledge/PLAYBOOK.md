@@ -1,11 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.38.0"
+version: "1.39.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-09-06"
 owner: "@fffokazaki"
-ace_entry_count: 73
+changeImpact: "medium"
+ace_entry_count: 74
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1986,7 +1987,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 | Category | tooling | Origin | PR #498 / Issue #497 |
 | Date | 2026-09-06 |
-| Helpful | 0 | Harmful | 0 |
+| Helpful | 1 | Harmful | 0 |
 | Status | active |
 
 脆弱性を塞ぐために開発ツールを minor 上げすると、そのツールの Node 要件が上がり、`package.json` の `engines` 宣言が自分の依存ツリーに対して偽になることがある。`npm audit fix` / `npm install` はこれを警告せず、`EBADENGINE` は宣言を信じて古い Node で入れた人にしか出ないため、更新した本人は気づけない。lockfile 更新の PR では、変更した直接依存の `engines` を lockfile から抜き出して自分の宣言と比較し、要件が上がっていれば「旧版で脆弱性が塞げるか」を先に確かめ、塞げないなら `engines` と Node 版を述べる文書を同じ PR で揃える（対象 Node が EOL なら引き上げが正）。
@@ -2006,7 +2007,30 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-502-1"></a>
+
+### ACE-502-1: 実行環境の下限（engines）を上げたら、その環境を表す型定義パッケージのメジャーも同じ PR で揃える — engines は実行時にしか効かず、tsc は型定義の版までしか API を知らない
+
+| Category | tooling | Origin | PR #502 / Issue #501 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+`engines.node` を引き上げても `@types/node` のような環境の型定義パッケージが旧メジャーのままだと、宣言上は使ってよい新 API を書いた途端に `tsc` が型不明で落ち、「engines は満たしているのにビルドできない」という切り分けにくい不整合になる。`engines` を変える PR では、その環境を型として表す devDependency（`@types/node`、ランタイム SDK の型パッケージ等）の対応メジャーを同じ PR で揃え、lockfile を同期し、更新後パッケージと推移依存の `engines` を自分の宣言と再照合する（[ACE-498-1](#ace-498-1) の逆向き適用）。別 PR に分けると、その間に書かれたコードが偽の型エラーで手戻りする。
+
+---
+
 ## Changelog
+
+### [1.39.0] - 2026-09-06
+
+#### 追加
+
+- ACE-502-1: 実行環境の下限（engines）を上げたら、その環境を表す型定義パッケージのメジャーも同じ PR で揃える — PR #500 で `mcp/package.json` の `engines.node` を `>=24` にした際に `@types/node` が `^20` のまま残り、Toolkit code-reviewer の Suggestion で発覚して Issue #501 / PR #502 へ分離された経験から抽出
+
+#### カウンター更新
+
+- ACE-498-1 (Helpful 0→1): PR #502 の `@types/node` 24 系更新で、更新後パッケージと推移依存 `undici-types` の `engines` 不在を `>=24.0.0` と照合して完了報告に明記した再適用
 
 ### [1.38.0] - 2026-09-06
 
