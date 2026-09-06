@@ -76,19 +76,17 @@ async function createUser(userData: CreateUserRequest): Promise<Result<User>> {
 }
 ```
 
-**カスタムエラークラス**:
+**カスタムエラークラスの利用**:
 
 ```typescript
-class ValidationError extends Error {
-  constructor(
-    message: string,
-    public field: string,
-    public value: unknown,
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
+// エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を正典とする。
+// ここで別形状の ValidationError を定義しない（同名・別形状が並立すると
+// どちらが正か判断できなくなる）。details は ValidationDetail[]（field / message / constraint?）
+import { ValidationError } from "./errors";
+
+throw new ValidationError("Invalid user input", [
+  { field: "email", message: "must be a valid email", constraint: "format" },
+]);
 ```
 
 **避けるべき**:

@@ -295,7 +295,9 @@ async function fetchUser(id: string): Promise<User> {
     }
     return user;
   } catch (error) {
-    logger.error("Failed to fetch user", { id, error });
+    // Logger 規約（PATTERNS.md §9）: error(message, error: Error, meta?)
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error("Failed to fetch user", err, { id });
     throw error;
   }
 }
@@ -329,10 +331,15 @@ try {
     // バリデーションエラーの処理
     return { success: false, errors: error.details };
   }
+  // その他の AppError は分類（category）を保ったまま伝播させる
+  if (error instanceof AppError) {
+    throw error;
+  }
 
-  // 予期しないエラー
-  logger.error("Unexpected error", error);
-  throw new InternalError("Processing failed");
+  // 予期しないエラー（cause で元エラーを保持する）
+  const err = error instanceof Error ? error : new Error(String(error));
+  logger.error("Unexpected error", err);
+  throw new InternalError("Processing failed", { cause: err });
 }
 ```
 

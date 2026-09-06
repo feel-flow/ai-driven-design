@@ -2,13 +2,16 @@
 name: error-handling-standards
 description: >-
   Enforces error handling standards: silent error prohibition, custom error
-  class hierarchy (AppError base with ValidationError, NotFoundError,
-  InternalError), Result pattern (Result.ok/Result.fail), proper try-catch
-  with error type checking, structured error logging with context metadata,
+  class hierarchy (AppError base with category never-fallback / transient /
+  permanent, cause preservation, ValidationError / UnauthorizedError /
+  UpstreamError etc. — canonical definitions in PATTERNS.md), external-boundary
+  normalization (normalizeExternalError), Result pattern (Result.ok/Result.fail),
+  proper try-catch with error type checking, structured error logging with a
+  single Logger contract, fallback prohibition categories (isNeverFallback),
   and HTTP status code mapping. Use when implementing error handling,
   reviewing catch blocks, or designing error responses.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: feel-flow
   tags: "error-handling, result-pattern, custom-errors, logging, silent-error"
   references: "docs/03-implementation/PATTERNS.md, docs/03-implementation/FALLBACK.md, docs/MASTER.md"
@@ -53,17 +56,24 @@ throw new Error("Something went wrong");
 
 ## 2. カスタムエラークラス階層
 
-プロジェクトでは AppError を基底クラスとしたエラー階層を使用する：
+プロジェクトでは AppError を基底クラスとしたエラー階層を使用する。**定義の正典は PATTERNS.md「エラーハンドリング」**（本ファイルには基底クラスと 1 例だけを載せ、サブクラスの全一覧は複製しない — 複製は必ずドリフトする）：
 
 ```typescript
-// エラー基底クラス
+// options.cause で元エラーを保持する（ES2022 Error.cause。tsconfig の lib に ES2022 が必要）
+type AppErrorOptions = { cause?: unknown };
+
+// 分類。フォールバック可否・再試行可否は statusCode から推測せず、各サブクラスが宣言する
+type ErrorCategory = "never-fallback" | "transient" | "permanent";
+
 abstract class AppError extends Error {
+  abstract readonly category: ErrorCategory;
   constructor(
-    public message: string,
-    public code: string,
-    public statusCode: number,
+    message: string,
+    public readonly code: string,
+    public readonly statusCode: number,
+    options?: AppErrorOptions,
   ) {
-    super(message);
+    super(message, options);
     this.name = this.constructor.name;
   }
 }
@@ -75,43 +85,35 @@ interface ValidationDetail {
   constraint?: string;
 }
 
-// バリデーションエラー
+// サブクラスの例（他の NotFoundError / ForbiddenError / ConflictError / UnauthorizedError /
+// SecurityError / InternalError / UpstreamError / UpstreamRejectedError は PATTERNS.md）
 class ValidationError extends AppError {
+  readonly category: ErrorCategory = "never-fallback";
   constructor(
     message: string,
     public readonly details: readonly ValidationDetail[],
+    options?: AppErrorOptions,
   ) {
-    super(message, "VALIDATION_ERROR", 400);
-  }
-}
-
-// リソース未検出エラー
-class NotFoundError extends AppError {
-  constructor(message: string) {
-    super(message, "NOT_FOUND", 404);
-  }
-}
-
-// 内部エラー
-class InternalError extends AppError {
-  constructor(message: string) {
-    super(message, "INTERNAL_ERROR", 500);
+    super(message, "VALIDATION_ERROR", HTTP_STATUS.BAD_REQUEST, options);
   }
 }
 ```
 
 ## 3. エラーコードと HTTP ステータスコード
 
-| エラークラス    | エラーコード       | HTTP ステータス | 用途                   |
-| --------------- | ------------------ | --------------- | ---------------------- |
-| ValidationError | `VALIDATION_ERROR` | 400             | 入力バリデーション失敗 |
-| NotFoundError   | `NOT_FOUND`        | 404             | リソース未検出         |
-| ForbiddenError  | `FORBIDDEN`        | 403             | 権限不足               |
-| ConflictError   | `CONFLICT`         | 409             | 重複・競合             |
-| InternalError   | `INTERNAL_ERROR`   | 500             | 予期しない内部エラー   |
+| エラークラス          | エラーコード           | HTTP ステータス | 分類           | 用途                               |
+| --------------------- | ---------------------- | --------------- | -------------- | ---------------------------------- |
+| ValidationError       | `VALIDATION_ERROR`     | 400             | never-fallback | 入力バリデーション失敗             |
+| UnauthorizedError     | `UNAUTHORIZED`         | 401             | never-fallback | 未認証                             |
+| ForbiddenError        | `FORBIDDEN`            | 403             | never-fallback | 権限不足                           |
+| SecurityError         | `SECURITY_VIOLATION`   | 403             | never-fallback | 署名不一致・改ざん検知             |
+| NotFoundError         | `NOT_FOUND`            | 404             | permanent      | リソース未検出                     |
+| ConflictError         | `CONFLICT`             | 409             | never-fallback | 重複・競合                         |
+| InternalError         | `INTERNAL_ERROR`       | 500             | permanent      | 予期しない内部エラー               |
+| UpstreamError         | `UPSTREAM_UNAVAILABLE` | 502             | transient      | 外部サービスの一時障害（再試行可） |
+| UpstreamRejectedError | `UPSTREAM_REJECTED`    | 502             | permanent      | 外部サービスによる恒久的な拒否     |
 
-ForbiddenError と ConflictError は PATTERNS.md の基本階層には未定義だが、一般的な HTTP エラーとして推奨される拡張。
-新しいエラー種別が必要な場合は、必ず AppError を継承して作成する。
+すべて PATTERNS.md「エラーハンドリング」で定義済み。新しいエラー種別が必要な場合は、必ず AppError を継承し `category` を宣言して作成する（宣言しないとコンパイルエラーになる）。
 
 ## 4. Result パターン
 
@@ -144,7 +146,7 @@ async function processUser(userId: string): Promise<Result<User>> {
       return Result.fail(error);
     }
 
-    return Result.fail(new InternalError("Processing failed"));
+    return Result.fail(new InternalError("Processing failed", { cause: err }));
   }
 }
 ```
@@ -166,12 +168,16 @@ try {
     return Result.fail(error); // そのまま返却
   }
   if (error instanceof NotFoundError) {
-    logger.warn("Resource not found", { error });
+    // warn の meta に Error 実体は入れない（Logger 規約 / PATTERNS.md §9）
+    logger.warn("Resource not found", { code: error.code });
     return Result.fail(error);
   }
-  // 未知のエラーは InternalError でラップ
-  logger.error("Unexpected error", { error });
-  return Result.fail(new InternalError("Unexpected error occurred"));
+  // 未知のエラーは InternalError でラップし、cause で元エラーを保持する
+  const err = error instanceof Error ? error : new Error(String(error));
+  logger.error("Unexpected error", err);
+  return Result.fail(
+    new InternalError("Unexpected error occurred", { cause: err }),
+  );
 }
 
 // ❌ 悪い例: 汎用的な catch のみ
@@ -180,44 +186,42 @@ try {
 } catch (error) {
   throw new Error("Failed"); // 元のエラー情報が失われる
 }
+
+// ✅ ラップするなら cause で元エラーを保持する
+try {
+  await riskyOperation();
+} catch (error) {
+  throw new InternalError("Failed", { cause: error });
+}
 ```
 
 **ルール:**
 
 - `instanceof` でエラー型をチェック
 - 具体的なエラーから順に処理
-- 未知のエラーは `InternalError` でラップして再スロー
+- 未知のエラーは `InternalError` でラップして再スロー（`{ cause }` で元エラーを保持）
 - 元のエラー情報は必ずログに記録
+- 外部 SDK / HTTP クライアントのエラーは境界で `normalizeExternalError()`（PATTERNS.md）により AppError へ正規化する
 
 ## 6. 構造化エラーログ
 
-エラーログは JSON 形式で構造化し、必要なコンテキストを含めること：
+エラーログは JSON 形式で構造化し、必要なコンテキストを含めること。呼び出し規約はテンプレート全体で 1 つで、**正典（`interface Logger`）と実装例（`JsonLogger`）は PATTERNS.md §9「ログパターン」**にある。ここには複製せず、規約だけを示す：
+
+- `error(message, error, meta?)` — 第 2 引数は Error 型。catch 変数（unknown）は正規化してから渡す
+- `warn(message, meta?)` / `info(message, meta?)` — meta は構造化コンテキスト。Error 実体は入れない（name / code だけ載せる）
 
 ```typescript
-class Logger {
-  error(message: string, error: Error, meta?: Record<string, unknown>): void {
-    console.error(
-      JSON.stringify({
-        level: "error",
-        message,
-        error: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        },
-        timestamp: new Date().toISOString(),
-        ...meta,
-      }),
-    );
-  }
-}
-
 // 使用例
-logger.error("Failed to process user", error, {
-  userId: "123",
-  operation: "processUser",
-  requestId: req.headers["x-request-id"],
-});
+try {
+  await riskyOperation(userId);
+} catch (error) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  logger.error("Failed to process user", err, {
+    userId,
+    operation: "riskyOperation",
+    requestId: req.headers["x-request-id"],
+  });
+}
 ```
 
 **ログの必須フィールド:**
@@ -291,11 +295,14 @@ const data = await fetchData().catch(() => defaultValue);
 フォールバックが必要な場合は、`fallbackInProdOnly()` ユーティリティ（推奨）または環境分岐を使用する：
 
 ```typescript
-// ✅ 推奨: ユーティリティを使う（禁止カテゴリの判定を内蔵している）
+// ✅ 推奨: ユーティリティを使う（禁止カテゴリの判定を内蔵している）。
+// 引数は AppError に限定されるので、HTTP 境界の生エラーは normalizeExternalError() を通す
 try {
   return await fetchData();
 } catch (error) {
-  return fallbackInProdOnly(defaultValue, error, { operation: "fetchData" });
+  return fallbackInProdOnly(defaultValue, normalizeExternalError(error), {
+    operation: "fetchData",
+  });
 }
 
 // △ インライン環境分岐（カスタムログが必要な場合のみ）
@@ -305,18 +312,14 @@ try {
 try {
   return await fetchData();
 } catch (error) {
-  const normalizedError =
-    error instanceof Error ? error : new Error(String(error));
+  const normalizedError = normalizeExternalError(error);
   logger.error("Failed to fetch data", normalizedError, {
     operation: "fetchData",
   });
 
-  // 禁止カテゴリは環境に関係なく常にスロー（FALLBACK.md Section 1）
-  if (
-    NEVER_FALLBACK_ERRORS.some(
-      (ErrorType) => normalizedError instanceof ErrorType,
-    )
-  ) {
+  // 禁止カテゴリは環境に関係なく常にスロー（FALLBACK.md Section 1 / §4 の isNeverFallback）。
+  // 判定を自前で再実装しない — 禁止カテゴリの定義が変わったときに取り残される
+  if (isNeverFallback(normalizedError)) {
     throw normalizedError;
   }
 

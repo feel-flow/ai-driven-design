@@ -188,28 +188,64 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
+// 決済の上流障害（Stripe API 障害・接続断）。category は transient（再試行対象）。
+// エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を継承する
+class PaymentError extends AppError {
+  readonly category: ErrorCategory = "transient";
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "PAYMENT_UPSTREAM", HTTP_STATUS.BAD_GATEWAY, options);
+  }
+}
+
 // 決済処理の実装
 class PaymentService {
+  // idempotencyKey: 同じ決済の再送を Stripe 側で重複排除させる。これが無いと
+  // retryWithBackoff（FALLBACK.md §4）の再試行で PaymentIntent が二重に作られる
   async createPaymentIntent(
     amount: number,
     currency: string,
+    idempotencyKey: string,
   ): Promise<PaymentIntent> {
     try {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount * 100, // cents
-        currency,
-        automatic_payment_methods: {
-          enabled: true,
-        },
-        metadata: {
-          integration_check: "accept_a_payment",
-        },
-      });
-
-      return paymentIntent;
+      return await retryWithBackoff(
+        () =>
+          stripe.paymentIntents.create(
+            {
+              amount: amount * 100, // cents
+              currency,
+              automatic_payment_methods: { enabled: true },
+              metadata: { integration_check: "accept_a_payment" },
+            },
+            { idempotencyKey },
+          ),
+        { operation: "stripe.paymentIntents.create" },
+      );
     } catch (error) {
-      logger.error("Stripe payment intent creation failed", error);
-      throw new PaymentError("Failed to create payment intent");
+      // retryWithBackoff は正規化済み AppError を投げ、cause に Stripe のエラーを持つ
+      const normalized = normalizeExternalError(error);
+
+      // カード拒否（利用者が対処できる）は入力エラーとして伝える
+      if (normalized.cause instanceof Stripe.errors.StripeCardError) {
+        const card = normalized.cause;
+        throw new ValidationError(
+          card.message,
+          [{ field: "card", message: card.message, constraint: card.code }],
+          { cause: card },
+        );
+      }
+
+      logger.error("Stripe payment intent creation failed", normalized, {
+        idempotencyKey,
+      });
+      // 一時障害だけをサービス固有の型で包む。認証（401）・恒久拒否はそのまま伝播させる —
+      // 502 の型で包み直すと category が transient に化け、fallbackInProdOnly と
+      // 再試行判定が認証失敗を「上流の一時障害」として扱ってしまう
+      if (normalized.category === "transient") {
+        throw new PaymentError("Failed to create payment intent", {
+          cause: normalized,
+        });
+      }
+      throw normalized;
     }
   }
 
@@ -222,7 +258,14 @@ class PaymentService {
         await this.handlePaymentFailure(event.data.object);
         break;
       default:
-        logger.info(`Unhandled event type: ${event.type}`);
+        // Stripe のイベント種別は外部が定義する「開かれた集合」で、購読設定や
+        // Stripe 側の追加で未知の種別が届くのは正常。throw すると 500 → Stripe が再送を
+        // 繰り返すため、記録して継続する（自前定義の閉じたユニオンは §8 キューシステム
+        // 統合のように never で網羅性チェックする — 判断基準は「集合を誰が定義しているか」）。
+        logger.info("Unhandled Stripe event type", {
+          eventType: event.type,
+          eventId: event.id,
+        });
     }
   }
 }
@@ -238,18 +281,50 @@ app.post(
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
 
+    // 署名検証と業務処理は別々の try で囲む。一緒にすると DB 接続断・一意制約違反まで
+    // 「署名検証失敗」として 400 で記録され、決済は Stripe 側で成立しているのに
+    // 記録されない障害を「Webhook Secret の設定ミスか攻撃」と誤診する。
+    let event: Stripe.Event;
     try {
-      const event = stripe.webhooks.constructEvent(
+      event = stripe.webhooks.constructEvent(
         req.body,
         sig,
         process.env.STRIPE_WEBHOOK_SECRET,
       );
+    } catch (error) {
+      const securityError = new SecurityError(
+        "Webhook signature verification failed",
+        { cause: error },
+      );
+      logger.error("Webhook signature verification failed", securityError);
+      // 400: 署名不正は処理不能であることを表す（Stripe 公式サンプルと同じ応答）。
+      // ただし Stripe は 2xx 以外をすべて配信失敗として最長 3 日間再送するため、
+      // 同じ不正リクエストの再送を受け続けても副作用が出ない実装にしておく
+      res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .send("Webhook Error: invalid signature");
+      return;
+    }
 
+    try {
       await paymentService.handleWebhook(event);
       res.json({ received: true });
-    } catch (err) {
-      logger.error("Webhook signature verification failed", err);
-      res.status(400).send(`Webhook Error: ${err.message}`);
+    } catch (error) {
+      // 業務処理（DB 書き込み等）の失敗は HTTP ステータスを持たないので
+      // normalizeExternalError には通さない（一意制約違反が transient に化ける）。
+      // AppError はそのまま、それ以外は InternalError（cause 付き）にする
+      const normalized =
+        error instanceof AppError
+          ? error
+          : new InternalError("Webhook processing failed", { cause: error });
+      logger.error("Webhook processing failed", normalized, {
+        eventId: event.id,
+        eventType: event.type,
+      });
+      // 500: Stripe の自動再送に載せる（処理側の一時障害は再送で回復しうる）
+      res
+        .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+        .send("Webhook processing failed");
     }
   },
 );
@@ -268,6 +343,31 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 // マジックナンバー禁止: 意味のある値は名前付き定数に切り出す（MASTER.md）
 const SENDGRID_MAX_MESSAGES_PER_BATCH = 1000; // 件。SendGrid の 1 リクエスト上限
 const SENDGRID_BATCH_INTERVAL_MS = 1000; // ms。レート制限を避けるバッチ間の待機
+
+// メール送信の上流障害（transient）。cause に SendGrid のレスポンス（status / body）を保持する
+class EmailError extends AppError {
+  readonly category: ErrorCategory = "transient";
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "EMAIL_UPSTREAM", HTTP_STATUS.BAD_GATEWAY, options);
+  }
+}
+
+interface FailedChunk {
+  readonly chunkIndex: number;
+  readonly recipients: readonly string[];
+  readonly error: AppError;
+}
+
+// 一括送信の結果。判別可能ユニオンにして、部分送信を呼び出し元が無視できない形にする
+// （sentCount だけ返すと、戻り値を捨てた瞬間に部分送信が消える）。
+// 全チャンク失敗は結果ではなく例外として投げる（一時障害なら EmailError、それ以外はそのまま）
+type BulkEmailResult =
+  | { readonly status: "all-sent"; readonly sentCount: number }
+  | {
+      readonly status: "partial";
+      readonly sentCount: number;
+      readonly failedChunks: readonly FailedChunk[];
+    };
 
 // メールサービス実装
 class EmailService {
@@ -288,8 +388,18 @@ class EmailService {
       await sgMail.send(msg);
       logger.info("Welcome email sent", { userId: user.id });
     } catch (error) {
-      logger.error("Failed to send welcome email", error);
-      throw new EmailError("Failed to send email");
+      // SendGrid のステータス・レスポンス本文を cause で保持する（呼び出し元が
+      // 「宛先不正（再送しても無駄）」と「API 障害（再試行）」を区別できる）
+      const normalized = normalizeExternalError(error, "Failed to send email");
+      logger.error("Failed to send welcome email", normalized, {
+        userId: user.id,
+      });
+      // 一時障害だけをサービス固有型で包む。401（API キー失効）等はそのまま伝播させる
+      // （EmailError で包むと category が transient に化け、再試行・本番フォールバックの対象になる）
+      if (normalized.category === "transient") {
+        throw new EmailError("Failed to send email", { cause: normalized });
+      }
+      throw normalized;
     }
   }
 
@@ -297,7 +407,7 @@ class EmailService {
     recipients: string[],
     subject: string,
     content: string,
-  ): Promise<void> {
+  ): Promise<BulkEmailResult> {
     const messages = recipients.map((email) => ({
       to: email,
       from: this.FROM_EMAIL,
@@ -305,13 +415,86 @@ class EmailService {
       html: content,
     }));
 
-    // バッチ送信
+    // バッチ送信。チャンク単位で失敗を記録して続行する。
+    // 途中で throw すると残りのチャンクは送られず、どこまで送れたかの記録も残らない。
+    // 再実行すると送信済みの宛先に二重送信される（部分送信の記録が必要）。
     const chunks = this.chunkArray(messages, SENDGRID_MAX_MESSAGES_PER_BATCH);
+    let sentCount = 0;
+    const failedChunks: FailedChunk[] = [];
 
-    for (const chunk of chunks) {
-      await sgMail.send(chunk);
+    for (const [chunkIndex, chunk] of chunks.entries()) {
+      try {
+        await sgMail.send(chunk);
+        sentCount += chunk.length;
+      } catch (error) {
+        const normalized = normalizeExternalError(
+          error,
+          "Bulk email chunk failed",
+        );
+        logger.error("Bulk email chunk failed", normalized, {
+          chunkIndex,
+          chunkSize: chunk.length,
+          totalChunks: chunks.length,
+        });
+        failedChunks.push({
+          chunkIndex,
+          recipients: chunk.map((m) => m.to),
+          error: normalized,
+        });
+      }
       await this.delay(SENDGRID_BATCH_INTERVAL_MS); // レート制限対策
     }
+
+    if (failedChunks.length === 0) {
+      logger.info("Bulk email finished", { sentCount });
+      return { status: "all-sent", sentCount };
+    }
+    // 1 通も送れていない = 上流の全断。結果ではなく障害として投げる。
+    // 最初の失敗が一時障害なら EmailError で包み、API キー失効（401）等はそのまま伝播
+    // させて category を保つ。各チャンクの理由はループ内の error ログに残っている
+    if (sentCount === 0) {
+      const first = failedChunks[0].error;
+      logger.error("Bulk email failed for every chunk", first, {
+        totalRecipients: recipients.length,
+        failedChunkCount: failedChunks.length,
+      });
+      throw first.category === "transient"
+        ? new EmailError("Bulk email failed for every chunk", { cause: first })
+        : first;
+    }
+    // 部分失敗は error レベルで集計を残す（info だと全体像がアラートに乗らない）
+    logger.error("Bulk email partially failed", failedChunks[0].error, {
+      sentCount,
+      totalRecipients: recipients.length,
+      failedChunkCount: failedChunks.length,
+    });
+    return { status: "partial", sentCount, failedChunks };
+  }
+}
+
+// 呼び出し例（retryQueue は §8 キューシステム統合の Bull キュー相当）。
+// 判別可能ユニオンなので、never 付き switch で分岐すればステータスの追加に
+// コンパイルで気づける（戻り値を捨てれば TS は何も言わない — 捨てないこと）
+const result = await emailService.sendBulkEmail(recipients, subject, content);
+switch (result.status) {
+  case "all-sent":
+    break;
+  case "partial": {
+    // 一時障害のチャンクだけを再送キューへ積む（成功済み宛先への二重送信を避け、
+    // 宛先不正など permanent な失敗は再送しない）
+    const retryable = result.failedChunks.filter(
+      (c) => c.error.category === "transient",
+    );
+    if (retryable.length > 0) {
+      await retryQueue.add({
+        recipients: retryable.flatMap((c) => c.recipients),
+      });
+    }
+    break;
+  }
+  default: {
+    const unhandled: never = result;
+    throw new Error(`Unhandled bulk email status: ${String(unhandled)}`);
   }
 }
 ```
@@ -383,8 +566,37 @@ import { IncomingWebhook } from "@slack/webhook";
 
 const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
 
+// エラー通知の経路で JSON.stringify が投げないようにする（投げると、通知しようと
+// していた元エラーを覆い隠す）。循環参照と BigInt を処理し、それ以外の失敗
+// （throw する getter 等）も握って印を返す — 通知経路で投げない設計（例外: toString
+// 自体が投げる値だけは救えない）。
+// 既知の制約: 兄弟位置から同じオブジェクトを参照する場合も "[Circular]" になる
+function safeStringify(value: unknown): string {
+  const seen = new WeakSet<object>();
+  try {
+    const json = JSON.stringify(
+      value,
+      (_key, v) => {
+        if (typeof v === "bigint") return v.toString();
+        if (typeof v === "object" && v !== null) {
+          if (seen.has(v)) return "[Circular]";
+          seen.add(v);
+        }
+        return v;
+      },
+      2,
+    );
+    return json ?? "undefined";
+  } catch (error) {
+    return `{"_serializationFailed":true,"reason":${JSON.stringify(String(error))}}`;
+  }
+}
+
 // 通知サービス
 class NotificationService {
+  // metrics は PATTERNS.md「ログパターン」の Metrics 契約（投げない実装）を DI する
+  constructor(private readonly metrics: Metrics) {}
+
   async sendSlackNotification(message: SlackMessage): Promise<void> {
     try {
       await webhook.send({
@@ -393,9 +605,25 @@ class NotificationService {
         attachments: message.attachments,
       });
     } catch (error) {
-      logger.error("Failed to send Slack notification", error);
-      // Slackへの通知失敗はサイレントに処理
+      // 通知パイプライン自身の失敗は再スローしない（呼び出し元はすでにエラー処理中で、
+      // 通知失敗で本処理を止めるべきではない）が、無言では終わらせない。
+      // Webhook URL 失効・レート制限で「本番エラーは出ているのに誰にも届かず、
+      // 届いていないことにも気づけない」状態を、メトリクスとログで可視化する。
+      const normalized = normalizeExternalError(
+        error,
+        "Slack notification failed",
+      );
+      logger.error("Failed to send Slack notification", normalized, {
+        textPreview: message.text.slice(0, 80),
+      });
+      this.metrics.increment("notification.slack.failed", {
+        reason: normalized.code,
+      });
+      return;
     }
+    // 成功メトリクスは try の外で送る。try の内側だと、メトリクス送出の失敗が
+    // 「Slack 送信失敗」として誤記録され、sent が永久に増えないダッシュボードになる
+    this.metrics.increment("notification.slack.sent");
   }
 
   // context は診断用の任意データ。any ではなく unknown を値に使い、利用前の
@@ -433,7 +661,7 @@ class NotificationService {
           elements: [
             {
               type: "mrkdwn",
-              text: `\`\`\`${JSON.stringify(context, null, 2)}\`\`\``,
+              text: `\`\`\`${safeStringify(context)}\`\`\``,
             },
           ],
         },
@@ -468,7 +696,12 @@ class AuthService {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
+    // getPayload() は TokenPayload | undefined。未検査だと認証失敗が TypeError として
+    // 現れ、認証エラーとして扱われない（FALLBACK.md の禁止カテゴリに乗らない）
     const payload = ticket.getPayload();
+    if (!payload?.email) {
+      throw new UnauthorizedError("Google ID token has no verified payload");
+    }
 
     // ユーザー情報の取得または作成
     let user = await this.userRepository.findByEmail(payload.email);
@@ -523,7 +756,22 @@ class AnalyticsService {
       ],
     });
 
-    return parseInt(response.rows[0].metricValues[0].value);
+    // rows は該当データが無いと空配列または未定義。添字アクセスの TypeError にすると
+    // 「データなし」と「API 失敗」が同じ例外になる。API 失敗は runReport が投げる
+    if (!response.rows || response.rows.length === 0) {
+      logger.info("No active user data for period", { days });
+      return 0;
+    }
+    // 行はあるのに値が取れない = メトリクス名の誤りやレスポンス形状の変化。
+    // 「静かなゼロ」にすると計測断とデータなしが区別できないので、形状違反として投げる
+    const value = response.rows[0]?.metricValues?.[0]?.value;
+    const activeUsers = value == null ? Number.NaN : parseInt(value, 10);
+    if (Number.isNaN(activeUsers)) {
+      throw new InternalError("Unexpected GA4 report shape for activeUsers", {
+        cause: response,
+      });
+    }
+    return activeUsers;
   }
 
   async trackEvent(event: AnalyticsEvent): Promise<void> {
@@ -592,6 +840,9 @@ class QueueService {
         default: {
           // 網羅性チェック: ジョブ種別を追加したらここでコンパイルエラーになる
           // （default を握りつぶすと未知ジョブが無言で消える）。
+          // §2 決済システム統合の Stripe イベント switch が default で継続するのと正反対だが、
+          // 判断基準は「集合を誰が定義しているか」: EmailJob は自分が定義する閉じた
+          // ユニオンなので未知種別はバグ、Stripe イベントは外部定義の開かれた集合。
           // 検出できるのはコンパイル時のみ。実データの検証は上記のとおり別途必要。
           const unhandled: never = payload;
           // ペイロード本体はエラーメッセージに載せない（token 等の機密が
@@ -702,45 +953,9 @@ describe("Payment Integration", () => {
 
 ## 11. エラーハンドリングと再試行
 
-### 再試行ロジック
+外部サービス呼び出しのエラー処理は、次の正典に従う（本ファイル内で別実装を作らない）:
 
-```typescript
-// 再試行の既定値（マジックナンバー禁止 / MASTER.md）
-const DEFAULT_MAX_RETRIES = 3; // 回
-const DEFAULT_RETRY_BASE_DELAY_MS = 1000; // ms。2^i 倍で伸びる基準値
-
-// 指数バックオフによる再試行
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = DEFAULT_MAX_RETRIES,
-  baseDelay: number = DEFAULT_RETRY_BASE_DELAY_MS,
-): Promise<T> {
-  // 0 以下だと一度も fn を呼ばずに throw し、真因を隠したエラーになる
-  if (maxRetries < 1) {
-    throw new Error(`maxRetries must be >= 1, got ${maxRetries}`);
-  }
-
-  let lastError: unknown;
-
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-
-      if (i < maxRetries - 1) {
-        const delay = baseDelay * Math.pow(2, i);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-
-  // 握りつぶさず、最後のエラーを Error として再スローする
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
-}
-
-// 使用例（既定値で足りる場合は引数を省略する）
-const result = await retryWithBackoff(() =>
-  stripe.paymentIntents.create(params),
-);
-```
+- **エラー型と正規化**: [PATTERNS.md](./PATTERNS.md)「エラーハンドリング」— `AppError` 階層（`cause` 付き）と `normalizeExternalError()`。外部 SDK の生エラーは境界で必ず正規化する
+- **再試行**: [FALLBACK.md](./FALLBACK.md) §4「再試行ユーティリティ」— `retryWithBackoff(fn, { operation })`。再試行可否の判定（禁止カテゴリは再試行しない）・Jitter・試行ごとのログを内蔵する。副作用のある呼び出しは冪等キー付きでのみ再試行する（§2 決済システム統合の `createPaymentIntent`）
+- **フォールバック**: [FALLBACK.md](./FALLBACK.md) §4 `fallbackInProdOnly()` — AppError 以外は deny-by-default でスロー
+- **ログ**: [PATTERNS.md](./PATTERNS.md)「ログパターン」の `Logger` 規約 — `error(message, error, meta?)` / `warn|info(message, meta?)`
