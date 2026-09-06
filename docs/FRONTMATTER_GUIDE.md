@@ -410,7 +410,7 @@ frontmatter 管理（編集・検証・索引化）は Node スクリプトと�
 
 **推奨セットアップ**:
 
-- **frontmatter 管理だけしたい Windows ユーザー**: Node.js 20+ をインストールすれば OK。`*.sh` / husky hook を使わない範囲では追加準備不要。
+- **frontmatter 管理だけしたい Windows ユーザー**: Node.js 24+ をインストールすれば OK。`*.sh` / husky hook を使わない範囲では追加準備不要。
 - **PR review / merge-cleanup / ACE 等の自動化も使う Windows ユーザー**: **Git for Windows をインストール**。**インストーラの "Use Git and optional Unix tools from the Command Prompt"** を選ぶと `Git\usr\bin` まで PATH に追加され `sh.exe` / `bash.exe` / `grep` / `xargs` 等の coreutils が cmd.exe / PowerShell から使える。他のオプション（`Git\cmd` のみ）を選んだ場合は手動で `C:\Program Files\Git\usr\bin` を PATH に追加する。Claude Code の `/merge-cleanup` 等は bash の高度機能（process substitution 等）を使うため、**Git Bash で全機能が動く保証はなく実機検証推奨**。
 - **より確実 / 快適に使いたい Windows ユーザー**: **WSL2 + Ubuntu** を導入。Linux 環境がそのまま使え、`*.sh` / husky / `/merge-cleanup` 等全て動作確認できている前提のシェル環境になる。VS Code Remote-WSL でファイル系の編集もシームレス。
 

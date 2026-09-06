@@ -5,6 +5,9 @@
   "type": "module",
   "description": "MCP server exposing AI spec-driven development docs as resources, tools, and prompts",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "start": "npm run build && node dist/index.js",

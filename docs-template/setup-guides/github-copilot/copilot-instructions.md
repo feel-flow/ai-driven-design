@@ -153,7 +153,7 @@ EOF
 
 ```
 # プロジェクト固有のルール
-- Node.js 20 LTS使用
+- Node.js 24 LTS使用
 - Express.js使用
 - RESTful API設計
 - OpenAPI 3.0仕様必須
