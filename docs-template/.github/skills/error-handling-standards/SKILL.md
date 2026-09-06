@@ -57,13 +57,17 @@ throw new Error("Something went wrong");
 
 ```typescript
 // エラー基底クラス
+// options.cause で元エラーを保持する（ES2022 Error.cause）。定義の正典は PATTERNS.md
+type AppErrorOptions = { cause?: unknown };
+
 abstract class AppError extends Error {
   constructor(
     public message: string,
     public code: string,
     public statusCode: number,
+    options?: AppErrorOptions,
   ) {
-    super(message);
+    super(message, options);
     this.name = this.constructor.name;
   }
 }
@@ -166,12 +170,16 @@ try {
     return Result.fail(error); // そのまま返却
   }
   if (error instanceof NotFoundError) {
-    logger.warn("Resource not found", { error });
+    // warn の meta に Error 実体は入れない（Logger 規約 / PATTERNS.md §9）
+    logger.warn("Resource not found", { code: error.code });
     return Result.fail(error);
   }
-  // 未知のエラーは InternalError でラップ
-  logger.error("Unexpected error", { error });
-  return Result.fail(new InternalError("Unexpected error occurred"));
+  // 未知のエラーは InternalError でラップし、cause で元エラーを保持する
+  const err = error instanceof Error ? error : new Error(String(error));
+  logger.error("Unexpected error", err);
+  return Result.fail(
+    new InternalError("Unexpected error occurred", { cause: err }),
+  );
 }
 
 // ❌ 悪い例: 汎用的な catch のみ
@@ -180,36 +188,32 @@ try {
 } catch (error) {
   throw new Error("Failed"); // 元のエラー情報が失われる
 }
+
+// ✅ ラップするなら cause で元エラーを保持する
+} catch (error) {
+  throw new InternalError("Failed", { cause: error });
+}
 ```
 
 **ルール:**
 
 - `instanceof` でエラー型をチェック
 - 具体的なエラーから順に処理
-- 未知のエラーは `InternalError` でラップして再スロー
+- 未知のエラーは `InternalError` でラップして再スロー（`{ cause }` で元エラーを保持）
 - 元のエラー情報は必ずログに記録
+- 外部 SDK / HTTP クライアントのエラーは境界で `normalizeExternalError()`（PATTERNS.md）により AppError へ正規化する
 
 ## 6. 構造化エラーログ
 
-エラーログは JSON 形式で構造化し、必要なコンテキストを含めること：
+エラーログは JSON 形式で構造化し、必要なコンテキストを含めること。呼び出し規約はテンプレート全体で 1 つ（正典と実装例は PATTERNS.md §9「ログパターン」）：
 
 ```typescript
-class Logger {
-  error(message: string, error: Error, meta?: Record<string, unknown>): void {
-    console.error(
-      JSON.stringify({
-        level: "error",
-        message,
-        error: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        },
-        timestamp: new Date().toISOString(),
-        ...meta,
-      }),
-    );
-  }
+interface Logger {
+  // 第 2 引数は Error 型。catch 変数（unknown）は正規化してから渡す
+  error(message: string, error: Error, meta?: Record<string, unknown>): void;
+  // meta は構造化コンテキスト。Error 実体は入れない（name / code だけ載せる）
+  warn(message: string, meta?: Record<string, unknown>): void;
+  info(message: string, meta?: Record<string, unknown>): void;
 }
 
 // 使用例
@@ -311,11 +315,11 @@ try {
     operation: "fetchData",
   });
 
-  // 禁止カテゴリは環境に関係なく常にスロー（FALLBACK.md Section 1）
+  // 禁止カテゴリは環境に関係なく常にスロー（FALLBACK.md Section 1 / §4）。
+  // AppError 以外は禁止カテゴリか判定できないので、これも常にスロー（deny-by-default）
   if (
-    NEVER_FALLBACK_ERRORS.some(
-      (ErrorType) => normalizedError instanceof ErrorType,
-    )
+    !(normalizedError instanceof AppError) ||
+    NEVER_FALLBACK_STATUS_CODES.has(normalizedError.statusCode)
   ) {
     throw normalizedError;
   }

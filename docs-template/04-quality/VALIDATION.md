@@ -61,13 +61,13 @@ function validateUserRegistration(data: unknown) {
     return { success: true, data: validatedData };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        errors: error.errors.map((e) => ({
-          field: e.path.join("."),
-          message: e.message,
-        })),
-      };
+      // ValidationDetail（PATTERNS.md「エラーハンドリング」）と同じ形状に揃える
+      const details: ValidationDetail[] = error.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+        constraint: e.code,
+      }));
+      return { success: false, errors: details };
     }
     throw error;
   }
@@ -523,6 +523,7 @@ interface ValidationReport {
     failed: number;
     warnings: number;
   };
+  // ValidationDetail は PATTERNS.md「エラーハンドリング」の定義を import する（別定義を作らない）
   details: ValidationDetail[];
 }
 

@@ -117,14 +117,20 @@ class ConfigManager {
 ### カスタムエラークラス
 
 ```typescript
-// エラー基底クラス
+// エラー基底クラス。options.cause で元エラー（外部 SDK のエラー等）を保持する
+// （ES2022 の Error.cause）。元エラーの status / code / レスポンス本文が消えると、
+// 呼び出し元は「利用者が対処できる失敗（カード拒否）」と「再試行すべき障害
+//（API 障害）」を区別できない。ラップするときは必ず cause を渡す。
+type AppErrorOptions = { cause?: unknown };
+
 abstract class AppError extends Error {
   constructor(
     public message: string,
     public code: string,
     public statusCode: number,
+    options?: AppErrorOptions,
   ) {
-    super(message);
+    super(message, options);
     this.name = this.constructor.name;
   }
 }
@@ -142,48 +148,115 @@ class ValidationError extends AppError {
     message: string,
     // readonly: 呼び出し元へ返した配列を書き換えられないようにする
     public readonly details: readonly ValidationDetail[],
+    options?: AppErrorOptions,
   ) {
-    super(message, "VALIDATION_ERROR", 400);
+    super(message, "VALIDATION_ERROR", 400, options);
   }
 }
 
 class NotFoundError extends AppError {
-  constructor(message: string) {
-    super(message, "NOT_FOUND", 404);
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "NOT_FOUND", 404, options);
   }
 }
 
 class ForbiddenError extends AppError {
-  constructor(message: string) {
-    super(message, "FORBIDDEN", 403);
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "FORBIDDEN", 403, options);
   }
 }
 
 class ConflictError extends AppError {
-  constructor(message: string) {
-    super(message, "CONFLICT", 409);
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "CONFLICT", 409, options);
   }
 }
 
 // 認証エラー（未認証）。認可エラー(ForbiddenError)と合わせて
 // FALLBACK.md のフォールバック禁止カテゴリを構成する
 class UnauthorizedError extends AppError {
-  constructor(message: string) {
-    super(message, "UNAUTHORIZED", 401);
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "UNAUTHORIZED", 401, options);
   }
 }
 
 // セキュリティ違反（改ざん検知・署名不一致・レート制限違反など）
 class SecurityError extends AppError {
-  constructor(message: string) {
-    super(message, "SECURITY_VIOLATION", 403);
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "SECURITY_VIOLATION", 403, options);
   }
 }
 
 // 予期しない内部エラー（詳細はログに残し、利用者には露出しない）
 class InternalError extends AppError {
-  constructor(message: string) {
-    super(message, "INTERNAL_ERROR", 500);
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "INTERNAL_ERROR", 500, options);
+  }
+}
+
+// 外部サービス（決済・メール・API）の一時的な障害。再試行の対象になる唯一の型
+class UpstreamError extends AppError {
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "UPSTREAM_UNAVAILABLE", 502, options);
+  }
+}
+```
+
+### 外部境界のエラー正規化
+
+```typescript
+// 外部 SDK / HTTP クライアントのエラーは AppError に正規化してから扱う。
+// 汎用 Error / AxiosError のままだと instanceof・statusCode の判定がすべて素通りし、
+// 外部 API の 401/403 がフォールバックや再試行の対象になる（FALLBACK.md §4）。
+const HTTP_STATUS = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;
+
+// SDK ごとに status の置き場所が違う（axios: response.status / Stripe: statusCode / fetch: status）
+function readHttpStatus(error: unknown): number | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  const e = error as {
+    status?: unknown;
+    statusCode?: unknown;
+    response?: { status?: unknown };
+  };
+  const candidate = e.statusCode ?? e.status ?? e.response?.status;
+  return typeof candidate === "number" ? candidate : undefined;
+}
+
+function normalizeExternalError(
+  error: unknown,
+  message = "External service call failed",
+): AppError {
+  if (error instanceof AppError) return error;
+  const cause = error instanceof Error ? error : new Error(String(error));
+  const status = readHttpStatus(error);
+
+  switch (status) {
+    case HTTP_STATUS.UNAUTHORIZED:
+      return new UnauthorizedError(message, { cause });
+    case HTTP_STATUS.FORBIDDEN:
+      return new ForbiddenError(message, { cause });
+    case HTTP_STATUS.NOT_FOUND:
+      return new NotFoundError(message, { cause });
+    case HTTP_STATUS.CONFLICT:
+      return new ConflictError(message, { cause });
+    case undefined:
+    case HTTP_STATUS.TOO_MANY_REQUESTS:
+      // ステータス無し = 接続断・タイムアウト。429 とともに一時障害として再試行可
+      return new UpstreamError(message, { cause });
+    default:
+      // その他の 4xx（400 / 402 / 422 等）は利用者側の入力・状態に起因し、再試行しても
+      // 結果は変わらない。5xx は上流障害
+      return status >= HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? new UpstreamError(message, { cause })
+        : new ValidationError(message, [], { cause });
   }
 }
 ```
@@ -541,8 +614,21 @@ class BatchProcessor<T> {
 ### 構造化ログ
 
 ```typescript
-// 構造化ログパターン
-class Logger {
+// Logger の呼び出し規約（テンプレート全体の正典。他文書のコード例もこの署名に従う）:
+//   error(message, error, meta?) — 第 2 引数は Error 型。catch 変数（unknown）は
+//     `error instanceof Error ? error : new Error(String(error))` で正規化してから渡す
+//   warn / info(message, meta?) — meta は構造化コンテキスト。Error 実体は入れない
+//     （JSON.stringify で message / stack が落ちる）。必要なら name / code だけ載せる
+// 2 引数版 error(message, error) のみだと構造化コンテキストを渡す口が無く、
+// FALLBACK.md「フォールバック発動時は必ず構造化ログ」を満たせない。
+interface Logger {
+  error(message: string, error: Error, meta?: Record<string, unknown>): void;
+  warn(message: string, meta?: Record<string, unknown>): void;
+  info(message: string, meta?: Record<string, unknown>): void;
+}
+
+// 構造化ログパターン（Logger の実装例）
+class JsonLogger implements Logger {
   private context: Record<string, unknown> = {};
 
   setContext(context: Record<string, unknown>): void {
@@ -550,9 +636,21 @@ class Logger {
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
+    this.write("info", message, meta);
+  }
+
+  warn(message: string, meta?: Record<string, unknown>): void {
+    this.write("warn", message, meta);
+  }
+
+  private write(
+    level: "info" | "warn",
+    message: string,
+    meta?: Record<string, unknown>,
+  ): void {
     console.log(
       JSON.stringify({
-        level: "info",
+        level,
         message,
         timestamp: new Date().toISOString(),
         ...this.context,
@@ -659,6 +757,13 @@ Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言�
 詳細は `docs/03-implementation/DEPENDENCY_LINT.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照。
 
 ## Changelog
+
+### [1.2.0] - 2026-09-06
+
+#### 変更
+
+- AppError 階層に `cause` を追加し、`UpstreamError` と外部境界のエラー正規化 `normalizeExternalError()` を追加（Issue #486）
+- Logger の呼び出し規約を `interface Logger` として明文化（error は `(message, error, meta?)`、warn / info は `(message, meta?)`）
 
 ### [1.1.0] - 2026-04-27
 

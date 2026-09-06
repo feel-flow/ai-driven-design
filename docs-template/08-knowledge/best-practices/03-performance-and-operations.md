@@ -192,9 +192,10 @@ class UserService {
 
       return { success: true, data: user };
     } catch (error) {
-      logger.error("Failed to create user", {
-        error: error.message,
-        stack: error.stack,
+      // Logger 規約（PATTERNS.md §9）: error(message, error: Error, meta?)。
+      // Error 実体を第 2 引数で渡せば name / message / stack は Logger 側が構造化する
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.error("Failed to create user", err, {
         userData: { email: userData.email },
         requestId: req.id,
       });

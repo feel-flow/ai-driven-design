@@ -188,28 +188,55 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
+// 決済の上流障害（Stripe API 障害・接続断）。cause に Stripe のエラーを保持する
+// （エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を継承する）
+class PaymentError extends AppError {
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "PAYMENT_UPSTREAM", 502, options);
+  }
+}
+
 // 決済処理の実装
 class PaymentService {
+  // idempotencyKey: 同じ決済の再送を Stripe 側で重複排除させる。これが無いと
+  // retryWithBackoff（FALLBACK.md §4）の再試行で PaymentIntent が二重に作られる
   async createPaymentIntent(
     amount: number,
     currency: string,
+    idempotencyKey: string,
   ): Promise<PaymentIntent> {
     try {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount * 100, // cents
-        currency,
-        automatic_payment_methods: {
-          enabled: true,
-        },
-        metadata: {
-          integration_check: "accept_a_payment",
-        },
-      });
-
-      return paymentIntent;
+      return await retryWithBackoff(
+        () =>
+          stripe.paymentIntents.create(
+            {
+              amount: amount * 100, // cents
+              currency,
+              automatic_payment_methods: { enabled: true },
+              metadata: { integration_check: "accept_a_payment" },
+            },
+            { idempotencyKey },
+          ),
+        { operation: "stripe.paymentIntents.create" },
+      );
     } catch (error) {
-      logger.error("Stripe payment intent creation failed", error);
-      throw new PaymentError("Failed to create payment intent");
+      // retryWithBackoff は正規化済み AppError を投げ、cause に Stripe のエラーを持つ。
+      // カード拒否（利用者が対処できる）と上流障害（再試行すべき）を区別して伝える
+      const cause = error instanceof AppError ? error.cause : error;
+      if (cause instanceof Stripe.errors.StripeCardError) {
+        throw new ValidationError(
+          cause.message,
+          [{ field: "card", message: cause.message, constraint: cause.code }],
+          { cause },
+        );
+      }
+      const normalized = normalizeExternalError(error);
+      logger.error("Stripe payment intent creation failed", normalized, {
+        idempotencyKey,
+      });
+      throw new PaymentError("Failed to create payment intent", {
+        cause: normalized,
+      });
     }
   }
 
@@ -222,7 +249,14 @@ class PaymentService {
         await this.handlePaymentFailure(event.data.object);
         break;
       default:
-        logger.info(`Unhandled event type: ${event.type}`);
+        // Stripe のイベント種別は外部が定義する「開かれた集合」で、購読設定や
+        // Stripe 側の追加で未知の種別が届くのは正常。throw すると 500 → Stripe が再送を
+        // 繰り返すため、記録して継続する（自前定義の閉じたユニオンは §8 のように
+        // never で網羅性チェックする — 判断基準は「集合を誰が定義しているか」）。
+        logger.info("Unhandled Stripe event type", {
+          eventType: event.type,
+          eventId: event.id,
+        });
     }
   }
 }
@@ -238,18 +272,41 @@ app.post(
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
 
+    // 署名検証と業務処理は別々の try で囲む。一緒にすると DB 接続断・一意制約違反まで
+    // 「署名検証失敗」として 400 で記録され、決済は Stripe 側で成立しているのに
+    // 記録されない障害を「Webhook Secret の設定ミスか攻撃」と誤診する。
+    let event: Stripe.Event;
     try {
-      const event = stripe.webhooks.constructEvent(
+      event = stripe.webhooks.constructEvent(
         req.body,
         sig,
         process.env.STRIPE_WEBHOOK_SECRET,
       );
+    } catch (error) {
+      const securityError = new SecurityError(
+        "Webhook signature verification failed",
+        { cause: error },
+      );
+      logger.error("Webhook signature verification failed", securityError);
+      // 400: Stripe は再送しない（署名が合わないものを何度受けても結果は同じ）
+      res.status(400).send("Webhook Error: invalid signature");
+      return;
+    }
 
+    try {
       await paymentService.handleWebhook(event);
       res.json({ received: true });
-    } catch (err) {
-      logger.error("Webhook signature verification failed", err);
-      res.status(400).send(`Webhook Error: ${err.message}`);
+    } catch (error) {
+      const normalized = normalizeExternalError(
+        error,
+        "Webhook processing failed",
+      );
+      logger.error("Webhook processing failed", normalized, {
+        eventId: event.id,
+        eventType: event.type,
+      });
+      // 500: Stripe の自動再送に載せる（処理側の一時障害は再送で回復しうる）
+      res.status(500).send("Webhook processing failed");
     }
   },
 );
@@ -268,6 +325,23 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 // マジックナンバー禁止: 意味のある値は名前付き定数に切り出す（MASTER.md）
 const SENDGRID_MAX_MESSAGES_PER_BATCH = 1000; // 件。SendGrid の 1 リクエスト上限
 const SENDGRID_BATCH_INTERVAL_MS = 1000; // ms。レート制限を避けるバッチ間の待機
+
+// メール送信の上流障害。cause に SendGrid のレスポンス（status / body）を保持する
+class EmailError extends AppError {
+  constructor(message: string, options?: AppErrorOptions) {
+    super(message, "EMAIL_UPSTREAM", 502, options);
+  }
+}
+
+// 一括送信の結果。途中で失敗しても「どこまで送れたか」を呼び出し元へ返す
+interface BulkEmailResult {
+  sentCount: number;
+  failedChunks: Array<{
+    chunkIndex: number;
+    recipients: string[];
+    error: AppError;
+  }>;
+}
 
 // メールサービス実装
 class EmailService {
@@ -288,8 +362,13 @@ class EmailService {
       await sgMail.send(msg);
       logger.info("Welcome email sent", { userId: user.id });
     } catch (error) {
-      logger.error("Failed to send welcome email", error);
-      throw new EmailError("Failed to send email");
+      // SendGrid のステータス・レスポンス本文を cause で保持する（呼び出し元が
+      // 「宛先不正（再送しても無駄）」と「API 障害（再試行）」を区別できる）
+      const normalized = normalizeExternalError(error, "Failed to send email");
+      logger.error("Failed to send welcome email", normalized, {
+        userId: user.id,
+      });
+      throw new EmailError("Failed to send email", { cause: normalized });
     }
   }
 
@@ -297,7 +376,7 @@ class EmailService {
     recipients: string[],
     subject: string,
     content: string,
-  ): Promise<void> {
+  ): Promise<BulkEmailResult> {
     const messages = recipients.map((email) => ({
       to: email,
       from: this.FROM_EMAIL,
@@ -305,13 +384,41 @@ class EmailService {
       html: content,
     }));
 
-    // バッチ送信
+    // バッチ送信。チャンク単位で失敗を記録して続行する。
+    // 途中で throw すると残りのチャンクは送られず、どこまで送れたかの記録も残らない。
+    // 再実行すると送信済みの宛先に二重送信される（部分送信の記録が必要）。
     const chunks = this.chunkArray(messages, SENDGRID_MAX_MESSAGES_PER_BATCH);
+    const result: BulkEmailResult = { sentCount: 0, failedChunks: [] };
 
-    for (const chunk of chunks) {
-      await sgMail.send(chunk);
+    for (const [chunkIndex, chunk] of chunks.entries()) {
+      try {
+        await sgMail.send(chunk);
+        result.sentCount += chunk.length;
+      } catch (error) {
+        const normalized = normalizeExternalError(
+          error,
+          "Bulk email chunk failed",
+        );
+        logger.error("Bulk email chunk failed", normalized, {
+          chunkIndex,
+          chunkSize: chunk.length,
+          totalChunks: chunks.length,
+        });
+        result.failedChunks.push({
+          chunkIndex,
+          recipients: chunk.map((m) => m.to),
+          error: normalized,
+        });
+      }
       await this.delay(SENDGRID_BATCH_INTERVAL_MS); // レート制限対策
     }
+
+    // 失敗チャンクは呼び出し元が result.failedChunks の宛先だけを再送する
+    logger.info("Bulk email finished", {
+      sentCount: result.sentCount,
+      failedChunkCount: result.failedChunks.length,
+    });
+    return result;
   }
 }
 ```
@@ -383,6 +490,23 @@ import { IncomingWebhook } from "@slack/webhook";
 
 const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
 
+// 循環参照を含む context でも JSON.stringify が TypeError を投げないようにする。
+// エラー通知の経路で例外が出ると、通知しようとしていた元エラーを覆い隠す
+function safeStringify(value: unknown): string {
+  const seen = new WeakSet<object>();
+  return JSON.stringify(
+    value,
+    (_key, v) => {
+      if (typeof v === "object" && v !== null) {
+        if (seen.has(v)) return "[Circular]";
+        seen.add(v);
+      }
+      return v;
+    },
+    2,
+  );
+}
+
 // 通知サービス
 class NotificationService {
   async sendSlackNotification(message: SlackMessage): Promise<void> {
@@ -392,9 +516,22 @@ class NotificationService {
         blocks: message.blocks,
         attachments: message.attachments,
       });
+      metrics.increment("notification.slack.sent");
     } catch (error) {
-      logger.error("Failed to send Slack notification", error);
-      // Slackへの通知失敗はサイレントに処理
+      // 通知パイプライン自身の失敗は再スローしない（呼び出し元はすでにエラー処理中で、
+      // 通知失敗で本処理を止めるべきではない）が、無言では終わらせない。
+      // Webhook URL 失効・レート制限で「本番エラーは出ているのに誰にも届かず、
+      // 届いていないことにも気づけない」状態を、メトリクスとログで可視化する。
+      const normalized = normalizeExternalError(
+        error,
+        "Slack notification failed",
+      );
+      logger.error("Failed to send Slack notification", normalized, {
+        textPreview: message.text.slice(0, 80),
+      });
+      metrics.increment("notification.slack.failed", {
+        reason: normalized.code,
+      });
     }
   }
 
@@ -433,7 +570,7 @@ class NotificationService {
           elements: [
             {
               type: "mrkdwn",
-              text: `\`\`\`${JSON.stringify(context, null, 2)}\`\`\``,
+              text: `\`\`\`${safeStringify(context)}\`\`\``,
             },
           ],
         },
@@ -468,7 +605,12 @@ class AuthService {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
+    // getPayload() は TokenPayload | undefined。未検査だと認証失敗が TypeError として
+    // 現れ、認証エラーとして扱われない（FALLBACK.md の禁止カテゴリに乗らない）
     const payload = ticket.getPayload();
+    if (!payload?.email) {
+      throw new UnauthorizedError("Google ID token has no verified payload");
+    }
 
     // ユーザー情報の取得または作成
     let user = await this.userRepository.findByEmail(payload.email);
@@ -523,7 +665,14 @@ class AnalyticsService {
       ],
     });
 
-    return parseInt(response.rows[0].metricValues[0].value);
+    // rows は該当データが無いと空配列。添字アクセスの TypeError にすると
+    // 「データなし」と「API 失敗」が同じ例外になる。API 失敗は runReport が投げる
+    const value = response.rows?.[0]?.metricValues?.[0]?.value;
+    if (value === undefined) {
+      logger.info("No active user data for period", { days });
+      return 0;
+    }
+    return parseInt(value, 10);
   }
 
   async trackEvent(event: AnalyticsEvent): Promise<void> {
@@ -592,6 +741,9 @@ class QueueService {
         default: {
           // 網羅性チェック: ジョブ種別を追加したらここでコンパイルエラーになる
           // （default を握りつぶすと未知ジョブが無言で消える）。
+          // §2 の Stripe イベント switch が default で継続するのと正反対だが、
+          // 判断基準は「集合を誰が定義しているか」: EmailJob は自分が定義する閉じた
+          // ユニオンなので未知種別はバグ、Stripe イベントは外部定義の開かれた集合。
           // 検出できるのはコンパイル時のみ。実データの検証は上記のとおり別途必要。
           const unhandled: never = payload;
           // ペイロード本体はエラーメッセージに載せない（token 等の機密が
@@ -702,45 +854,9 @@ describe("Payment Integration", () => {
 
 ## 11. エラーハンドリングと再試行
 
-### 再試行ロジック
+外部サービス呼び出しのエラー処理は、次の正典に従う（本ファイル内で別実装を作らない）:
 
-```typescript
-// 再試行の既定値（マジックナンバー禁止 / MASTER.md）
-const DEFAULT_MAX_RETRIES = 3; // 回
-const DEFAULT_RETRY_BASE_DELAY_MS = 1000; // ms。2^i 倍で伸びる基準値
-
-// 指数バックオフによる再試行
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = DEFAULT_MAX_RETRIES,
-  baseDelay: number = DEFAULT_RETRY_BASE_DELAY_MS,
-): Promise<T> {
-  // 0 以下だと一度も fn を呼ばずに throw し、真因を隠したエラーになる
-  if (maxRetries < 1) {
-    throw new Error(`maxRetries must be >= 1, got ${maxRetries}`);
-  }
-
-  let lastError: unknown;
-
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-
-      if (i < maxRetries - 1) {
-        const delay = baseDelay * Math.pow(2, i);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-
-  // 握りつぶさず、最後のエラーを Error として再スローする
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
-}
-
-// 使用例（既定値で足りる場合は引数を省略する）
-const result = await retryWithBackoff(() =>
-  stripe.paymentIntents.create(params),
-);
-```
+- **エラー型と正規化**: [PATTERNS.md](./PATTERNS.md)「エラーハンドリング」— `AppError` 階層（`cause` 付き）と `normalizeExternalError()`。外部 SDK の生エラーは境界で必ず正規化する
+- **再試行**: [FALLBACK.md](./FALLBACK.md) §4「再試行ユーティリティ」— `retryWithBackoff(fn, { operation })`。再試行可否の判定（禁止カテゴリは再試行しない）・Jitter・試行ごとのログを内蔵する。副作用のある呼び出しは冪等キー付きでのみ再試行する（§2 の `createPaymentIntent`）
+- **フォールバック**: [FALLBACK.md](./FALLBACK.md) §4 `fallbackInProdOnly()` — AppError 以外は deny-by-default でスロー
+- **ログ**: [PATTERNS.md](./PATTERNS.md)「ログパターン」の `Logger` 規約 — `error(message, error, meta?)` / `warn|info(message, meta?)`
