@@ -236,7 +236,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 4. **コメント**: 複雑なロジックには日本語でコメントを追加
 5. **リーダブルコード**: 単一責任の原則に従い、関数は30行以内に収める
 6. **マジックナンバー禁止**: 意味のある数値/文字列の直接埋め込みを禁止。必ず名前付き定数または設定から注入し、単位・範囲を明示（詳細は `PATTERNS.md` を参照）
-7. **配置判断**: 新機能追加時の「どこに書くか」は決定木で判断（詳細: [DECISION_TREE.md](./03-implementation/DECISION_TREE.md)）。新規コードファイルは [templates/README.md](./03-implementation/templates/README.md) の雛形をコピーしてから実装する（SKELETON を直接 import しない）。
+7. **配置判断**: 新機能追加時の「どこに書くか」は決定木で判断（詳細: [DECISION_TREE.md](./03-implementation/DECISION_TREE.md)）。新規コードファイルは `docs/03-implementation/templates/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）の雛形をコピーしてから実装する（SKELETON を直接 import しない）。
 
 ### 命名規則
 
@@ -259,7 +259,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
   - メインドキュメント: `UPPER_SNAKE_CASE.md`（AI識別性優先・複数語はアンダースコア `_` 区切り）
   - 例: `MASTER.md`, `ARCHITECTURE.md`, `LESSONS_LEARNED.md`, `DEVELOPMENT_PREPARATION.md`
   - サブフォルダ内ファイル: `lowercase-with-hyphens.md`（例: `git-workflow.md`, `phased-rollout.md`）
-  - 詳細・適用条件・逸脱判断は [README.md](./README.md#-ファイル名命名規則) を SSOT とする
+  - 詳細・適用条件・逸脱判断は `docs/README.md` の「ファイル名命名規則」節を SSOT とする
 - **禁止事項**:
   - ❌ 日本語ファイル名
   - ❌ スペースを含むファイル名
@@ -471,21 +471,23 @@ metrics:
 
 ## 関連ドキュメント
 
+> **配置について**: 本節のうちコア7文書以外のファイルは `/init-docs` の初期セット外（`08-knowledge/` は `/ace-setup` が作成する）。展開直後には配置されていないので、必要になった時点でテンプレート配布元の同一相対パスからコピーする。
+
 ### 初心者・新規プロジェクト向け
 
-- [GETTING_STARTED_ABSOLUTE_BEGINNER.md](./GETTING_STARTED_ABSOLUTE_BEGINNER.md) - 完全初心者ガイド（何も決まっていない状態から始める、約4.5時間）
-- [GETTING_STARTED_NEW_PROJECT.md](./GETTING_STARTED_NEW_PROJECT.md) - 新規プロジェクト完全ガイド（企画から実装準備まで、8-12時間）
-- [00-planning/PLANNING_TEMPLATE.md](./00-planning/PLANNING_TEMPLATE.md) - プロジェクト企画書テンプレート
+- `docs/GETTING_STARTED_ABSOLUTE_BEGINNER.md` - 完全初心者ガイド（何も決まっていない状態から始める、約4.5時間）
+- `docs/GETTING_STARTED_NEW_PROJECT.md` - 新規プロジェクト完全ガイド（企画から実装準備まで、8-12時間）
+- `docs/00-planning/PLANNING_TEMPLATE.md` - プロジェクト企画書テンプレート
 
 ### AIツール初期設定ガイド
 
-- [SETUP_GITHUB_COPILOT.md](./SETUP_GITHUB_COPILOT.md) - GitHub Copilot設定（約30分）
-- [SETUP_CLAUDE_CODE.md](./SETUP_CLAUDE_CODE.md) - Claude Code設定（約40分）
-- [SETUP_CURSOR.md](./SETUP_CURSOR.md) - Cursor設定（約60分）
+- `docs/SETUP_GITHUB_COPILOT.md` - GitHub Copilot設定（約30分）
+- `docs/SETUP_CLAUDE_CODE.md` - Claude Code設定（約40分）
+- `docs/SETUP_CURSOR.md` - Cursor設定（約60分）
 
 ### 既存プロジェクト向け
 
-- [GETTING_STARTED.md](./GETTING_STARTED.md) - Quickstart（既存プロジェクトへの導入・AI駆動・読み順・プロンプト）
+- `docs/GETTING_STARTED.md` - Quickstart（既存プロジェクトへの導入・AI駆動・読み順・プロンプト）
 
 ### コア7文書（起点）
 
@@ -504,29 +506,29 @@ metrics:
 
 コア7以外に、次を参照すると品質ゲートとレビュー観点が揃いやすい。
 
-- [04-quality/GUARDRAILS_THREE_LAYERS.md](./04-quality/GUARDRAILS_THREE_LAYERS.md) - ガードレール3層（仕様・自動チェック・人間レビュー）
-- [04-quality/SECURITY_REVIEW_CHECKLIST.md](./04-quality/SECURITY_REVIEW_CHECKLIST.md) - セキュリティレビューチェックリスト（PR用）
+- `docs/04-quality/GUARDRAILS_THREE_LAYERS.md` - ガードレール3層（仕様・自動チェック・人間レビュー）
+- `docs/04-quality/SECURITY_REVIEW_CHECKLIST.md` - セキュリティレビューチェックリスト（PR用）
 
 ### ナレッジベース
 
-- [08-knowledge/LESSONS_LEARNED.md](./08-knowledge/LESSONS_LEARNED.md) - 開発過程で得た知見・解決策
-- [08-knowledge/TROUBLESHOOTING.md](./08-knowledge/TROUBLESHOOTING.md) - トラブルシューティング集
-- [08-knowledge/BEST_PRACTICES.md](./08-knowledge/BEST_PRACTICES.md) - ベストプラクティス集
-- [08-knowledge/FAQ.md](./08-knowledge/FAQ.md) - よくある質問と回答
-- [08-knowledge/PLAYBOOK.md](./08-knowledge/PLAYBOOK.md) - ACE Playbook（AIツール向け構造化知見）
+- `docs/08-knowledge/LESSONS_LEARNED.md` - 開発過程で得た知見・解決策
+- `docs/08-knowledge/TROUBLESHOOTING.md` - トラブルシューティング集
+- `docs/08-knowledge/BEST_PRACTICES.md` - ベストプラクティス集
+- `docs/08-knowledge/FAQ.md` - よくある質問と回答
+- `docs/08-knowledge/PLAYBOOK.md` - ACE Playbook（AIツール向け構造化知見）
 
 ### 開発プロセスガイド
 
-- [06-reference/DEVELOPMENT_PREPARATION.md](./06-reference/DEVELOPMENT_PREPARATION.md) - 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）
-- [00-planning/POC_WORKFLOW.md](./00-planning/POC_WORKFLOW.md) - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
-- [06-reference/DECISION_MATRIX.md](./06-reference/DECISION_MATRIX.md) - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
-- [06-reference/COPILOT_AGENTS.md](./06-reference/COPILOT_AGENTS.md) - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
-- [06-reference/ISSUE_TEMPLATE_PATTERNS.md](./06-reference/ISSUE_TEMPLATE_PATTERNS.md) - Issue テンプレ設計パターン（ストーリー型=推奨 / 従来型=代替）
-- [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md) - 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）
+- `docs/06-reference/DEVELOPMENT_PREPARATION.md` - 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）
+- `docs/00-planning/POC_WORKFLOW.md` - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
+- `docs/06-reference/DECISION_MATRIX.md` - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
+- `docs/06-reference/COPILOT_AGENTS.md` - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
+- `docs/06-reference/ISSUE_TEMPLATE_PATTERNS.md` - Issue テンプレ設計パターン（ストーリー型=推奨 / 従来型=代替）
+- `docs/05-operations/ORGANIZATIONAL_ROLLOUT.md` - 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）
 
 ## ドキュメント構造ガイド（AIツール向け）
 
-> **詳細ガイドは [05-operations/ORGANIZATIONAL_ROLLOUT.md](./05-operations/ORGANIZATIONAL_ROLLOUT.md) を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
+> **詳細ガイドは `docs/05-operations/ORGANIZATIONAL_ROLLOUT.md` を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
 
 ### AIツールの読み込み戦略
 
@@ -543,7 +545,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ### ファイル名命名規則
 
-ファイル名命名規則の SSOT は [docs-template/README.md](./README.md#-ファイル名命名規則) です。短縮版:
+ファイル名命名規則の SSOT は `docs/README.md` の「ファイル名命名規則」節です。短縮版:
 
 - ルート直下 / 番号付きフォルダ直下の MD: `UPPER_SNAKE_CASE.md`（例: `MASTER.md`, `DEPLOYMENT.md`）
 - サブフォルダ名・サブフォルダ内 MD: `lowercase-with-hyphens(.md)`（例: `deployment/git-workflow.md`）
@@ -558,7 +560,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 | 800 行超  | 分割を推奨     |
 | 1200 行超 | **分割を必須** |
 
-> 親（索引）+ 子（詳細）への分割手順・分割しない判断・実例は [organizational-rollout/document-splitting.md](./05-operations/organizational-rollout/document-splitting.md) を SSOT とする。
+> 親（索引）+ 子（詳細）への分割手順・分割しない判断・実例は `docs/05-operations/organizational-rollout/document-splitting.md` を SSOT とする。
 
 ### 簡潔化の原則
 
@@ -577,7 +579,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ## 月次ドキュメント参照チェック
 
-毎月1日に以下4項目を確認する。手順・自動化スクリプト・レポートテンプレートは [organizational-rollout/health-check.md](./05-operations/organizational-rollout/health-check.md) を参照。
+毎月1日に以下4項目を確認する。手順・自動化スクリプト・レポートテンプレートは `docs/05-operations/organizational-rollout/health-check.md` を参照。
 
 1. **MASTER.md からの参照確認** — 新規文書が索引から到達可能か
 2. **ファイルサイズ確認** — 上記閾値（500/800/1200）超過の検出
@@ -586,7 +588,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ### アーカイブ対象（要約）
 
-以下に該当する文書は `archive/` への退避を **検討**。判定フロー・手順・リダイレクト管理ルールは [organizational-rollout/archive-strategy.md](./05-operations/organizational-rollout/archive-strategy.md) を参照。
+以下に該当する文書は `archive/` への退避を **検討**。判定フロー・手順・リダイレクト管理ルールは `docs/05-operations/organizational-rollout/archive-strategy.md` を参照。
 
 - 6 ヶ月参照なし
 - 技術的に陳腐化

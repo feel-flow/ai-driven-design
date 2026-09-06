@@ -73,7 +73,7 @@ Q6. 横断的関心事？（Cross-cutting）
 
 ### 分岐と雛形ファイル（Layer 2）
 
-新規コードの配置が決まったら、[templates/README.md](./templates/README.md) の方針に従い **雛形をコピーしてから** 実装する。各末端分岐と雛形（現状は TypeScript / SQL 例）の対応は次のとおり。
+新規コードの配置が決まったら、`docs/03-implementation/templates/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）の方針に従い **雛形をコピーしてから** 実装する。各末端分岐と雛形（現状は TypeScript / SQL 例）の対応は次のとおり。
 
 | ツリー上の分岐                       | 雛形ファイル                                                                                                                   |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -137,7 +137,7 @@ Q6. 横断的関心事？（Cross-cutting）
 2. Q1〜Q6 の分岐内容（例: `infrastructure/clients/`）を自プロジェクトの実構成に書き換え
 3. 該当しない分岐（例: WebSocket を使わない場合の Q2）は削除
 4. 新しい分岐（例: CLI コマンド、Lambda ハンドラ）を追加
-5. 「3. 追加先チェックリスト」表および [templates/README.md](./templates/README.md) の索引表も Q1〜Q6 と 1:1 対応させて更新
+5. 「3. 追加先チェックリスト」表および `docs/03-implementation/templates/README.md` の索引表も Q1〜Q6 と 1:1 対応させて更新
 6. 冒頭の `⚠️ SAMPLE` バナーを削除し、自プロジェクト固有のコンテキストに書き換え
 7. Frontmatter の `owner` / `created` / `updated` および Changelog の `YYYY-MM-DD` を実値に置き換える
 

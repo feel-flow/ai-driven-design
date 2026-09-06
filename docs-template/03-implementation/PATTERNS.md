@@ -646,7 +646,7 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 詳細な分岐内容とチェックリストは [DECISION_TREE.md](./DECISION_TREE.md) を参照。
 
-新規ファイルの雛形（SKELETON テンプレ）は [templates/README.md](./templates/README.md) に集約する。言語非依存の運用ルールと、TypeScript 等のコピー元パスを必ず確認すること。
+新規ファイルの雛形（SKELETON テンプレ）は `docs/03-implementation/templates/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）に集約する。言語非依存の運用ルールと、TypeScript 等のコピー元パスを必ず確認すること。
 
 ## 12. 依存方向 lint（Layer 3）
 
@@ -656,7 +656,7 @@ Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言�
 - 注意: Layer 3 は **言語依存**（Python/TypeScript/Go/Rust など）
 - 運用: `ignore_imports` などを使って既知負債を可視化し、削除ではなく追跡する
 
-詳細は [DEPENDENCY_LINT.md](./DEPENDENCY_LINT.md) を参照。
+詳細は `docs/03-implementation/DEPENDENCY_LINT.md` を参照。
 
 ## Changelog
 

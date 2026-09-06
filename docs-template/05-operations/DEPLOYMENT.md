@@ -13,24 +13,26 @@ updated: "YYYY-MM-DD"
 
 ## 📖 構成
 
-| ドキュメント                                                                              | 内容                                              | 推奨読み順     |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------- |
-| [github-setup.md](./deployment/github-setup.md)                                           | GitHub初期設定（ラベル・Release Drafter）         | ⭐⭐⭐⭐⭐ 0th |
-| [git-workflow.md](./deployment/git-workflow.md)                                           | AI駆動Git Workflow全体                            | ⭐⭐⭐⭐⭐ 1st |
-| [self-review.md](./deployment/self-review.md)                                             | セルフレビュー詳細（PR作成前）                    | ⭐⭐⭐⭐ 2nd   |
-| [devin-pre-pr-review.md](./deployment/devin-pre-pr-review.md)                             | Devin Pre-PRレビューシステム（5エージェント並列） | ⭐⭐⭐⭐ 2.5th |
-| [automated-code-review.md](./deployment/automated-code-review.md)                         | 自動コードレビュー（Claude Code + Husky）         | ⭐⭐⭐⭐ -     |
-| [agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md) | 削除事故防止ハーネス設計                          | ⭐⭐⭐⭐ -     |
-| [knowledge-management.md](./deployment/knowledge-management.md)                           | ナレッジ体系化（マージ後・cleanup後）             | ⭐⭐⭐⭐ 3rd   |
-| [ace-cycle.md](./deployment/ace-cycle.md)                                                 | ACEサイクル（Playbook増分更新）                   | ⭐⭐⭐⭐ 3.5th |
-| [ace-autonomous.md](./deployment/ace-autonomous.md)                                       | ACE autonomous（subagent + worktree、任意）       | ⭐⭐⭐ 3.6th   |
-| [ai-tools-integration.md](./deployment/ai-tools-integration.md)                           | AIツール統合設定                                  | ⭐⭐⭐ -       |
-| [ci-cd.md](./deployment/ci-cd.md)                                                         | CI/CDパイプライン                                 | ⭐⭐⭐ 4th     |
-| [infrastructure.md](./deployment/infrastructure.md)                                       | インフラ構成                                      | ⭐⭐⭐ -       |
-| [multi-cli-review-orchestration.md](./deployment/multi-cli-review-orchestration.md)       | Multi-CLI分散レビュー                             | ⭐⭐⭐ -       |
-| [review-response-policy.md](./deployment/review-response-policy.md)                       | PRレビュー対応ポリシー                            | ⭐⭐⭐⭐ -     |
-| [workflow-principles.md](./deployment/workflow-principles.md)                             | ワークフロー運用原則（3原則＋TodoWrite）          | ⭐⭐⭐⭐ -     |
-| [monitoring.md](./deployment/monitoring.md)                                               | モニタリング                                      | ⭐⭐ -         |
+> **配置について**: `deployment/` 配下の各ファイルは `/init-docs` の初期セット外で、展開直後のプロジェクトには配置されていない。必要になった時点でテンプレート配布元の同一相対パスからコピーする（コピー後は `docs/05-operations/deployment/<ファイル名>` で参照できる）。
+
+| ドキュメント                                                         | 内容                                              | 推奨読み順     |
+| -------------------------------------------------------------------- | ------------------------------------------------- | -------------- |
+| `docs/05-operations/deployment/github-setup.md`                      | GitHub初期設定（ラベル・Release Drafter）         | ⭐⭐⭐⭐⭐ 0th |
+| `docs/05-operations/deployment/git-workflow.md`                      | AI駆動Git Workflow全体                            | ⭐⭐⭐⭐⭐ 1st |
+| `docs/05-operations/deployment/self-review.md`                       | セルフレビュー詳細（PR作成前）                    | ⭐⭐⭐⭐ 2nd   |
+| `docs/05-operations/deployment/devin-pre-pr-review.md`               | Devin Pre-PRレビューシステム（5エージェント並列） | ⭐⭐⭐⭐ 2.5th |
+| `docs/05-operations/deployment/automated-code-review.md`             | 自動コードレビュー（Claude Code + Husky）         | ⭐⭐⭐⭐ -     |
+| `docs/05-operations/deployment/agent-deletion-prevention-harness.md` | 削除事故防止ハーネス設計                          | ⭐⭐⭐⭐ -     |
+| `docs/05-operations/deployment/knowledge-management.md`              | ナレッジ体系化（マージ後・cleanup後）             | ⭐⭐⭐⭐ 3rd   |
+| `docs/05-operations/deployment/ace-cycle.md`                         | ACEサイクル（Playbook増分更新）                   | ⭐⭐⭐⭐ 3.5th |
+| `docs/05-operations/deployment/ace-autonomous.md`                    | ACE autonomous（subagent + worktree、任意）       | ⭐⭐⭐ 3.6th   |
+| `docs/05-operations/deployment/ai-tools-integration.md`              | AIツール統合設定                                  | ⭐⭐⭐ -       |
+| `docs/05-operations/deployment/ci-cd.md`                             | CI/CDパイプライン                                 | ⭐⭐⭐ 4th     |
+| `docs/05-operations/deployment/infrastructure.md`                    | インフラ構成                                      | ⭐⭐⭐ -       |
+| `docs/05-operations/deployment/multi-cli-review-orchestration.md`    | Multi-CLI分散レビュー                             | ⭐⭐⭐ -       |
+| `docs/05-operations/deployment/review-response-policy.md`            | PRレビュー対応ポリシー                            | ⭐⭐⭐⭐ -     |
+| `docs/05-operations/deployment/workflow-principles.md`               | ワークフロー運用原則（3原則＋TodoWrite）          | ⭐⭐⭐⭐ -     |
+| `docs/05-operations/deployment/monitoring.md`                        | モニタリング                                      | ⭐⭐ -         |
 
 **本テンプレートのソースリポジトリでの運用例（移行設計）**: [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md)（GitHub Actions を使わない運用。ルートで `npm run quality:local`、Release Drafter **用ワークフロー**は不要でよい。Issue #377）
 
@@ -42,7 +44,7 @@ updated: "YYYY-MM-DD"
 Issue → Branch → Implement → Test → Self-Review → PR → Review → Merge → Cleanup → ACE → Next Task
 ```
 
-**詳細**: [deployment/git-workflow.md](./deployment/git-workflow.md)
+**詳細**: `docs/05-operations/deployment/git-workflow.md`
 
 ### よく使うコマンド
 
@@ -75,20 +77,20 @@ Git Flowベースで、**テスト・セルフレビュー（PR前）** と **AC
 2. **ブランチ作成** - `feature/{issue-num}-{name}`
 3. **実装・コミット** - AI駆動開発
 4. **テスト・検証** - `npm run quality:local` 等
-5. **セルフレビュー** ← [詳細](./deployment/self-review.md)
+5. **セルフレビュー** ← 詳細は `docs/05-operations/deployment/self-review.md`
 6. **PR作成** - 構造化されたPR本文
-7. **レビュー対応** - **レビュワーへのコメント必須**（修正内容・理由・変更箇所を明記）← [詳細](./deployment/git-workflow.md)
+7. **レビュー対応** - **レビュワーへのコメント必須**（修正内容・理由・変更箇所を明記）← 詳細は `docs/05-operations/deployment/git-workflow.md`
 8. **マージ** - Squash推奨
 9. **クリーンアップ** - ブランチ削除、`git fetch --prune`
-10. **ナレッジ体系化** - マージ後・cleanup 後 ← [詳細](./deployment/knowledge-management.md) | [ACE Playbook](./deployment/ace-cycle.md)
+10. **ナレッジ体系化** - マージ後・cleanup 後 ← 詳細は `docs/05-operations/deployment/knowledge-management.md` | ACE Playbook は `docs/05-operations/deployment/ace-cycle.md`
 
 ### 詳細ドキュメント
 
-- **全体フロー**: [deployment/git-workflow.md](./deployment/git-workflow.md)
-- **セルフレビュー**: [deployment/self-review.md](./deployment/self-review.md)
-- **ナレッジ管理**: [deployment/knowledge-management.md](./deployment/knowledge-management.md)
-- **AIツール統合**: [deployment/ai-tools-integration.md](./deployment/ai-tools-integration.md)
-- **削除事故防止**: [deployment/agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md)
+- **全体フロー**: `docs/05-operations/deployment/git-workflow.md`
+- **セルフレビュー**: `docs/05-operations/deployment/self-review.md`
+- **ナレッジ管理**: `docs/05-operations/deployment/knowledge-management.md`
+- **AIツール統合**: `docs/05-operations/deployment/ai-tools-integration.md`
+- **削除事故防止**: `docs/05-operations/deployment/agent-deletion-prevention-harness.md`
 
 ### ブランチ戦略（Git Flow準拠）
 
@@ -123,7 +125,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/ci-cd.md](./deployment/ci-cd.md)
+`docs/05-operations/deployment/ci-cd.md`
 
 ## 3. インフラストラクチャ
 
@@ -143,7 +145,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/infrastructure.md](./deployment/infrastructure.md)
+`docs/05-operations/deployment/infrastructure.md`
 
 ## 4. モニタリング
 
@@ -161,7 +163,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/monitoring.md](./deployment/monitoring.md)
+`docs/05-operations/deployment/monitoring.md`
 
 ## 5. ロールバック戦略
 
@@ -180,7 +182,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/infrastructure.md#4-ロールバック戦略](./deployment/infrastructure.md#4-ロールバック戦略)
+`docs/05-operations/deployment/infrastructure.md` の「4. ロールバック戦略」節
 
 ## 6. 災害復旧
 
@@ -199,7 +201,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### 詳細ドキュメント
 
-[deployment/infrastructure.md#5-災害復旧-dr](./deployment/infrastructure.md#5-災害復旧-dr)
+`docs/05-operations/deployment/infrastructure.md` の「5. 災害復旧（DR）」節
 
 ## 7. 運用手順
 
@@ -214,7 +216,7 @@ GitHub Actions/GitLab CI/Jenkinsによる自動化パイプライン。
 
 ### トラブルシューティング
 
-一般的な問題の対処方法は [deployment/monitoring.md#トラブルシューティング](./deployment/monitoring.md#トラブルシューティング) を参照。
+一般的な問題の対処方法は `docs/05-operations/deployment/monitoring.md` の「トラブルシューティング」節を参照。
 
 ## 8. 開発環境の最適化
 
@@ -228,7 +230,7 @@ PRマージ後のブランチ切り替え忘れを防ぐため、セッション
 
 ### 詳細ドキュメント
 
-[deployment/ai-tools-integration.md#sessionstart-hook](./deployment/ai-tools-integration.md#sessionstart-hook)
+`docs/05-operations/deployment/ai-tools-integration.md` の SessionStart hook 節
 
 ---
 
@@ -236,20 +238,20 @@ PRマージ後のブランチ切り替え忘れを防ぐため、セッション
 
 ### 検索クエリマッピング
 
-| 知りたいこと             | 参照ドキュメント                                                                          | セクション           |
-| ------------------------ | ----------------------------------------------------------------------------------------- | -------------------- |
-| Gitワークフロー全体      | [git-workflow.md](./deployment/git-workflow.md)                                           | 全体                 |
-| セルフレビュー方法       | [self-review.md](./deployment/self-review.md)                                             | 全体                 |
-| ナレッジ記録方法         | [knowledge-management.md](./deployment/knowledge-management.md)                           | 全体                 |
-| ACE Playbook更新         | [ace-cycle.md](./deployment/ace-cycle.md)                                                 | 全体                 |
-| PRレビュー対応           | [git-workflow.md](./deployment/git-workflow.md)                                           | ステップ7            |
-| レビュー結果の対応ルール | [review-response-policy.md](./deployment/review-response-policy.md)                       | 全体                 |
-| ワークフロー運用原則     | [workflow-principles.md](./deployment/workflow-principles.md)                             | 全体                 |
-| 削除事故防止ハーネス     | [agent-deletion-prevention-harness.md](./deployment/agent-deletion-prevention-harness.md) | 全体                 |
-| クロスモデルレビュー     | [multi-cli-review-orchestration.md](./deployment/multi-cli-review-orchestration.md)       | クロスモデルレビュー |
-| CI/CD設定                | [ci-cd.md](./deployment/ci-cd.md)                                                         | GitHub Actions       |
-| インフラ構成             | [infrastructure.md](./deployment/infrastructure.md)                                       | Terraform            |
-| モニタリング             | [monitoring.md](./deployment/monitoring.md)                                               | CloudWatch           |
+| 知りたいこと             | 参照ドキュメント                                                     | セクション           |
+| ------------------------ | -------------------------------------------------------------------- | -------------------- |
+| Gitワークフロー全体      | `docs/05-operations/deployment/git-workflow.md`                      | 全体                 |
+| セルフレビュー方法       | `docs/05-operations/deployment/self-review.md`                       | 全体                 |
+| ナレッジ記録方法         | `docs/05-operations/deployment/knowledge-management.md`              | 全体                 |
+| ACE Playbook更新         | `docs/05-operations/deployment/ace-cycle.md`                         | 全体                 |
+| PRレビュー対応           | `docs/05-operations/deployment/git-workflow.md`                      | ステップ7            |
+| レビュー結果の対応ルール | `docs/05-operations/deployment/review-response-policy.md`            | 全体                 |
+| ワークフロー運用原則     | `docs/05-operations/deployment/workflow-principles.md`               | 全体                 |
+| 削除事故防止ハーネス     | `docs/05-operations/deployment/agent-deletion-prevention-harness.md` | 全体                 |
+| クロスモデルレビュー     | `docs/05-operations/deployment/multi-cli-review-orchestration.md`    | クロスモデルレビュー |
+| CI/CD設定                | `docs/05-operations/deployment/ci-cd.md`                             | GitHub Actions       |
+| インフラ構成             | `docs/05-operations/deployment/infrastructure.md`                    | Terraform            |
+| モニタリング             | `docs/05-operations/deployment/monitoring.md`                        | CloudWatch           |
 
 ### AIツール向けプロンプトテンプレート
 

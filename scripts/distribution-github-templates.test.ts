@@ -18,6 +18,14 @@ import { join, resolve, dirname, normalize, relative } from "node:path";
 // リンクは「展開先に必ず在る」ことが前提なので初期セット内に限り、初期セット外
 // （05-operations/deployment/ 配下など）は所在の案内として inline code で書く。
 // この線引きを INITIAL_SET で機械検証する（Issue #488）。
+//
+// 検証範囲は .github/ 配下と、docs-template/ 本体のうち初期セット内の文書
+// （Issue #490）。線引き:
+//   - 初期セット内文書 → 初期セット外文書 のリンクは違反（展開先で切れる）
+//   - 初期セット外文書（05-operations/deployment/ 等）同士・からのリンクは対象外
+//     （それらは必要時にまとめてコピーされる前提で、リンクのままでよい）
+//   - .github/ 配下の frontmatter references / inline code パスの検査は従来どおり
+//     .github/ のみ（docs 本体の inline code は散文の言及で機械可読パスではない）
 
 const REPO_ROOT = resolve(__dirname, "..");
 const TEMPLATE_ROOT = join(REPO_ROOT, "docs-template");
@@ -58,6 +66,11 @@ function toTemplatePath(deployedPath: string): string | null {
   return null;
 }
 
+/** 初期セット内文書の実ファイル（docs-template/<rel>）。INITIAL_SET から導く */
+function listInitialSetFiles(): string[] {
+  return [...INITIAL_SET].map((p) => toTemplatePath(p) as string);
+}
+
 function listMarkdown(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -68,9 +81,15 @@ function listMarkdown(dir: string): string[] {
   return out;
 }
 
-/** 配布ファイルの、利用者リポジトリ内での配置（例: .github/ISSUE_TEMPLATE/bug.md） */
+/**
+ * 配布ファイルの、利用者リポジトリ内での配置。
+ *   docs-template/.github/** → .github/**（例: .github/ISSUE_TEMPLATE/bug.md）
+ *   docs-template/**        → docs/**（例: docs/05-operations/DEPLOYMENT.md）
+ */
 function deployedLocation(absPath: string): string {
-  return join(".github", relative(DIST_GITHUB, absPath));
+  const rel = relative(TEMPLATE_ROOT, absPath);
+  if (rel === ".github" || rel.startsWith(".github/")) return rel;
+  return join("docs", rel);
 }
 
 /** 相対リンクの href を、利用者リポジトリ内の絶対パスへ解決する */
@@ -88,6 +107,8 @@ function isLinkableTarget(target: string): boolean {
 }
 
 const MD_FILES = listMarkdown(DIST_GITHUB);
+// 相対リンクの検査対象: .github/ 配下 + 初期セット内の docs 本体
+const LINK_CHECKED_FILES = [...MD_FILES, ...listInitialSetFiles()];
 
 // 相対リンク（絶対 URL・ページ内アンカー・mailto を除く .md リンク）。
 // 末尾の `#anchor` を許容する — `foo.md#section` は本リポで一般的な書き方で、
@@ -109,7 +130,7 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
 
   it("相対リンクが利用者側レイアウトで解決する", () => {
     const broken: string[] = [];
-    for (const file of MD_FILES) {
+    for (const file of LINK_CHECKED_FILES) {
       const content = readFileSync(file, "utf8");
       const fromDir = dirname(deployedLocation(file));
       for (const match of content.matchAll(RELATIVE_LINK)) {
@@ -169,7 +190,7 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
   // review-response-policy.md / agent-deletion-prevention-harness.md が該当した）。
   it("相対リンクの参照先が INITIAL_SET 内にある", () => {
     const outside: string[] = [];
-    for (const file of MD_FILES) {
+    for (const file of LINK_CHECKED_FILES) {
       const content = readFileSync(file, "utf8");
       const deployed = deployedLocation(file);
       for (const match of content.matchAll(RELATIVE_LINK)) {
@@ -188,6 +209,14 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
   // 配布ツリー側でリネーム・削除が起きた場合はここで落ちる。逆方向（/init-docs が
   // 初期セットを増やした場合）は CI からプラグインを読めないため検出できず、
   // 定数の出典コメントで担保する。
+  it("検証対象に docs 本体の初期セット文書が含まれる（Issue #490）", () => {
+    expect(LINK_CHECKED_FILES).toContain(join(TEMPLATE_ROOT, "MASTER.md"));
+    expect(LINK_CHECKED_FILES).toContain(
+      join(TEMPLATE_ROOT, "05-operations/DEPLOYMENT.md"),
+    );
+    expect(LINK_CHECKED_FILES.length).toBe(MD_FILES.length + INITIAL_SET.size);
+  });
+
   it("INITIAL_SET の全エントリが配布ツリーに実在する", () => {
     const missing = [...INITIAL_SET].filter((p) => {
       const templatePath = toTemplatePath(p);
@@ -249,6 +278,28 @@ describe("検出器の自己検証", () => {
     expect(extract("[外部](https://example.com/a.md)")).toEqual([]);
     expect(extract("[見出しへ](#section)")).toEqual([]);
     expect(extract("`docs/MASTER.md` は inline code")).toEqual([]);
+  });
+
+  it("配布ファイルを利用者側レイアウトの配置へ写像する", () => {
+    expect(
+      deployedLocation(join(TEMPLATE_ROOT, ".github/ISSUE_TEMPLATE/bug.md")),
+    ).toBe(".github/ISSUE_TEMPLATE/bug.md");
+    expect(deployedLocation(join(TEMPLATE_ROOT, "MASTER.md"))).toBe(
+      "docs/MASTER.md",
+    );
+    expect(
+      deployedLocation(join(TEMPLATE_ROOT, "05-operations/DEPLOYMENT.md")),
+    ).toBe("docs/05-operations/DEPLOYMENT.md");
+    // docs 本体からの相対リンクは docs/ 起点で解決される
+    expect(
+      resolveLinkTarget(
+        "docs/05-operations/DEPLOYMENT.md",
+        "./deployment/git-workflow.md",
+      ),
+    ).toBe("docs/05-operations/deployment/git-workflow.md");
+    expect(
+      isLinkableTarget("docs/05-operations/deployment/git-workflow.md"),
+    ).toBe(false);
   });
 
   it("参照先を利用者側レイアウトのパスへ解決する", () => {
