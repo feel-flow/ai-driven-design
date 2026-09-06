@@ -1,12 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.41.0"
+version: "1.42.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-09-06"
 owner: "@fffokazaki"
 changeImpact: "medium"
-ace_entry_count: 78
+ace_entry_count: 80
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1365,7 +1365,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #431 / Issue #430        |
 | Related    | ACE-014 / ACE-043 / ACE-044 |
 | Date       | 2026-05-20                  |
-| Helpful    | 1                           |
+| Helpful    | 2                           |
 | Harmful    | 0                           |
 | Status     | active                      |
 
@@ -2076,7 +2076,46 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-510-1"></a>
+
+### ACE-510-1: エラーの扱い（フォールバック可否・再試行可否）は statusCode やクラス列挙から再導出せず、基底の抽象メンバで各サブクラスに宣言させる — ラップ境界では「一時障害のときだけ包む」規則と対にしないと、包んだ瞬間に分類が消える
+
+| Category | architecture | Origin | PR #510 / Issue #486 |
+| Related | ACE-505-1 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+docs-template のエラー例で、禁止カテゴリをクラス列挙（allowlist）→ HTTP ステータス集合へ直したところ、type-design-analyzer が「どちらも整数値域からの再導出で、サブクラス追加時に強制されない（`SecurityError` のステータス変更で黙って外れる、`InternalError` が 5xx だから再試行される）」と指摘した。`abstract readonly category: "never-fallback" | "transient" | "permanent"` を基底に置き、`isNeverFallback` / `isRetryableError` を category 判定にすると、サブクラス追加時にコンパイルが宣言を要求し、判定関数側の集合は不要になる。ただし分類は**ラップ境界で消える**: サービス固有型（`PaymentError` = transient）で正規化済みエラーを無条件に包むと 401 が transient に化け、fallbackInProdOnly と再試行が認証失敗を一時障害として扱う（決済・メール・正典 `processUser` の 3 経路で同じ欠陥がレビュー 2 巡にわたって見つかった）。「transient のときだけサービス固有型で包み、それ以外はそのまま伝播」を全ラップ箇所に適用し、`grep "new XxxError("` で cause が AppError の箇所を総当たりする。
+
+---
+
+<a id="ace-510-2"></a>
+
+### ACE-510-2: 文書の節単位置換では、置換範囲の終端に「削るつもりのない節」を置かない — 置換後に見出し一覧の before / after を diff して、隣接節の消失を機械的に確かめる
+
+| Category | process | Origin | PR #510 / Issue #486 |
+| Related | ACE-508-2 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+FALLBACK.md §4 を「`### ✅ OK` 見出しから `### 再試行ユーティリティ` 見出しまで」の範囲で書き直した際、その間にあった「### 適用判断ガイド」表（7 行の散文ルール）を新テキストに含め忘れ、丸ごと消した。lint / format / validate はすべて通り、code-reviewer が 2 巡目で「grep してもどこにも無い」と気づくまで残った。範囲置換は「置換したい節の直後の見出し」を終端にし、置換前後で `grep -n "^##"` の出力を diff して、消えた見出しがゼロであることを確認してからコミットする。写経される文書では節の消失はリンク切れより発見が遅い（参照が無い節は誰も辿らない）。
+
+---
+
 ## Changelog
+
+### [1.42.0] - 2026-09-06
+
+#### 追加
+
+- ACE-510-1: エラーの扱いは statusCode やクラス列挙から再導出せず基底の抽象メンバで宣言させ、ラップ境界では transient のときだけ包む — PR #510 で allowlist → ステータス集合 → `category` と 2 段階で直し、ラップ時に分類が消える欠陥が 3 経路・2 巡にわたって見つかった経験から抽出（Issue #486 / PR #510）
+- ACE-510-2: 節単位置換の終端に削るつもりのない節を置かず、見出し一覧の before / after を diff する — PR #510 で FALLBACK.md「適用判断ガイド」表を範囲置換で消し、2 巡目レビューまで気づかなかった経験から抽出（Issue #486 / PR #510）
+
+#### カウンター更新
+
+- ACE-045 (Helpful 1→2): PR #510 で SKILL.md に複製された AppError サブクラス定義が「正典は PATTERNS.md」のポインタコメント付きのまま署名変更に追随せずコンパイル不能になり、複製を基底 + 1 例に縮約して他は参照に置換した再演
 
 ### [1.41.0] - 2026-09-06
 
