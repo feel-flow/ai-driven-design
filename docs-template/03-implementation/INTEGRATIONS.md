@@ -492,7 +492,8 @@ switch (result.status) {
     // chunkIndex と upstreamStatus も渡す — 400（宛先不正: 他の宛先だけ再送）と
     // 413（本文過大: 分割して再送）は errorCode が同じ UPSTREAM_REJECTED で区別できない。
     // 前提: 元の宛先リストが永続化されチャンク化が決定的であること。失敗宛先はログに
-    // 出さない（PII）ので、enqueue 前に落ちた場合は chunkIndex からしか復元できない
+    // 出さない（PII）ので、enqueue 前に落ちた場合はループ内の error ログに残る
+    // chunkIndex から宛先を復元する
     await reconciliationQueue.add({
       failedChunks: result.failedChunks.map((c) => ({
         chunkIndex: c.chunkIndex,
