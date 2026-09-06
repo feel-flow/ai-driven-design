@@ -1,12 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.40.0"
+version: "1.41.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-09-06"
 owner: "@fffokazaki"
 changeImpact: "medium"
-ace_entry_count: 76
+ace_entry_count: 78
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1912,7 +1912,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | process              |
 | Origin     | PR #484 / Issue #483 |
 | Date       | 2026-08-28           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1969,7 +1969,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | testing              |
 | Origin     | PR #489 / Issue #488 |
 | Date       | 2026-08-28           |
-| Helpful    | 1                    |
+| Helpful    | 2                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -2048,7 +2048,47 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-508-1"></a>
+
+### ACE-508-1: 「違反ゼロ」ガードの検出器で対象を拡張子や表記形式で狭めない — 除外は理由つきの明示リストで持ち、狭めた分だけ同クラスの欠陥が素通りする
+
+| Category | testing | Origin | PR #508 / Issue #490 |
+| Related | ACE-484-2 / ACE-489-1 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+配布物のリンクガードを docs 本体へ広げた際、相対リンクの正規表現が `.md` 限定だったため、DECISION_TREE.md の雛形表にある `.skeleton.ts` / `.sql` への初期セット外リンク 38 件を素通りし、レビュアーが目視で見つけた。展開先で切れるかどうかは拡張子と無関係なので、検出器は「相対パスで拡張子付きのファイルを指すもの」を全部拾い、拾ってはいけない正当な表記（生成物 `.github/copilot-instructions.md`、記入例 `.github/workflows/xxx.yml`、架空例 `docs/specs/*.md`）は `EXEMPT` 集合に**理由コメントつき**で載せる。「拾いすぎを避けるために対象を狭める」より「全部拾って例外を可視化する」方が、例外が増えたときに検査の骨抜きが diff で見える。合成入力の自己検証（[ACE-489-1](#ace-489-1)）には狭めなかったケース（`.ts` / `.sql`）を必ず含める。
+
+---
+
+<a id="ace-508-2"></a>
+
+### ACE-508-2: 大量の機械的文書変換はサブエージェントへ委譲し、検出器（テスト）は自分で先に赤にしてから渡す — 規約は変換の前後例・注記の文言と配置・完了条件の走査スクリプトを明示する
+
+| Category | process | Origin | PR #508 / Issue #490 |
+| Related | ACE-484-2 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+初期セット外リンク 78 件の inline code 化を、テスト拡張（自分、TDD で先に失敗させる）と文書書き換え（サブエージェント）に分けて並列にした。委譲プロンプトに (1) 変換の前後例（`[x](./deployment/x.md)` → `` `docs/05-operations/deployment/x.md` ``、アンカーは節名の散文へ）、(2) 注記の正確な文言と挿入位置（ファイルごと・節ごとに 1 回）、(3) 触ってよいファイルの列挙と禁止事項（commit / branch / scripts）、(4) 完了条件として残件を数える走査スクリプト（0 件で完了）を入れたところ、1 往復・修正なしで通り、テストも初回緑になった。規約を「PR #484 の前例に従って」のような参照だけで渡すと、パス形式（展開先 `docs/...` か参照元相対か）や注記の粒度がぶれる。ただし委譲側の走査スクリプトも検出器と同じ前提（`.md` 限定）を共有していたため、[ACE-508-1](#ace-508-1) の取りこぼしは委譲では見つからない — 検出器の網羅性は委譲前に別途疑う。
+
+---
+
 ## Changelog
+
+### [1.41.0] - 2026-09-06
+
+#### 追加
+
+- ACE-508-1: 「違反ゼロ」ガードの検出器で対象を拡張子や表記形式で狭めない — PR #508 で相対リンクの検出正規表現が `.md` 限定だったため DECISION_TREE.md の雛形 `.skeleton.ts` / `.sql` への初期セット外リンク 38 件を素通りし、Toolkit code-reviewer が目視で検出した経験から抽出（Issue #490 / PR #508）
+- ACE-508-2: 大量の機械的文書変換はサブエージェントへ委譲し、検出器は自分で先に赤にしてから渡す — PR #508 で 78 リンクの案内テキスト化を規約明示で委譲し 1 往復で通った経験と、委譲側の走査が検出器と同じ盲点を共有していた経験から抽出（Issue #490 / PR #508）
+
+#### カウンター更新
+
+- ACE-484-1 (Helpful 0→1): Issue #490 の「SKILL.md と実態が食い違う」を、着手前に ff-dev-toolkit 同梱版の docs-template を確認して「プラグイン側は案内テキスト化済み・public 側だけが遅れている」と実体を特定してから設計判断した再適用
+- ACE-489-1 (Helpful 1→2): PR #508 で走査を findOutOfSetLinks() に切り出し、報告文に参照元と展開先の参照先が含まれることを合成入力で固定した再適用（pr-test-analyzer の指摘で適用）
 
 ### [1.40.0] - 2026-09-06
 
