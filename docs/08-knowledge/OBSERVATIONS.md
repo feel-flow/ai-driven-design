@@ -187,3 +187,31 @@ AC の grep を頭で組んで起票すると、検出式の穴（表記の必�
 - 2026-09-06: PR #505 の 2 巡目で acceptance-criteria 完了前に fix commit を作り、3 巡目の再実行で 1 回分を空費（初回）
 
 ---
+
+<a id="obs-012"></a>
+
+### OBS-012: Markdown 内 TypeScript コード例の構文・型欠陥（`try` の無い `catch`、基底の署名変更に追随しないサブクラス）が品質ゲートを素通りし、レビュアーの目視でしか見つからない
+
+| Kind | problem | Count | 2 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | promoted | Issue | feel-flow/ai-spec-driven-development#512 |
+
+`quality:local` は fenced TypeScript を検査しない。写経される文書で同じ欠陥クラスが同一 PR 内で 2 回（1 巡目 SKILL.md §5、2 巡目 §6）再発した → fenced TS を抽出して構文チェック（少なくとも）するゲートを追加する（#512）。
+
+- 2026-09-06: PR #510 の 1 巡目で SKILL.md §5 の `} catch` 断片、2 巡目で §6 の同型を Toolkit code-reviewer が検出（初回・2 回目）
+
+---
+
+<a id="obs-013"></a>
+
+### OBS-013: 設計判断を含む文書 PR では、Toolkit の type-design-analyzer を含めて 4 観点を並列に回すと、個別パッチでは閉じない根本原因（分類の再導出）が 1 巡目で指摘される
+
+| Kind | keep | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+code-reviewer / silent-failure-hunter が挙げた「`InternalError` が再試行される」「`SecurityError` のステータス変更で禁止から外れる」「`isRetryable` が既定判定を置換できる」は、type-design-analyzer の「`abstract readonly category` で宣言させる」1 案で同時に消えた。個別に直していたら 3 パッチと 2 巡目の再指摘になっていた。
+
+- 2026-09-06: PR #510 の 1 巡目（初回）
+
+---
