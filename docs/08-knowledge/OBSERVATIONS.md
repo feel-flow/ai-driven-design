@@ -94,13 +94,14 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 
 | Kind | problem | Count | 3 |
 | First | 2026-09-06 | Last | 2026-09-06 |
-| Status | active | Issue | なし |
+| Status | promoted | Issue | feel-flow/ai-spec-driven-development#515 |
 
 `quality:local` がゲート記録（`record-gate-head.sh` 相当）を書かないため、`check-merge-freshness.sh` は実測対象を特定できず exit 2 を返し、実測とマージの窓は人手の再実行で埋めることになる → 再発が続けば、`quality:local` の末尾でゲート記録を書くか、pre-push hook に記録を組み込むことを本リポジトリの Issue として検討する。
 
 - 2026-09-06: PR #498 の /close-issue で `REASON=実測対象の記録がありません`。直前に HEAD で quality:local を手動再実行して代替した（初回）
 - 2026-09-06: PR #500 の /close-issue でも同じ REASON。fix commit 直前に quality:local を手動実行して代替（再発）
 - 2026-09-06: PR #502 の /close-issue でも同じ REASON（3 回目・閾値到達）。マージ直前の HEAD で quality:local を手動再実行して代替
+- 2026-09-06: 閾値到達により #515 へ昇格起票
 
 ---
 
