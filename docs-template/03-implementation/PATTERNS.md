@@ -272,9 +272,19 @@ function readHttpStatus(error: unknown): number | undefined {
   return typeof candidate === "number" ? candidate : undefined;
 }
 
+// Node のシステムエラーコード（ECONNREFUSED / ENOTFOUND / ETIMEDOUT 等）を cause に持つか
+function hasSystemErrorCode(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const code = (error.cause as { code?: unknown } | undefined)?.code;
+  return typeof code === "string" && /^E[A-Z]+$/.test(code);
+}
+
 // 自コードのバグ。HTTP ステータスを持たないので、放置すると「ステータス無し = 一時障害」
-// と誤分類され、本番でフォールバック・再試行される
+// と誤分類され、本番でフォールバック・再試行される。
+// 例外: WHATWG fetch / undici はネットワーク障害を `TypeError: fetch failed`
+// （cause に ECONNREFUSED 等）で reject する。これはバグではなく一時障害
 function isProgrammingError(error: unknown): boolean {
+  if (error instanceof TypeError && hasSystemErrorCode(error)) return false;
   return (
     error instanceof TypeError ||
     error instanceof RangeError ||
@@ -349,7 +359,10 @@ async function processUser(userId: string): Promise<Result<User>> {
       error instanceof Error ? error : new Error(String(error));
     logger.error("Failed to process user", normalizedError, { userId });
 
-    if (normalizedError instanceof ValidationError) {
+    // AppError はそのまま返す。ValidationError だけ通して残りを InternalError に
+    // 降格させると、UnauthorizedError 等の never-fallback が permanent に化け、
+    // 上位の fallbackInProdOnly が本番で握りつぶす
+    if (normalizedError instanceof AppError) {
       return Result.fail(normalizedError);
     }
 
@@ -711,16 +724,52 @@ const ERROR_CAUSE_MAX_DEPTH = 5;
 // Error を構造化する。cause を保持する規約（§3）と対で、cause をログに出す実装が要る —
 // name / message / stack しか出さないと、ラップ時に保持した上流の失敗理由が
 // どこにも現れない
+// ログに載せる上流レスポンス本文の上限（マジックナンバー禁止）。巨大な本文で行を潰さない
+const ERROR_LOG_BODY_MAX_CHARS = 2000;
+
+// HTTP 由来のエラー（AxiosError / fetch のレスポンス / { status, body }）から
+// 診断に要るフィールドだけを抜く。cause に保持した上流のステータス・本文は
+// ここで出さないとどこにも現れない
+function pickHttpDiagnostics(value: object): Record<string, unknown> {
+  const v = value as {
+    status?: unknown;
+    statusCode?: unknown;
+    code?: unknown;
+    body?: unknown;
+    response?: { status?: unknown; data?: unknown };
+  };
+  const body = v.body ?? v.response?.data;
+  const diagnostics: Record<string, unknown> = {};
+  const status = v.statusCode ?? v.status ?? v.response?.status;
+  if (status !== undefined) diagnostics.status = status;
+  if (v.code !== undefined) diagnostics.code = v.code;
+  if (body !== undefined) {
+    const text = typeof body === "string" ? body : JSON.stringify(body);
+    diagnostics.body = text?.slice(0, ERROR_LOG_BODY_MAX_CHARS);
+  }
+  return diagnostics;
+}
+
 function serializeError(error: unknown, depth = 0): Record<string, unknown> {
-  if (!(error instanceof Error)) return { value: String(error) };
+  if (!(error instanceof Error)) {
+    // Error でない cause（{ status, body } 等）は String() に潰さず構造化する
+    return typeof error === "object" && error !== null
+      ? pickHttpDiagnostics(error)
+      : { value: String(error) };
+  }
   const serialized: Record<string, unknown> = {
     name: error.name,
     message: error.message,
     stack: error.stack,
+    ...pickHttpDiagnostics(error), // AxiosError 等の status / response.data
   };
   if (error instanceof AppError) {
     serialized.code = error.code;
     serialized.statusCode = error.statusCode;
+    serialized.category = error.category;
+  }
+  if (error instanceof UpstreamRejectedError) {
+    serialized.upstreamStatus = error.upstreamStatus;
   }
   if (error.cause !== undefined && depth < ERROR_CAUSE_MAX_DEPTH) {
     serialized.cause = serializeError(error.cause, depth + 1);

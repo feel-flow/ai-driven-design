@@ -2,13 +2,16 @@
 name: error-handling-standards
 description: >-
   Enforces error handling standards: silent error prohibition, custom error
-  class hierarchy (AppError base with ValidationError, NotFoundError,
-  InternalError), Result pattern (Result.ok/Result.fail), proper try-catch
-  with error type checking, structured error logging with context metadata,
+  class hierarchy (AppError base with category never-fallback / transient /
+  permanent, cause preservation, ValidationError / UnauthorizedError /
+  UpstreamError etc. — canonical definitions in PATTERNS.md), external-boundary
+  normalization (normalizeExternalError), Result pattern (Result.ok/Result.fail),
+  proper try-catch with error type checking, structured error logging with a
+  single Logger contract, fallback prohibition categories (isNeverFallback),
   and HTTP status code mapping. Use when implementing error handling,
   reviewing catch blocks, or designing error responses.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: feel-flow
   tags: "error-handling, result-pattern, custom-errors, logging, silent-error"
   references: "docs/03-implementation/PATTERNS.md, docs/03-implementation/FALLBACK.md, docs/MASTER.md"
@@ -143,7 +146,7 @@ async function processUser(userId: string): Promise<Result<User>> {
       return Result.fail(error);
     }
 
-    return Result.fail(new InternalError("Processing failed"));
+    return Result.fail(new InternalError("Processing failed", { cause: err }));
   }
 }
 ```
@@ -209,10 +212,12 @@ try {
 
 ```typescript
 // 使用例
+try {
+  await processUser(userId);
 } catch (error) {
   const err = error instanceof Error ? error : new Error(String(error));
   logger.error("Failed to process user", err, {
-    userId: "123",
+    userId,
     operation: "processUser",
     requestId: req.headers["x-request-id"],
   });

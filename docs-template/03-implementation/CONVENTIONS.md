@@ -331,6 +331,10 @@ try {
     // バリデーションエラーの処理
     return { success: false, errors: error.details };
   }
+  // その他の AppError は分類（category）を保ったまま伝播させる
+  if (error instanceof AppError) {
+    throw error;
+  }
 
   // 予期しないエラー（cause で元エラーを保持する）
   const err = error instanceof Error ? error : new Error(String(error));

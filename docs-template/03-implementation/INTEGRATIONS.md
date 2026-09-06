@@ -310,10 +310,13 @@ app.post(
       await paymentService.handleWebhook(event);
       res.json({ received: true });
     } catch (error) {
-      const normalized = normalizeExternalError(
-        error,
-        "Webhook processing failed",
-      );
+      // 業務処理（DB 書き込み等）の失敗は HTTP ステータスを持たないので
+      // normalizeExternalError には通さない（一意制約違反が transient に化ける）。
+      // AppError はそのまま、それ以外は InternalError（cause 付き）にする
+      const normalized =
+        error instanceof AppError
+          ? error
+          : new InternalError("Webhook processing failed", { cause: error });
       logger.error("Webhook processing failed", normalized, {
         eventId: event.id,
         eventType: event.type,
@@ -391,7 +394,12 @@ class EmailService {
       logger.error("Failed to send welcome email", normalized, {
         userId: user.id,
       });
-      throw new EmailError("Failed to send email", { cause: normalized });
+      // 一時障害だけをサービス固有型で包む。401（API キー失効）等はそのまま伝播させる
+      // （EmailError で包むと category が transient に化け、再試行・本番フォールバックの対象になる）
+      if (normalized.category === "transient") {
+        throw new EmailError("Failed to send email", { cause: normalized });
+      }
+      throw normalized;
     }
   }
 
@@ -441,40 +449,49 @@ class EmailService {
       logger.info("Bulk email finished", { sentCount });
       return { status: "all-sent", sentCount };
     }
-    // 1 通も送れていない = 上流の全断（API キー失効等）。結果ではなく障害として投げる
+    // 1 通も送れていない = 上流の全断。結果ではなく障害として投げる。
+    // 最初の失敗が一時障害なら EmailError で包み、API キー失効（401）等はそのまま伝播
+    // させて category を保つ。各チャンクの理由はループ内の error ログに残っている
     if (sentCount === 0) {
-      throw new EmailError("Bulk email failed for every chunk", {
-        cause: failedChunks[0].error,
-      });
-    }
-    // 部分失敗は error レベルで集計を残す（info だと全体像がアラートに乗らない）
-    logger.error(
-      "Bulk email partially failed",
-      new EmailError("Some bulk email chunks failed", {
-        cause: failedChunks[0].error,
-      }),
-      {
-        sentCount,
+      const first = failedChunks[0].error;
+      logger.error("Bulk email failed for every chunk", first, {
         totalRecipients: recipients.length,
         failedChunkCount: failedChunks.length,
-      },
-    );
+      });
+      throw first.category === "transient"
+        ? new EmailError("Bulk email failed for every chunk", { cause: first })
+        : first;
+    }
+    // 部分失敗は error レベルで集計を残す（info だと全体像がアラートに乗らない）
+    logger.error("Bulk email partially failed", failedChunks[0].error, {
+      sentCount,
+      totalRecipients: recipients.length,
+      failedChunkCount: failedChunks.length,
+    });
     return { status: "partial", sentCount, failedChunks };
   }
 }
 
-// 呼び出し例: 判別可能ユニオンなので、部分失敗を分岐しないと TypeScript の
-// 網羅性チェック（switch + never）で気づける
+// 呼び出し例（retryQueue は §8 キューシステム統合の Bull キュー相当）。
+// 判別可能ユニオンなので、never 付き switch で分岐すればステータスの追加に
+// コンパイルで気づける（戻り値を捨てれば TS は何も言わない — 捨てないこと）
 const result = await emailService.sendBulkEmail(recipients, subject, content);
 switch (result.status) {
   case "all-sent":
     break;
-  case "partial":
-    // 失敗チャンクの宛先だけを再送キューへ積む（成功済み宛先への二重送信を避ける）
-    await retryQueue.add({
-      recipients: result.failedChunks.flatMap((c) => c.recipients),
-    });
+  case "partial": {
+    // 一時障害のチャンクだけを再送キューへ積む（成功済み宛先への二重送信を避け、
+    // 宛先不正など permanent な失敗は再送しない）
+    const retryable = result.failedChunks.filter(
+      (c) => c.error.category === "transient",
+    );
+    if (retryable.length > 0) {
+      await retryQueue.add({
+        recipients: retryable.flatMap((c) => c.recipients),
+      });
+    }
     break;
+  }
   default: {
     const unhandled: never = result;
     throw new Error(`Unhandled bulk email status: ${String(unhandled)}`);
@@ -551,7 +568,8 @@ const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
 
 // エラー通知の経路で JSON.stringify が投げないようにする（投げると、通知しようと
 // していた元エラーを覆い隠す）。循環参照と BigInt を処理し、それ以外の失敗
-// （throw する getter 等）も握って印を返す — この関数だけは絶対に投げない契約。
+// （throw する getter 等）も握って印を返す — 通知経路で投げない設計（例外: toString
+// 自体が投げる値だけは救えない）。
 // 既知の制約: 兄弟位置から同じオブジェクトを参照する場合も "[Circular]" になる
 function safeStringify(value: unknown): string {
   const seen = new WeakSet<object>();

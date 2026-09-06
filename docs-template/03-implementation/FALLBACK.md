@@ -230,6 +230,18 @@ async function getConfig(key: string): Promise<string> {
 }
 ```
 
+### 適用判断ガイド
+
+| シナリオ               | 開発時                 | 本番時                  |
+| ---------------------- | ---------------------- | ----------------------- |
+| DB/API通信エラー       | スロー（即座に検出）   | フォールバック + ログ   |
+| 設定値の取得失敗       | スロー（設定ミス検出） | デフォルト値 + アラート |
+| データ変換エラー       | スロー（型不整合検出） | 安全なデフォルト + ログ |
+| 認証/認可エラー        | スロー                 | スロー（環境問わず）    |
+| バリデーションエラー   | スロー                 | スロー（環境問わず）    |
+| データ整合性エラー     | スロー                 | スロー（環境問わず）    |
+| セキュリティ関連エラー | スロー                 | スロー（環境問わず）    |
+
 ### 再試行ユーティリティ（Exponential Backoff + Jitter）
 
 Section 3.2 の「リトライ」パターンのコードレベル実装。外部サービス呼び出し（INTEGRATIONS.md）から共通で使う。
@@ -265,6 +277,11 @@ interface RetryOptions {
  *
  * 副作用のある呼び出し（決済・送信）は、冪等キーを付けて上流側で重複排除できる
  * 場合にのみ再試行すること（INTEGRATIONS.md「決済システム統合」の Stripe 例）。
+ *
+ * 対象は HTTP 境界（外部 API / SDK）のみ。内部で normalizeExternalError() を無条件に
+ * 呼ぶため、DB ドライバ・キュー等ステータスを持たないエラー源をそのまま渡すと
+ * 一意制約違反まで transient に化けて再試行される。リポジトリ層のマッパーで
+ * AppError に写した fn を渡すこと。
  *
  * @throws {Error} maxAttempts < 1 はプログラミングエラー（fn を一度も呼ばずに投げる）
  * @throws {AppError} 再試行不可のエラー、または上限到達時に正規化済みのエラーを再スロー
@@ -360,7 +377,8 @@ async function retryWithBackoff<T>(
 - [ ] フォールバック値（空配列、デフォルトオブジェクト等）を返す箇所に環境分岐があるか
 - [ ] AI生成コードのcatch句が `fallbackInProdOnly()` を使用しているか（`NODE_ENV` 分岐だけの場合は、禁止カテゴリの判定が添えてあるか）
 - [ ] 禁止カテゴリの 4 種すべて（認証・認可 / バリデーション / データ整合性 / セキュリティ）にフォールバックが入っていないか
-- [ ] HTTP クライアント / 外部 SDK のエラーを `normalizeExternalError()` で AppError に正規化してから `fallbackInProdOnly()` / `retryWithBackoff()` に渡しているか（生エラーは deny-by-default でスローされる）。DB ドライバ等ステータスを持たないエラーはリポジトリ層の専用マッパーで写しているか
+- [ ] `fallbackInProdOnly()` に渡すエラーを `normalizeExternalError()`（HTTP 境界）またはリポジトリ層のマッパー（DB 等）で AppError に写しているか（生エラーは deny-by-default でスローされる）
+- [ ] `retryWithBackoff()` の fn は HTTP 境界の呼び出しか（内部で無条件に正規化するため、ステータスを持たないエラー源を渡すと transient に化けて再試行される）
 - [ ] 新しいエラークラスが `category`（never-fallback / transient / permanent）を正しく宣言しているか
 - [ ] 再試行する呼び出しに副作用（決済・送信・作成）がある場合、冪等キーで上流側の重複排除が効くか
 
@@ -379,7 +397,8 @@ async function retryWithBackoff<T>(
 #### 変更
 
 - フォールバック禁止カテゴリの判定をエラークラスの列挙から各クラスが宣言する `category`（deny-by-default、AppError 以外は常にスロー）に変更（Issue #486）
-- 再試行ユーティリティ `retryWithBackoff()` を INTEGRATIONS.md から移設し、再試行可否判定・Jitter・試行ごとのログを追加
+- **破壊的変更**: `fallbackInProdOnly()` の第 2 引数を `unknown` → `AppError` に変更。生の catch 変数を渡していた箇所はコンパイルエラーになり、実行時も AppError 以外は再スローされる（本番でフォールバックしていた箇所が throw に変わる）。`normalizeExternalError()` またはリポジトリ層のマッパーを通すこと
+- 再試行ユーティリティ `retryWithBackoff(fn, { operation, maxAttempts, ... })` を INTEGRATIONS.md から移設し、再試行可否判定・Jitter・試行ごとのログを追加（旧 `retryWithBackoff(fn, maxRetries, baseDelay)` とは署名が異なる）
 
 ### [1.0.0] - YYYY-MM-DD
 
