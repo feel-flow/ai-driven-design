@@ -259,7 +259,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
   - メインドキュメント: `UPPER_SNAKE_CASE.md`（AI識別性優先・複数語はアンダースコア `_` 区切り）
   - 例: `MASTER.md`, `ARCHITECTURE.md`, `LESSONS_LEARNED.md`, `DEVELOPMENT_PREPARATION.md`
   - サブフォルダ内ファイル: `lowercase-with-hyphens.md`（例: `git-workflow.md`, `phased-rollout.md`）
-  - 詳細・適用条件・逸脱判断は `docs/README.md` の「ファイル名命名規則」節を SSOT とする
+  - 詳細・適用条件・逸脱判断は `docs/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）の「ファイル名命名規則」節を SSOT とする
 - **禁止事項**:
   - ❌ 日本語ファイル名
   - ❌ スペースを含むファイル名
@@ -471,7 +471,7 @@ metrics:
 
 ## 関連ドキュメント
 
-> **配置について**: 本節のうちコア7文書以外のファイルは `/init-docs` の初期セット外（`08-knowledge/` は `/ace-setup` が作成する）。展開直後には配置されていないので、必要になった時点でテンプレート配布元の同一相対パスからコピーする。
+> **配置について**: 本文書が inline code（`docs/...`）で示すパスのうち、コア7文書と初期セット以外のファイル（本節の各ガイド、`docs/README.md`、`docs/05-operations/ORGANIZATIONAL_ROLLOUT.md` と `organizational-rollout/` 配下 等）は `/init-docs` の初期セット外で、展開直後には配置されていない。必要になった時点でテンプレート配布元（GitHub の `feel-flow/ai-spec-driven-development` リポジトリの docs-template ディレクトリ、または ff-dev-toolkit プラグインの同梱版）の同一相対パスからコピーする。`08-knowledge/` のうち `PLAYBOOK.md` は `/ace-setup` が作成し、同ディレクトリの他のファイルは配布元からコピーする。
 
 ### 初心者・新規プロジェクト向け
 
@@ -528,7 +528,7 @@ metrics:
 
 ## ドキュメント構造ガイド（AIツール向け）
 
-> **詳細ガイドは `docs/05-operations/ORGANIZATIONAL_ROLLOUT.md` を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
+> **詳細ガイドは `docs/05-operations/ORGANIZATIONAL_ROLLOUT.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
 
 ### AIツールの読み込み戦略
 

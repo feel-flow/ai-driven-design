@@ -21,11 +21,16 @@ import { join, resolve, dirname, normalize, relative } from "node:path";
 //
 // 検証範囲は .github/ 配下と、docs-template/ 本体のうち初期セット内の文書
 // （Issue #490）。線引き:
-//   - 初期セット内文書 → 初期セット外文書 のリンクは違反（展開先で切れる）
-//   - 初期セット外文書（05-operations/deployment/ 等）同士・からのリンクは対象外
-//     （それらは必要時にまとめてコピーされる前提で、リンクのままでよい）
-//   - .github/ 配下の frontmatter references / inline code パスの検査は従来どおり
-//     .github/ のみ（docs 本体の inline code は散文の言及で機械可読パスではない）
+//   - 初期セット内文書 → 初期セット外文書 のリンクは違反（展開先で切れる）。
+//     拡張子は問わない（.md だけでなく雛形 .ts / .sql へのリンクも展開先で切れる）
+//   - 初期セット外文書（05-operations/deployment/ 等）からのリンクは対象外。
+//     それらは展開先に配置されないので、内部リンクの解決可否を検証する意味がない
+//     （利用者がファイル単位でコピーした後の相互リンクは未検証の残課題）
+//   - inline code のパス表記（`docs/...` `.github/...`）の実在検査は .github/ と
+//     初期セット内文書の両方（初期セット外の所在案内はこの表記で書くため）。
+//     配布ツリーに実体を持たない正当な表記は INLINE_PATH_EXEMPT で除外する
+//   - frontmatter references の検査と、上流レイアウト固有パス（docs-template/）の
+//     混入検査は従来どおり .github/ のみ
 
 const REPO_ROOT = resolve(__dirname, "..");
 const TEMPLATE_ROOT = join(REPO_ROOT, "docs-template");
@@ -66,9 +71,16 @@ function toTemplatePath(deployedPath: string): string | null {
   return null;
 }
 
-/** 初期セット内文書の実ファイル（docs-template/<rel>）。INITIAL_SET から導く */
+/**
+ * 初期セット内文書の実ファイル（docs-template/<rel>）。INITIAL_SET から導く。
+ * 写像できない・実在しないエントリはここでは除き、専用テスト
+ * 「INITIAL_SET の全エントリが配布ツリーに実在する」で原因つきで落とす
+ * （ここで readFileSync に渡すと生の ENOENT で診断が埋もれる）。
+ */
 function listInitialSetFiles(): string[] {
-  return [...INITIAL_SET].map((p) => toTemplatePath(p) as string);
+  return [...INITIAL_SET]
+    .map((p) => toTemplatePath(p))
+    .filter((p): p is string => p !== null && existsSync(p));
 }
 
 function listMarkdown(dir: string): string[] {
@@ -88,7 +100,7 @@ function listMarkdown(dir: string): string[] {
  */
 function deployedLocation(absPath: string): string {
   const rel = relative(TEMPLATE_ROOT, absPath);
-  if (rel === ".github" || rel.startsWith(".github/")) return rel;
+  if (rel.startsWith(".github/")) return rel;
   return join("docs", rel);
 }
 
@@ -106,20 +118,53 @@ function isLinkableTarget(target: string): boolean {
   return target.startsWith(".github/") || INITIAL_SET.has(target);
 }
 
+/**
+ * 1 文書分の相対リンクを走査し、初期セット外を指すものを報告文にして返す。
+ * 実ファイルに対しては違反ゼロを期待するため、この関数を合成入力で別途固定する
+ * （検出器の自己検証）。
+ */
+function findOutOfSetLinks(
+  sourceLabel: string,
+  deployedFile: string,
+  content: string,
+): string[] {
+  const outside: string[] = [];
+  for (const match of content.matchAll(RELATIVE_LINK)) {
+    const target = resolveLinkTarget(deployedFile, match[1]);
+    if (!isLinkableTarget(target)) {
+      outside.push(
+        `${sourceLabel} → ${target}（初期セット外。リンクではなく inline code で所在を案内する）`,
+      );
+    }
+  }
+  return outside;
+}
+
 const MD_FILES = listMarkdown(DIST_GITHUB);
 // 相対リンクの検査対象: .github/ 配下 + 初期セット内の docs 本体
 const LINK_CHECKED_FILES = [...MD_FILES, ...listInitialSetFiles()];
 
-// 相対リンク（絶対 URL・ページ内アンカー・mailto を除く .md リンク）。
+// 相対リンク（絶対 URL・ページ内アンカー・mailto を除く、拡張子付きファイルへのリンク）。
+// 拡張子は限定しない — DECISION_TREE.md の雛形表は .skeleton.ts / .sql を指しており、
+// .md 限定だと初期セット外への 38 リンクを素通りした（Issue #490 のレビューで発覚）。
 // 末尾の `#anchor` を許容する — `foo.md#section` は本リポで一般的な書き方で、
 // これを取りこぼすとガードを素通りする（ACE-046 の拡張 grep より広い）。
 // キャプチャ 1 = アンカーを除いたパス部分。
 const RELATIVE_LINK =
-  /\]\((?!https?:\/\/|#|mailto:)([^)\s#]+\.md)(?:#[^)\s]*)?\)/g;
+  /\]\((?!https?:\/\/|#|mailto:)([^)\s#]+\.[A-Za-z0-9]+)(?:#[^)\s]*)?\)/g;
 // inline code のパス表記。`docs/...` `.github/...` のみを対象にする
 // （`src/services/auth.ts` のような架空の実装例は対象外）。
 // 角括弧・山括弧を含むものはプレースホルダー（例: `docs/[フォルダ]/[ファイル名].md`）として除外する。
 const INLINE_PATH = /`((?:docs|\.github)\/[^`\s\[\]<>]+\.md)`/g;
+// 配布ツリーに実体を持たないが正当な inline code パス表記。
+//   .github/copilot-instructions.md — /setup-ai-config が利用者側で生成する
+//   docs/specs/*.md                 — MASTER.md の仕様書運用例（架空の例示）
+// ここに載せる場合は理由を書く（黙って増やすと検査が骨抜きになる）。
+const INLINE_PATH_EXEMPT = new Set([
+  ".github/copilot-instructions.md",
+  "docs/specs/spec-template.md",
+  "docs/specs/authentication.md",
+]);
 // frontmatter の references: "a, b" 形式（agents / skills が使う）
 const FRONTMATTER_REFERENCES = /^\s*references:\s*"([^"]+)"\s*$/gm;
 
@@ -148,9 +193,10 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
 
   it("inline code のパス表記が配布ツリー内に存在する", () => {
     const broken: string[] = [];
-    for (const file of MD_FILES) {
+    for (const file of LINK_CHECKED_FILES) {
       const content = readFileSync(file, "utf8");
       for (const match of content.matchAll(INLINE_PATH)) {
+        if (INLINE_PATH_EXEMPT.has(match[1])) continue;
         const templatePath = toTemplatePath(match[1]);
         if (templatePath === null || !existsSync(templatePath)) {
           broken.push(`${relative(REPO_ROOT, file)} → ${match[1]}`);
@@ -191,16 +237,13 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
   it("相対リンクの参照先が INITIAL_SET 内にある", () => {
     const outside: string[] = [];
     for (const file of LINK_CHECKED_FILES) {
-      const content = readFileSync(file, "utf8");
-      const deployed = deployedLocation(file);
-      for (const match of content.matchAll(RELATIVE_LINK)) {
-        const target = resolveLinkTarget(deployed, match[1]);
-        if (!isLinkableTarget(target)) {
-          outside.push(
-            `${relative(REPO_ROOT, file)} → ${target}（初期セット外。リンクではなく inline code で所在を案内する）`,
-          );
-        }
-      }
+      outside.push(
+        ...findOutOfSetLinks(
+          relative(REPO_ROOT, file),
+          deployedLocation(file),
+          readFileSync(file, "utf8"),
+        ),
+      );
     }
     expect(outside).toEqual([]);
   });
@@ -209,20 +252,23 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
   // 配布ツリー側でリネーム・削除が起きた場合はここで落ちる。逆方向（/init-docs が
   // 初期セットを増やした場合）は CI からプラグインを読めないため検出できず、
   // 定数の出典コメントで担保する。
-  it("検証対象に docs 本体の初期セット文書が含まれる（Issue #490）", () => {
-    expect(LINK_CHECKED_FILES).toContain(join(TEMPLATE_ROOT, "MASTER.md"));
-    expect(LINK_CHECKED_FILES).toContain(
-      join(TEMPLATE_ROOT, "05-operations/DEPLOYMENT.md"),
-    );
-    expect(LINK_CHECKED_FILES.length).toBe(MD_FILES.length + INITIAL_SET.size);
-  });
-
   it("INITIAL_SET の全エントリが配布ツリーに実在する", () => {
     const missing = [...INITIAL_SET].filter((p) => {
       const templatePath = toTemplatePath(p);
       return templatePath === null || !existsSync(templatePath);
     });
     expect(missing).toEqual([]);
+  });
+
+  // 検査対象の構成を固定する。「含まれる」ことは toContain が担保し、件数の等式は
+  // listInitialSetFiles() が空を返す退行と .github/ との二重計上を捕まえるためのもの
+  // （INITIAL_SET の実在は上のテストが担う）。
+  it("検証対象に docs 本体の初期セット文書が含まれる（Issue #490）", () => {
+    expect(LINK_CHECKED_FILES).toContain(join(TEMPLATE_ROOT, "MASTER.md"));
+    expect(LINK_CHECKED_FILES).toContain(
+      join(TEMPLATE_ROOT, "05-operations/DEPLOYMENT.md"),
+    );
+    expect(LINK_CHECKED_FILES.length).toBe(MD_FILES.length + INITIAL_SET.size);
   });
 
   it("上流レイアウト固有のパス（docs-template/）を含まない", () => {
@@ -272,6 +318,47 @@ describe("検出器の自己検証", () => {
     ).toEqual(["../../docs/03-implementation/FALLBACK.md"]);
     // 先頭が h / # 以外という素朴な判定だと落ちる形
     expect(extract("[hooks](hooks/setup.md)")).toEqual(["hooks/setup.md"]);
+    // .md 以外の拡張子（雛形ファイル）も展開先で切れるので拾う
+    expect(
+      extract("[q1](./templates/typescript/q1-http-api-client.skeleton.ts)"),
+    ).toEqual(["./templates/typescript/q1-http-api-client.skeleton.ts"]);
+    expect(
+      extract("[schema](./templates/sql/q1-migration.skeleton.sql)"),
+    ).toEqual(["./templates/sql/q1-migration.skeleton.sql"]);
+  });
+
+  it("inline code のパス表記を抽出する（プレースホルダー・実装例は拾わない）", () => {
+    const inline = (md: string) =>
+      [...md.matchAll(INLINE_PATH)].map((m) => m[1]);
+    expect(
+      inline("所在は `docs/05-operations/deployment/git-workflow.md`"),
+    ).toEqual(["docs/05-operations/deployment/git-workflow.md"]);
+    expect(inline("`.github/skills/test-patterns/SKILL.md`")).toEqual([
+      ".github/skills/test-patterns/SKILL.md",
+    ]);
+    expect(inline("`docs/[フォルダ]/[ファイル名].md`")).toEqual([]);
+    expect(inline("`src/services/auth.ts`")).toEqual([]);
+  });
+
+  it("初期セット外リンクを、参照元と展開先の参照先つきで報告する", () => {
+    const report = findOutOfSetLinks(
+      "docs-template/05-operations/DEPLOYMENT.md",
+      "docs/05-operations/DEPLOYMENT.md",
+      "詳細は [git-workflow](./deployment/git-workflow.md#step-1) を参照",
+    );
+    expect(report).toHaveLength(1);
+    expect(report[0]).toContain("docs-template/05-operations/DEPLOYMENT.md");
+    expect(report[0]).toContain(
+      "docs/05-operations/deployment/git-workflow.md",
+    );
+    // 初期セット内・.github/ 配下へのリンクは報告しない
+    expect(
+      findOutOfSetLinks(
+        "docs-template/MASTER.md",
+        "docs/MASTER.md",
+        "[P](./01-context/PROJECT.md) [S](../.github/skills/x/SKILL.md)",
+      ),
+    ).toEqual([]);
   });
 
   it("リンクでないものを拾わない", () => {

@@ -656,7 +656,7 @@ Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言�
 - 注意: Layer 3 は **言語依存**（Python/TypeScript/Go/Rust など）
 - 運用: `ignore_imports` などを使って既知負債を可視化し、削除ではなく追跡する
 
-詳細は `docs/03-implementation/DEPENDENCY_LINT.md` を参照。
+詳細は `docs/03-implementation/DEPENDENCY_LINT.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照。
 
 ## Changelog
 
