@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.37.0"
+version: "1.38.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-09-06"
 owner: "@fffokazaki"
-ace_entry_count: 72
+ace_entry_count: 73
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1968,7 +1968,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | testing              |
 | Origin     | PR #489 / Issue #488 |
 | Date       | 2026-08-28           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1993,7 +1993,30 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-500-1"></a>
+
+### ACE-500-1: 「移行前の記録」節を持つ文書で基準値が変わっても記録節は書き換えない — 現行値は別節に置き、記録節からは参照だけする
+
+| Category | documentation-quality | Origin | PR #500 / Issue #499 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+設計文書が「移行前の定義」「旧設定の棚卸し」を記録として残している場合、基準値の更新（Node 版・閾値・ツール版）を grep 置換で横断適用すると、記録節まで現行値に書き換わり「当時どうだったか」が失われる。値を変える PR では、ヒットした各箇所が現行仕様か過去の記録かを見て、記録節は当時の実値（削除済みファイルなら `git show <sha>^:<path>` で裏取り）に保ち、現行値は仕様節に置いて記録節からは参照だけにする。過去の記録が既に不正確でも、正しい記録へ直すのであって現行値へ揃えるのではない。
+
+---
+
 ## Changelog
+
+### [1.38.0] - 2026-09-06
+
+#### 追加
+
+- ACE-500-1: 「移行前の記録」節を持つ文書で基準値が変わっても記録節は書き換えない — PR #498 / #500 で NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §2.1（旧 ci.yml の記録）の Node マトリクスを 2 回続けて現行値へ書き換え、Toolkit と Codex が独立に指摘した経験から抽出
+
+#### カウンター更新
+
+- ACE-489-1 (Helpful 0→1): Issue #499 の AC に書いた検出 grep が `node.js` 表記を必須にしていて「Node 20+」を拾えず、残存があるのに緑になっていた。検出器自体を合成ケースで確かめる同エントリの再演
 
 ### [1.37.0] - 2026-09-06
 
