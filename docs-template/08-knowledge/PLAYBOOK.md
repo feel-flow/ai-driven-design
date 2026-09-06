@@ -1,11 +1,11 @@
 ---
 title: "PLAYBOOK"
-version: "1.36.0"
+version: "1.37.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-08-28"
+updated: "2026-09-06"
 owner: "@fffokazaki"
-ace_entry_count: 71
+ace_entry_count: 72
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1949,7 +1949,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | tooling              |
 | Origin     | PR #484 / Issue #485 |
 | Date       | 2026-08-28           |
-| Helpful    | 0                    |
+| Helpful    | 1                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -1980,7 +1980,30 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-498-1"></a>
+
+### ACE-498-1: 脆弱性解消の依存更新では、更新後パッケージの engines を自分の engines 宣言と照合する — audit fix は runtime 要件の引き上げを報告しない
+
+| Category | tooling | Origin | PR #498 / Issue #497 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+脆弱性を塞ぐために開発ツールを minor 上げすると、そのツールの Node 要件が上がり、`package.json` の `engines` 宣言が自分の依存ツリーに対して偽になることがある。`npm audit fix` / `npm install` はこれを警告せず、`EBADENGINE` は宣言を信じて古い Node で入れた人にしか出ないため、更新した本人は気づけない。lockfile 更新の PR では、変更した直接依存の `engines` を lockfile から抜き出して自分の宣言と比較し、要件が上がっていれば「旧版で脆弱性が塞げるか」を先に確かめ、塞げないなら `engines` と Node 版を述べる文書を同じ PR で揃える（対象 Node が EOL なら引き上げが正）。
+
+---
+
 ## Changelog
+
+### [1.37.0] - 2026-09-06
+
+#### 追加
+
+- ACE-498-1: 脆弱性解消の依存更新では、更新後パッケージの engines を自分の engines 宣言と照合する — PR #498 で markdownlint-cli2 0.20→0.23 の更新により Node 要件が 22 へ上がったのに `engines` が `>=20` のまま残り、Toolkit と Codex が独立に Warning 検出した経験から抽出
+
+#### カウンター更新
+
+- ACE-484-3 (Helpful 0→1): lockfile 更新の副作用で package.json と lockfile の同期崩れが直り、同エントリの「`npm ci` が通る状態を維持する」が root / mcp とも成立した再適用
 
 ### [1.36.0] - 2026-08-28
 
