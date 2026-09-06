@@ -1,12 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.39.0"
+version: "1.40.0"
 status: "approved"
 created: "2026-03-10"
 updated: "2026-09-06"
 owner: "@fffokazaki"
 changeImpact: "medium"
-ace_entry_count: 74
+ace_entry_count: 76
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1365,7 +1365,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #431 / Issue #430        |
 | Related    | ACE-014 / ACE-043 / ACE-044 |
 | Date       | 2026-05-20                  |
-| Helpful    | 0                           |
+| Helpful    | 1                           |
 | Harmful    | 0                           |
 | Status     | active                      |
 
@@ -2020,7 +2020,46 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 ---
 
+<a id="ace-505-1"></a>
+
+### ACE-505-1: 別実体の文書から規則文を転記するときは、転記先の実体で各事実主張を再検証する — 転記元で真だった「検出する」「全文書に Frontmatter がある」が転記先では偽になっている
+
+| Category | documentation-quality | Origin | PR #505 / Issue #482 |
+| Related | ACE-484-1 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+同じ名前の配布物が複数実体に分岐している環境（ff-dev-toolkit 同梱 docs-template と公開リポの docs-template）で、一方の SKILL.md の規則文を他方のコマンド文書へ写すと、規則に埋め込まれた事実主張（「残存は `/validate-docs` が検出する」「初期セット全文書が Frontmatter を持つ」「変更履歴表の `[日付]` / `[名前]` を埋める」）が転記先では成り立たず、レビュアー 2 系統（Toolkit comment-analyzer / Codex）が独立に事実誤りとして指摘した。[ACE-484-1](#ace-484-1) が「直す先の実体を特定する」なら、本エントリは「転記する文の中の事実を転記先の実体で検証する」。規則文を写す前に、文中の各主張を転記先リポジトリのファイル・スクリプト（`head -1` で Frontmatter の有無、`grep` で検出正規表現、対象ファイルの存在）で個別に照合し、成り立たないものは転記先の実態に書き換えるか出典を「toolkit 版では」と限定する。
+
+---
+
+<a id="ace-505-2"></a>
+
+### ACE-505-2: 名称統一の横断修正では、品質ゲートの glob 対象外ディレクトリ（`.claude/commands/` 等）も grep 範囲に明示的に含める — lint / format が見ないファイルの残存はレビュアーにしか見つからない
+
+| Category | process | Origin | PR #505 / Issue #466 |
+| Related | ACE-010 / ACE-043 |
+| Date | 2026-09-06 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+`review-config.yaml` → `agent-config.yaml` の統一で `docs-template/` と `README.md` は grep して直したが、`format:md` / `lint:md` の glob（`docs/**` `docs-template/**` `*.md`）に含まれない `.claude/commands/setup-ai-config.md` の案内文が残り、Toolkit code-reviewer の Warning になった。同ディレクトリは pre-commit の変更ファイル lint でしか検査されないため、既存の MD060 違反も同時に露出した。名称・パス・既定値を統一する PR では、grep の起点を「品質ゲートが見る範囲」ではなく「リポジトリ全体から node_modules / .git を除いた範囲」（`git grep -n '<旧名>'`）にし、ヒット先が現役の案内文か履歴記録（PLAYBOOK・Changelog）かを分類してから直す。
+
+---
+
 ## Changelog
+
+### [1.40.0] - 2026-09-06
+
+#### 追加
+
+- ACE-505-1: 別実体の文書から規則文を転記するときは、転記先の実体で各事実主張を再検証する — PR #505 で ff-dev-toolkit の init-docs SKILL.md の置換ポリシーを `.claude/commands/init-docs.md` へ写した際、「/validate-docs が検出する」「全文書共通の Frontmatter」が公開リポ側では偽で、Toolkit comment-analyzer と Codex が独立に指摘した経験から抽出（Issue #482 / PR #505）
+- ACE-505-2: 名称統一の横断修正では品質ゲートの glob 対象外ディレクトリも grep 範囲に含める — PR #505 で `.claude/commands/setup-ai-config.md` の `review-config.yaml` 残存が lint / format の対象外のためレビューまで残った経験から抽出（Issue #466 / PR #505）
+
+#### カウンター更新
+
+- ACE-045 (Helpful 0→1): PR #505 で git-workflow.md の標準チェックリストを 10 項目にしたが、同テンプレートが運用原則として参照する workflow-principles.md の mirror（標準チェックリストテンプレート）が旧 8 項目のまま残り、Toolkit code-reviewer の Warning で同期した再演
 
 ### [1.39.0] - 2026-09-06
 
