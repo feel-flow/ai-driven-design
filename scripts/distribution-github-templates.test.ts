@@ -155,15 +155,18 @@ const RELATIVE_LINK =
 // inline code のパス表記。`docs/...` `.github/...` のみを対象にする
 // （`src/services/auth.ts` のような架空の実装例は対象外）。
 // 角括弧・山括弧を含むものはプレースホルダー（例: `docs/[フォルダ]/[ファイル名].md`）として除外する。
-const INLINE_PATH = /`((?:docs|\.github)\/[^`\s\[\]<>]+\.md)`/g;
+// 拡張子は限定しない — 初期セット外の雛形（.skeleton.ts / .sql）もこの表記で案内するため。
+const INLINE_PATH = /`((?:docs|\.github)\/[^`\s\[\]<>]+\.[A-Za-z0-9]+)`/g;
 // 配布ツリーに実体を持たないが正当な inline code パス表記。
 //   .github/copilot-instructions.md — /setup-ai-config が利用者側で生成する
 //   docs/specs/*.md                 — MASTER.md の仕様書運用例（架空の例示）
+//   .github/workflows/xxx.yml       — Issue テンプレ（infra.md）の記入例
 // ここに載せる場合は理由を書く（黙って増やすと検査が骨抜きになる）。
 const INLINE_PATH_EXEMPT = new Set([
   ".github/copilot-instructions.md",
   "docs/specs/spec-template.md",
   "docs/specs/authentication.md",
+  ".github/workflows/xxx.yml",
 ]);
 // frontmatter の references: "a, b" 形式（agents / skills が使う）
 const FRONTMATTER_REFERENCES = /^\s*references:\s*"([^"]+)"\s*$/gm;
@@ -335,6 +338,13 @@ describe("検出器の自己検証", () => {
     ).toEqual(["docs/05-operations/deployment/git-workflow.md"]);
     expect(inline("`.github/skills/test-patterns/SKILL.md`")).toEqual([
       ".github/skills/test-patterns/SKILL.md",
+    ]);
+    expect(
+      inline(
+        "`docs/03-implementation/templates/typescript/q1-http-api-client.skeleton.ts`",
+      ),
+    ).toEqual([
+      "docs/03-implementation/templates/typescript/q1-http-api-client.skeleton.ts",
     ]);
     expect(inline("`docs/[フォルダ]/[ファイル名].md`")).toEqual([]);
     expect(inline("`src/services/auth.ts`")).toEqual([]);
