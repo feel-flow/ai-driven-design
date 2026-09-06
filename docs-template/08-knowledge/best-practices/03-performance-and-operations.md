@@ -176,17 +176,16 @@ const logger = winston.createLogger({
 // アプリケーションログ
 class UserService {
   async createUser(userData: CreateUserRequest): Promise<Result<User>> {
-    logger.info("Creating user", {
-      email: userData.email,
-      requestId: req.id,
-    });
+    // 個人情報（メールアドレス等）はログに含めない（error-handling-standards SKILL.md）。
+    // 追跡には requestId と、作成後に確定する userId を使う
+    // （req はリクエストコンテキストとして呼び出し側から受け取る前提の簡略表記）
+    logger.info("Creating user", { requestId: req.id });
 
     try {
       const user = await this.userRepository.create(userData);
 
       logger.info("User created successfully", {
         userId: user.id,
-        email: user.email,
         requestId: req.id,
       });
 
@@ -195,12 +194,10 @@ class UserService {
       // Logger 規約（PATTERNS.md §9）: error(message, error: Error, meta?)。
       // Error 実体を第 2 引数で渡せば name / message / stack は Logger 側が構造化する
       const err = error instanceof Error ? error : new Error(String(error));
-      logger.error("Failed to create user", err, {
-        userData: { email: userData.email },
-        requestId: req.id,
-      });
+      // 作成に失敗した時点では userId は確定していないので requestId で追跡する
+      logger.error("Failed to create user", err, { requestId: req.id });
 
-      return { success: false, error };
+      return { success: false, error: err };
     }
   }
 }
