@@ -275,8 +275,10 @@ function readHttpStatus(error: unknown): number | undefined {
 // Node のシステムエラーコード（ECONNREFUSED / ENOTFOUND / ETIMEDOUT 等）を cause に持つか
 function hasSystemErrorCode(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
+  // 形式は照合しない（ECONNREFUSED / EAI_AGAIN / UND_ERR_CONNECT_TIMEOUT 等、
+  // Node と undici で表記が揃わない）。素のプログラミング TypeError は cause を持たない
   const code = (error.cause as { code?: unknown } | undefined)?.code;
-  return typeof code === "string" && /^E[A-Z]+$/.test(code);
+  return typeof code === "string" && code.length > 0;
 }
 
 // 自コードのバグ。HTTP ステータスを持たないので、放置すると「ステータス無し = 一時障害」
@@ -394,7 +396,9 @@ function fetchUserWithPosts(userId: string): Promise<UserWithPosts> {
       const normalizedError =
         error instanceof Error ? error : new Error(String(error));
       logger.error("Failed to fetch user with posts", normalizedError);
-      throw new DataFetchError("Could not load user data");
+      throw new DataFetchError("Could not load user data", {
+        cause: normalizedError,
+      });
     });
 }
 ```
@@ -412,7 +416,9 @@ async function fetchUserWithPosts(userId: string): Promise<UserWithPosts> {
     const normalizedError =
       error instanceof Error ? error : new Error(String(error));
     logger.error("Failed to fetch user with posts", normalizedError);
-    throw new DataFetchError("Could not load user data");
+    throw new DataFetchError("Could not load user data", {
+      cause: normalizedError,
+    });
   }
 }
 ```
@@ -721,9 +727,6 @@ interface Metrics {
 // cause 鎖の展開深さの上限（マジックナンバー禁止）。無限の cause ループを防ぐ
 const ERROR_CAUSE_MAX_DEPTH = 5;
 
-// Error を構造化する。cause を保持する規約（§3）と対で、cause をログに出す実装が要る —
-// name / message / stack しか出さないと、ラップ時に保持した上流の失敗理由が
-// どこにも現れない
 // ログに載せる上流レスポンス本文の上限（マジックナンバー禁止）。巨大な本文で行を潰さない
 const ERROR_LOG_BODY_MAX_CHARS = 2000;
 
@@ -744,12 +747,25 @@ function pickHttpDiagnostics(value: object): Record<string, unknown> {
   if (status !== undefined) diagnostics.status = status;
   if (v.code !== undefined) diagnostics.code = v.code;
   if (body !== undefined) {
-    const text = typeof body === "string" ? body : JSON.stringify(body);
-    diagnostics.body = text?.slice(0, ERROR_LOG_BODY_MAX_CHARS);
+    // ログ経路で投げない: 本文が循環参照（stream の response.data 等）や BigInt を
+    // 含むと JSON.stringify が TypeError を投げ、記録しようとしていた元エラーを覆い隠す
+    let text: string;
+    try {
+      text =
+        typeof body === "string"
+          ? body
+          : (JSON.stringify(body) ?? String(body));
+    } catch {
+      text = "[unserializable body]";
+    }
+    diagnostics.body = text.slice(0, ERROR_LOG_BODY_MAX_CHARS);
   }
   return diagnostics;
 }
 
+// Error を構造化する。cause を保持する規約（§3）と対で、cause をログに出す実装が要る —
+// name / message / stack しか出さないと、ラップ時に保持した上流の失敗理由が
+// どこにも現れない
 function serializeError(error: unknown, depth = 0): Record<string, unknown> {
   if (!(error instanceof Error)) {
     // Error でない cause（{ status, body } 等）は String() に潰さず構造化する
@@ -761,7 +777,9 @@ function serializeError(error: unknown, depth = 0): Record<string, unknown> {
     name: error.name,
     message: error.message,
     stack: error.stack,
-    ...pickHttpDiagnostics(error), // AxiosError 等の status / response.data
+    // AxiosError 等の status / response.data。AppError 自身には走らせない
+    // （自分の statusCode を上流ステータスと誤読させない）
+    ...(error instanceof AppError ? {} : pickHttpDiagnostics(error)),
   };
   if (error instanceof AppError) {
     serialized.code = error.code;

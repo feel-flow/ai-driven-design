@@ -360,7 +360,7 @@ interface FailedChunk {
 
 // 一括送信の結果。判別可能ユニオンにして、部分送信を呼び出し元が無視できない形にする
 // （sentCount だけ返すと、戻り値を捨てた瞬間に部分送信が消える）。
-// 全チャンク失敗は結果ではなく EmailError として投げる
+// 全チャンク失敗は結果ではなく例外として投げる（一時障害なら EmailError、それ以外はそのまま）
 type BulkEmailResult =
   | { readonly status: "all-sent"; readonly sentCount: number }
   | {

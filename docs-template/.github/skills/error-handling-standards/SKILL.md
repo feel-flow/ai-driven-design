@@ -213,12 +213,12 @@ try {
 ```typescript
 // 使用例
 try {
-  await processUser(userId);
+  await riskyOperation(userId);
 } catch (error) {
   const err = error instanceof Error ? error : new Error(String(error));
   logger.error("Failed to process user", err, {
     userId,
-    operation: "processUser",
+    operation: "riskyOperation",
     requestId: req.headers["x-request-id"],
   });
 }

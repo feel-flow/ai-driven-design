@@ -523,8 +523,16 @@ interface ValidationReport {
     failed: number;
     warnings: number;
   };
-  // ValidationDetail は PATTERNS.md「エラーハンドリング」の定義を import する（別定義を作らない）
-  details: ValidationDetail[];
+  // 運用チェック結果の型。入力検証の ValidationDetail（PATTERNS.md「エラーハンドリング」、
+  // field / message / constraint）とは別物で、名前も分ける（同名・別形状の並立を避ける）
+  details: ValidationCheckDetail[];
+}
+
+interface ValidationCheckDetail {
+  check: string;
+  status: ValidationResult["status"];
+  message: string;
+  metadata?: Record<string, unknown>;
 }
 
 class ValidationReporter {
