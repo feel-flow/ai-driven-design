@@ -92,7 +92,7 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 
 ### OBS-005: ゲート通過を記録する仕組みが無いリポジトリでは、/close-issue の鮮度照合が毎回「判定不能」になる
 
-| Kind | problem | Count | 2 |
+| Kind | problem | Count | 3 |
 | First | 2026-09-06 | Last | 2026-09-06 |
 | Status | active | Issue | なし |
 
@@ -100,6 +100,7 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 
 - 2026-09-06: PR #498 の /close-issue で `REASON=実測対象の記録がありません`。直前に HEAD で quality:local を手動再実行して代替した（初回）
 - 2026-09-06: PR #500 の /close-issue でも同じ REASON。fix commit 直前に quality:local を手動実行して代替（再発）
+- 2026-09-06: PR #502 の /close-issue でも同じ REASON（3 回目・閾値到達）。マージ直前の HEAD で quality:local を手動再実行して代替
 
 ---
 
@@ -114,5 +115,61 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 AC の grep を頭で組んで起票すると、検出式の穴（表記の必須化・境界の欠落）がそのまま「残存なし」の緑になり、レビューで検出器ごと差し戻される → 起票前に既知の残存 1 件を含む状態でコマンドを実行し、その 1 件が検出されることを見てから AC に書く。
 
 - 2026-09-06: Issue #499 の AC grep が `node.js` 表記を必須にしていて「Node 20+」を拾えず、Toolkit が Warning として検出器の是正を要求した（初回）
+
+---
+
+<a id="obs-007"></a>
+
+### OBS-007: レビューシムのサイドカー不在を setup-multi-agent.sh で復旧すると、シム本体の上書きと `.bak` が作業ブランチの作業ツリーへ混入する
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+`scripts/codex-review.sh` が「multi-agent.sh が見つかりません」で落ちたとき、作業ブランチ上で setup を実行すると同梱シムの更新（数百行）と `codex-review.sh.bak` が現 PR と無関係な差分として作業ツリーに載る → setup の前後で `git status` を取り、生成差分は stash で退避して別 Issue へ切る（現 PR のレビュー対象は stash 後の差分で取り直す）。setup 側が既存シムを上書きせず差分だけ提示する形なら混入自体が起きない。
+
+- 2026-09-06: PR #502 のセルフレビューで発生。stash 退避 + follow-up #503 起票で 1 往復（初回）
+
+---
+
+<a id="obs-008"></a>
+
+### OBS-008: 旧形式エントリを抱えた PLAYBOOK に形式ゲートを allowlist 未初期化で当てると、既存分が全件赤になり新規追記の判定が埋もれる
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | promoted | Issue | feel-flow/ai-spec-driven-development#504 |
+
+`/ace-curate` 4-f の `check-entry-format.ts` は allowlist 不在を strict として扱うため、初回導入（`/ace-setup` Step 3-b の `--init-allowlist`）を済ませていないリポジトリでは curate のたびに既存旧形式が全件列挙される → 新規 ID が検出一覧に無いことを確認して進め、allowlist 初期化を別 Issue で行う。
+
+- 2026-09-06: PR #502 の curate で 71 件が列挙、新規 ACE-502-1 は非検出。#504 を起票（初回）
+
+---
+
+<a id="obs-009"></a>
+
+### OBS-009: PLAYBOOK frontmatter の `changeImpact` は ACE 同期検証が小文字を要求し、テンプレ MASTER.md の規約（LOW / MEDIUM / HIGH）と食い違う
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+テンプレ規約に合わせて大文字で書くと `sync-playbook-frontmatter.ts --check` が exit 1 になる → PLAYBOOK では小文字 `medium` を書く。再発が続けば、値域の正本をどちらかに揃える提案をツールキット側へ出す。
+
+- 2026-09-06: PR #502 の curate で `"MEDIUM"` を書いて 1 回赤、小文字へ直して通過（初回）
+
+---
+
+<a id="obs-010"></a>
+
+### OBS-010: ACE 系スキルは PLAYBOOK を `docs/08-knowledge/` 固定で参照するが、テンプレ配布リポジトリでは実体が `docs-template/08-knowledge/` にある
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+既定パスで grep・frontmatter 読みを組むと全コマンドが not found で空振りし、パスを直して再実行する往復が出る → 着手時に `package.json` の `ace:*` スクリプトが指すパスで実配置を確定してからコマンドを組む（`/retrospective` の「知見ストアの実配置を確定する」と同じ手順を curate 側にも置く余地）。
+
+- 2026-09-06: PR #502 の curate で最初の情報収集 1 ターンが全件 not found（初回）
 
 ---
