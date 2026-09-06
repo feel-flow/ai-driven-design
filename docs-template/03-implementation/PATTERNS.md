@@ -809,7 +809,8 @@ const ERROR_LOG_SHAPE_MAX_KEYS = 20;
 // JSON 化すると、境界で赤入れされていない cause（{ requestBody: { email, apiSecret } } 等）
 // の個人情報・秘密がそのままログに載る（SKILL.md「個人情報をログに含めない」）。
 // 型名と上位キー名があれば「何が来たか」は追える。Object.keys / constructor 参照は
-// Proxy 等で投げうるので、ログ経路として投げない
+// Proxy 等で投げうるので、ログ経路として投げない。catch 内では value に再度触らない
+// （Object.prototype.toString も Symbol.toStringTag の getter を呼ぶため投げうる）
 function describeShape(value: object): Record<string, unknown> {
   try {
     const keys = Object.keys(value);
@@ -819,7 +820,7 @@ function describeShape(value: object): Record<string, unknown> {
       keyCount: keys.length,
     };
   } catch {
-    return { type: Object.prototype.toString.call(value) };
+    return { type: "unknown" };
   }
 }
 
