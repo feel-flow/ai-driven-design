@@ -22,11 +22,11 @@ visibility: internal
 
 ### 2.1 `/.github/workflows/ci.yml`（name: `CI`）
 
-| 項目         | 内容                                                                                                                    |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| **役割**     | ビルド・MCP チェック・テスト・文書検証・Markdown リントを一括実行し、PR／`develop` 向けの品質ゲートとする。             |
-| **トリガー** | `pull_request` → ブランチ `develop`, `main` へのPR。`push` → ブランチ `develop` へのプッシュ。                          |
-| **補足**     | Node マトリクス: **22, 24**（`markdownlint-cli2` 0.23 系以降の Node 22 以上要件に沿った検証。Node 20 は 2026-04 EOL）。 |
+| 項目         | 内容                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| **役割**     | ビルド・MCP チェック・テスト・文書検証・Markdown リントを一括実行し、PR／`develop` 向けの品質ゲートとする。 |
+| **トリガー** | `pull_request` → ブランチ `develop`, `main` へのPR。`push` → ブランチ `develop` へのプッシュ。              |
+| **補足**     | Node マトリクス: **20, 22, 24**（移行前の記録。現在の基準は §3.1 のとおり Node 24）。                       |
 
 ### 2.2 `/.github/workflows/release.yml`（name: `Release`）
 
@@ -59,7 +59,7 @@ visibility: internal
 
 ### 3.1 前提
 
-- **Node.js**: `package.json` の `engines.node` は **`>=22.0.0`**。ローカルも 22 以上を推奨（Node 20 は 2026-04 に EOL、`markdownlint-cli2` 0.23 系が Node 22 以上を要求）。
+- **Node.js**: `package.json` の `engines.node` は **`>=24.0.0`**（プロジェクトの基準バージョン。`mcp/package.json` も同じ）。ローカルも 24 を使う。
 - 作業ディレクトリ: **リポジトリルート**。
 
 ### 3.2 推奨コマンド（CI と揃えた順）
@@ -200,7 +200,7 @@ npm run lint:md
 設計段階の受け入れ基準（§2〜8、付録）に加え、移行実装では次を満たす。
 
 1. **棚卸し**: 旧 `ci.yml` / `release.yml` / `release-drafter`（workflow + 設定）の**役割とトリガー**が本文 §2 で追跡可能。
-2. **ローカル品質ゲート**: `quality:local` および 3.2 全文で **Node >= 20** を前提化。
+2. **ローカル品質ゲート**: `quality:local` および 3.2 全文で **Node >= 24** を前提化。
 3. **`quality:local`**: ルート `package.json` に実装（`npm ci` 抜きの同順チェーン）。
 4. **Husky**: pre-commit 維持。pre-push は方針 **C** で実装 → Issue #452 で方針 **B**（フルゲート強制 + `SKIP_QUALITY_GATE=1` 回避）へ拡張。
 5. **PR テンプレ**: 付録 A に沿った**ローカル検証**文言へ更新。

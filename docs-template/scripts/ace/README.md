@@ -22,7 +22,7 @@ post-merge からの呼び出し例は `docs-template/.claude/hooks/post-merge.a
 
 ## check-category-size.ts の実行
 
-Node 20+ を前提とします。TypeScript をそのまま実行する例:
+Node 24+ を前提とします。TypeScript をそのまま実行する例:
 
 ```bash
 npx --yes tsx scripts/ace/check-category-size.ts docs/08-knowledge/PLAYBOOK.md
