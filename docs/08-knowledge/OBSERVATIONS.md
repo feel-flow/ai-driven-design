@@ -73,3 +73,31 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 - 2026-09-06: ai-spec-driven-development（Vercel 依存なし）のセッション開始で 53.2KB の注入が persisted-output に退避された（初回）
 
 ---
+
+<a id="obs-004"></a>
+
+### OBS-004: PLAYBOOK を文字列パッチで更新するとき、エントリ境界を終端 `---` で切ると終端欠落エントリで隣のエントリまで範囲が伸びる
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+旧形式エントリには終端 `---` を持たないものが混在するため、`---` を境界にした Helpful カウンター更新は次エントリの同名行まで巻き込んで一致数が合わなくなる → 境界は次の `<a id="ace-` アンカーで切り、書き換え前に一致行数が 1 であることを assert する。
+
+- 2026-09-06: ACE-484-3 の Helpful +1 で assert が 2 回失敗し、境界をアンカーに変えて 3 回目で通った（初回）
+
+---
+
+<a id="obs-005"></a>
+
+### OBS-005: ゲート通過を記録する仕組みが無いリポジトリでは、/close-issue の鮮度照合が毎回「判定不能」になる
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-06 | Last | 2026-09-06 |
+| Status | active | Issue | なし |
+
+`quality:local` がゲート記録（`record-gate-head.sh` 相当）を書かないため、`check-merge-freshness.sh` は実測対象を特定できず exit 2 を返し、実測とマージの窓は人手の再実行で埋めることになる → 再発が続けば、`quality:local` の末尾でゲート記録を書くか、pre-push hook に記録を組み込むことを本リポジトリの Issue として検討する。
+
+- 2026-09-06: PR #498 の /close-issue で `REASON=実測対象の記録がありません`。直前に HEAD で quality:local を手動再実行して代替した（初回）
+
+---
