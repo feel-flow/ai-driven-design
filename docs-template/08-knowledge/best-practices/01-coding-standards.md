@@ -76,7 +76,7 @@ async function createUser(userData: CreateUserRequest): Promise<Result<User>> {
 }
 ```
 
-**カスタムエラークラス**:
+**カスタムエラークラスの利用**:
 
 ```typescript
 // エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を正典とする。

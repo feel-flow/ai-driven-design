@@ -188,11 +188,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
-// 決済の上流障害（Stripe API 障害・接続断）。cause に Stripe のエラーを保持する
-// （エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を継承する）
+// 決済の上流障害（Stripe API 障害・接続断）。category は transient（再試行対象）。
+// エラークラスは PATTERNS.md「エラーハンドリング」の AppError 階層を継承する
 class PaymentError extends AppError {
+  readonly category: ErrorCategory = "transient";
   constructor(message: string, options?: AppErrorOptions) {
-    super(message, "PAYMENT_UPSTREAM", 502, options);
+    super(message, "PAYMENT_UPSTREAM", HTTP_STATUS.BAD_GATEWAY, options);
   }
 }
 
@@ -220,23 +221,31 @@ class PaymentService {
         { operation: "stripe.paymentIntents.create" },
       );
     } catch (error) {
-      // retryWithBackoff は正規化済み AppError を投げ、cause に Stripe のエラーを持つ。
-      // カード拒否（利用者が対処できる）と上流障害（再試行すべき）を区別して伝える
-      const cause = error instanceof AppError ? error.cause : error;
-      if (cause instanceof Stripe.errors.StripeCardError) {
+      // retryWithBackoff は正規化済み AppError を投げ、cause に Stripe のエラーを持つ
+      const normalized = normalizeExternalError(error);
+
+      // カード拒否（利用者が対処できる）は入力エラーとして伝える
+      if (normalized.cause instanceof Stripe.errors.StripeCardError) {
+        const card = normalized.cause;
         throw new ValidationError(
-          cause.message,
-          [{ field: "card", message: cause.message, constraint: cause.code }],
-          { cause },
+          card.message,
+          [{ field: "card", message: card.message, constraint: card.code }],
+          { cause: card },
         );
       }
-      const normalized = normalizeExternalError(error);
+
       logger.error("Stripe payment intent creation failed", normalized, {
         idempotencyKey,
       });
-      throw new PaymentError("Failed to create payment intent", {
-        cause: normalized,
-      });
+      // 一時障害だけをサービス固有の型で包む。認証（401）・恒久拒否はそのまま伝播させる —
+      // 502 の型で包み直すと category が transient に化け、fallbackInProdOnly と
+      // 再試行判定が認証失敗を「上流の一時障害」として扱ってしまう
+      if (normalized.category === "transient") {
+        throw new PaymentError("Failed to create payment intent", {
+          cause: normalized,
+        });
+      }
+      throw normalized;
     }
   }
 
@@ -251,8 +260,8 @@ class PaymentService {
       default:
         // Stripe のイベント種別は外部が定義する「開かれた集合」で、購読設定や
         // Stripe 側の追加で未知の種別が届くのは正常。throw すると 500 → Stripe が再送を
-        // 繰り返すため、記録して継続する（自前定義の閉じたユニオンは §8 のように
-        // never で網羅性チェックする — 判断基準は「集合を誰が定義しているか」）。
+        // 繰り返すため、記録して継続する（自前定義の閉じたユニオンは §8 キューシステム
+        // 統合のように never で網羅性チェックする — 判断基準は「集合を誰が定義しているか」）。
         logger.info("Unhandled Stripe event type", {
           eventType: event.type,
           eventId: event.id,
@@ -288,8 +297,12 @@ app.post(
         { cause: error },
       );
       logger.error("Webhook signature verification failed", securityError);
-      // 400: Stripe は再送しない（署名が合わないものを何度受けても結果は同じ）
-      res.status(400).send("Webhook Error: invalid signature");
+      // 400: 署名不正は処理不能であることを表す（Stripe 公式サンプルと同じ応答）。
+      // ただし Stripe は 2xx 以外をすべて配信失敗として最長 3 日間再送するため、
+      // 同じ不正リクエストの再送を受け続けても副作用が出ない実装にしておく
+      res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .send("Webhook Error: invalid signature");
       return;
     }
 
@@ -306,7 +319,9 @@ app.post(
         eventType: event.type,
       });
       // 500: Stripe の自動再送に載せる（処理側の一時障害は再送で回復しうる）
-      res.status(500).send("Webhook processing failed");
+      res
+        .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+        .send("Webhook processing failed");
     }
   },
 );
@@ -326,22 +341,30 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const SENDGRID_MAX_MESSAGES_PER_BATCH = 1000; // 件。SendGrid の 1 リクエスト上限
 const SENDGRID_BATCH_INTERVAL_MS = 1000; // ms。レート制限を避けるバッチ間の待機
 
-// メール送信の上流障害。cause に SendGrid のレスポンス（status / body）を保持する
+// メール送信の上流障害（transient）。cause に SendGrid のレスポンス（status / body）を保持する
 class EmailError extends AppError {
+  readonly category: ErrorCategory = "transient";
   constructor(message: string, options?: AppErrorOptions) {
-    super(message, "EMAIL_UPSTREAM", 502, options);
+    super(message, "EMAIL_UPSTREAM", HTTP_STATUS.BAD_GATEWAY, options);
   }
 }
 
-// 一括送信の結果。途中で失敗しても「どこまで送れたか」を呼び出し元へ返す
-interface BulkEmailResult {
-  sentCount: number;
-  failedChunks: Array<{
-    chunkIndex: number;
-    recipients: string[];
-    error: AppError;
-  }>;
+interface FailedChunk {
+  readonly chunkIndex: number;
+  readonly recipients: readonly string[];
+  readonly error: AppError;
 }
+
+// 一括送信の結果。判別可能ユニオンにして、部分送信を呼び出し元が無視できない形にする
+// （sentCount だけ返すと、戻り値を捨てた瞬間に部分送信が消える）。
+// 全チャンク失敗は結果ではなく EmailError として投げる
+type BulkEmailResult =
+  | { readonly status: "all-sent"; readonly sentCount: number }
+  | {
+      readonly status: "partial";
+      readonly sentCount: number;
+      readonly failedChunks: readonly FailedChunk[];
+    };
 
 // メールサービス実装
 class EmailService {
@@ -388,12 +411,13 @@ class EmailService {
     // 途中で throw すると残りのチャンクは送られず、どこまで送れたかの記録も残らない。
     // 再実行すると送信済みの宛先に二重送信される（部分送信の記録が必要）。
     const chunks = this.chunkArray(messages, SENDGRID_MAX_MESSAGES_PER_BATCH);
-    const result: BulkEmailResult = { sentCount: 0, failedChunks: [] };
+    let sentCount = 0;
+    const failedChunks: FailedChunk[] = [];
 
     for (const [chunkIndex, chunk] of chunks.entries()) {
       try {
         await sgMail.send(chunk);
-        result.sentCount += chunk.length;
+        sentCount += chunk.length;
       } catch (error) {
         const normalized = normalizeExternalError(
           error,
@@ -404,7 +428,7 @@ class EmailService {
           chunkSize: chunk.length,
           totalChunks: chunks.length,
         });
-        result.failedChunks.push({
+        failedChunks.push({
           chunkIndex,
           recipients: chunk.map((m) => m.to),
           error: normalized,
@@ -413,12 +437,47 @@ class EmailService {
       await this.delay(SENDGRID_BATCH_INTERVAL_MS); // レート制限対策
     }
 
-    // 失敗チャンクは呼び出し元が result.failedChunks の宛先だけを再送する
-    logger.info("Bulk email finished", {
-      sentCount: result.sentCount,
-      failedChunkCount: result.failedChunks.length,
+    if (failedChunks.length === 0) {
+      logger.info("Bulk email finished", { sentCount });
+      return { status: "all-sent", sentCount };
+    }
+    // 1 通も送れていない = 上流の全断（API キー失効等）。結果ではなく障害として投げる
+    if (sentCount === 0) {
+      throw new EmailError("Bulk email failed for every chunk", {
+        cause: failedChunks[0].error,
+      });
+    }
+    // 部分失敗は error レベルで集計を残す（info だと全体像がアラートに乗らない）
+    logger.error(
+      "Bulk email partially failed",
+      new EmailError("Some bulk email chunks failed", {
+        cause: failedChunks[0].error,
+      }),
+      {
+        sentCount,
+        totalRecipients: recipients.length,
+        failedChunkCount: failedChunks.length,
+      },
+    );
+    return { status: "partial", sentCount, failedChunks };
+  }
+}
+
+// 呼び出し例: 判別可能ユニオンなので、部分失敗を分岐しないと TypeScript の
+// 網羅性チェック（switch + never）で気づける
+const result = await emailService.sendBulkEmail(recipients, subject, content);
+switch (result.status) {
+  case "all-sent":
+    break;
+  case "partial":
+    // 失敗チャンクの宛先だけを再送キューへ積む（成功済み宛先への二重送信を避ける）
+    await retryQueue.add({
+      recipients: result.failedChunks.flatMap((c) => c.recipients),
     });
-    return result;
+    break;
+  default: {
+    const unhandled: never = result;
+    throw new Error(`Unhandled bulk email status: ${String(unhandled)}`);
   }
 }
 ```
@@ -490,25 +549,36 @@ import { IncomingWebhook } from "@slack/webhook";
 
 const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
 
-// 循環参照を含む context でも JSON.stringify が TypeError を投げないようにする。
-// エラー通知の経路で例外が出ると、通知しようとしていた元エラーを覆い隠す
+// エラー通知の経路で JSON.stringify が投げないようにする（投げると、通知しようと
+// していた元エラーを覆い隠す）。循環参照と BigInt を処理し、それ以外の失敗
+// （throw する getter 等）も握って印を返す — この関数だけは絶対に投げない契約。
+// 既知の制約: 兄弟位置から同じオブジェクトを参照する場合も "[Circular]" になる
 function safeStringify(value: unknown): string {
   const seen = new WeakSet<object>();
-  return JSON.stringify(
-    value,
-    (_key, v) => {
-      if (typeof v === "object" && v !== null) {
-        if (seen.has(v)) return "[Circular]";
-        seen.add(v);
-      }
-      return v;
-    },
-    2,
-  );
+  try {
+    const json = JSON.stringify(
+      value,
+      (_key, v) => {
+        if (typeof v === "bigint") return v.toString();
+        if (typeof v === "object" && v !== null) {
+          if (seen.has(v)) return "[Circular]";
+          seen.add(v);
+        }
+        return v;
+      },
+      2,
+    );
+    return json ?? "undefined";
+  } catch (error) {
+    return `{"_serializationFailed":true,"reason":${JSON.stringify(String(error))}}`;
+  }
 }
 
 // 通知サービス
 class NotificationService {
+  // metrics は PATTERNS.md「ログパターン」の Metrics 契約（投げない実装）を DI する
+  constructor(private readonly metrics: Metrics) {}
+
   async sendSlackNotification(message: SlackMessage): Promise<void> {
     try {
       await webhook.send({
@@ -516,7 +586,6 @@ class NotificationService {
         blocks: message.blocks,
         attachments: message.attachments,
       });
-      metrics.increment("notification.slack.sent");
     } catch (error) {
       // 通知パイプライン自身の失敗は再スローしない（呼び出し元はすでにエラー処理中で、
       // 通知失敗で本処理を止めるべきではない）が、無言では終わらせない。
@@ -529,10 +598,14 @@ class NotificationService {
       logger.error("Failed to send Slack notification", normalized, {
         textPreview: message.text.slice(0, 80),
       });
-      metrics.increment("notification.slack.failed", {
+      this.metrics.increment("notification.slack.failed", {
         reason: normalized.code,
       });
+      return;
     }
+    // 成功メトリクスは try の外で送る。try の内側だと、メトリクス送出の失敗が
+    // 「Slack 送信失敗」として誤記録され、sent が永久に増えないダッシュボードになる
+    this.metrics.increment("notification.slack.sent");
   }
 
   // context は診断用の任意データ。any ではなく unknown を値に使い、利用前の
@@ -665,14 +738,22 @@ class AnalyticsService {
       ],
     });
 
-    // rows は該当データが無いと空配列。添字アクセスの TypeError にすると
+    // rows は該当データが無いと空配列または未定義。添字アクセスの TypeError にすると
     // 「データなし」と「API 失敗」が同じ例外になる。API 失敗は runReport が投げる
-    const value = response.rows?.[0]?.metricValues?.[0]?.value;
-    if (value === undefined) {
+    if (!response.rows || response.rows.length === 0) {
       logger.info("No active user data for period", { days });
       return 0;
     }
-    return parseInt(value, 10);
+    // 行はあるのに値が取れない = メトリクス名の誤りやレスポンス形状の変化。
+    // 「静かなゼロ」にすると計測断とデータなしが区別できないので、形状違反として投げる
+    const value = response.rows[0]?.metricValues?.[0]?.value;
+    const activeUsers = value == null ? Number.NaN : parseInt(value, 10);
+    if (Number.isNaN(activeUsers)) {
+      throw new InternalError("Unexpected GA4 report shape for activeUsers", {
+        cause: response,
+      });
+    }
+    return activeUsers;
   }
 
   async trackEvent(event: AnalyticsEvent): Promise<void> {
@@ -741,7 +822,7 @@ class QueueService {
         default: {
           // 網羅性チェック: ジョブ種別を追加したらここでコンパイルエラーになる
           // （default を握りつぶすと未知ジョブが無言で消える）。
-          // §2 の Stripe イベント switch が default で継続するのと正反対だが、
+          // §2 決済システム統合の Stripe イベント switch が default で継続するのと正反対だが、
           // 判断基準は「集合を誰が定義しているか」: EmailJob は自分が定義する閉じた
           // ユニオンなので未知種別はバグ、Stripe イベントは外部定義の開かれた集合。
           // 検出できるのはコンパイル時のみ。実データの検証は上記のとおり別途必要。
@@ -857,6 +938,6 @@ describe("Payment Integration", () => {
 外部サービス呼び出しのエラー処理は、次の正典に従う（本ファイル内で別実装を作らない）:
 
 - **エラー型と正規化**: [PATTERNS.md](./PATTERNS.md)「エラーハンドリング」— `AppError` 階層（`cause` 付き）と `normalizeExternalError()`。外部 SDK の生エラーは境界で必ず正規化する
-- **再試行**: [FALLBACK.md](./FALLBACK.md) §4「再試行ユーティリティ」— `retryWithBackoff(fn, { operation })`。再試行可否の判定（禁止カテゴリは再試行しない）・Jitter・試行ごとのログを内蔵する。副作用のある呼び出しは冪等キー付きでのみ再試行する（§2 の `createPaymentIntent`）
+- **再試行**: [FALLBACK.md](./FALLBACK.md) §4「再試行ユーティリティ」— `retryWithBackoff(fn, { operation })`。再試行可否の判定（禁止カテゴリは再試行しない）・Jitter・試行ごとのログを内蔵する。副作用のある呼び出しは冪等キー付きでのみ再試行する（§2 決済システム統合の `createPaymentIntent`）
 - **フォールバック**: [FALLBACK.md](./FALLBACK.md) §4 `fallbackInProdOnly()` — AppError 以外は deny-by-default でスロー
 - **ログ**: [PATTERNS.md](./PATTERNS.md)「ログパターン」の `Logger` 規約 — `error(message, error, meta?)` / `warn|info(message, meta?)`

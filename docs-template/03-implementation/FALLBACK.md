@@ -1,10 +1,11 @@
 ---
 title: "FALLBACK"
-version: "1.0.0"
+version: "1.1.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "YYYY-MM-DD"
+updated: "2026-09-06"
+changeImpact: "MEDIUM"
 ---
 
 # フォールバック戦略（Fail-Fast in Dev, Graceful in Prod）
@@ -80,12 +81,12 @@ updated: "YYYY-MM-DD"
 
 ### 3.2 サービスレイヤー
 
-| パターン           | 説明                                                      | 設定定数の例                                                            |
-| ------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Circuit Breaker    | 連続障害時にリクエストを遮断（Closed → Open → Half-Open） | `CIRCUIT_BREAKER_FAILURE_THRESHOLD`, `CIRCUIT_BREAKER_OPEN_DURATION_MS` |
-| リトライ           | Exponential Backoff + Jitter で再試行                     | `MAX_RETRY_COUNT`, `RETRY_INITIAL_DELAY_MS`, `RETRY_MAX_DELAY_MS`       |
-| セカンダリサービス | プライマリ障害時にバックアップサービスへ切替              | `HEALTH_CHECK_INTERVAL_MS`                                              |
-| タイムアウト       | レスポンス待ち上限を設定                                  | `API_TIMEOUT_MS`, `BATCH_TIMEOUT_MS`                                    |
+| パターン           | 説明                                                      | 設定定数の例                                                                        |
+| ------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Circuit Breaker    | 連続障害時にリクエストを遮断（Closed → Open → Half-Open） | `CIRCUIT_BREAKER_FAILURE_THRESHOLD`, `CIRCUIT_BREAKER_OPEN_DURATION_MS`             |
+| リトライ           | Exponential Backoff + Jitter で再試行                     | `DEFAULT_MAX_ATTEMPTS`, `DEFAULT_RETRY_BASE_DELAY_MS`, `DEFAULT_RETRY_MAX_DELAY_MS` |
+| セカンダリサービス | プライマリ障害時にバックアップサービスへ切替              | `HEALTH_CHECK_INTERVAL_MS`                                                          |
+| タイムアウト       | レスポンス待ち上限を設定                                  | `API_TIMEOUT_MS`, `BATCH_TIMEOUT_MS`                                                |
 
 > これらの値は名前付き定数として定義すること（マジックナンバー禁止。詳細は [PATTERNS.md](./PATTERNS.md) Section 10 参照）。
 
@@ -113,37 +114,33 @@ updated: "YYYY-MM-DD"
 ### ユーティリティ関数
 
 ```typescript
-// フォールバック禁止カテゴリ（Section 1 参照）を HTTP ステータスで判定する。
+// フォールバック禁止カテゴリ（Section 1 参照）は、各エラークラスが宣言する
+// category（PATTERNS.md「エラーハンドリング」の ErrorCategory）で判定する。
 // エラークラスの列挙（allowlist）だと、新しいエラー型（CsrfError 等）を定義して
-// 配列への追加を忘れた時点で黙ってフォールバック対象になる。ステータスで判定すれば
-// AppError（PATTERNS.md「エラーハンドリング」）を継承する限り漏れない。
-const NEVER_FALLBACK_STATUS_CODES: ReadonlySet<number> = new Set([
-  400, // バリデーション
-  401, // 認証
-  403, // 認可・セキュリティ
-  409, // データ整合性
-]);
-
+// 配列への追加を忘れた時点で黙ってフォールバック対象になる。category は抽象メンバ
+// なので、サブクラスを追加した瞬間にコンパイルが宣言を要求し、漏れない。
 function isNeverFallback(error: AppError): boolean {
-  return NEVER_FALLBACK_STATUS_CODES.has(error.statusCode);
+  return error.category === "never-fallback";
 }
 
 /**
  * 本番環境でのみフォールバック値を返し、開発・テスト環境ではエラーをスローする。
  * AI生成コードのサイレントエラー防止に使用する。
  *
- * deny-by-default: AppError 以外（外部 SDK の生エラー・AxiosError 等）は禁止カテゴリか
- * どうか判定できないため、環境に関係なくスローする。外部境界のエラーは呼び出し側で
- * `normalizeExternalError()`（PATTERNS.md「外部境界のエラー正規化」）を通してから渡す。
- * これを怠ると、外部 API が返した 401/403 が本番で握りつぶされる。
+ * deny-by-default: 引数は AppError に限定する（型でも実行時でも）。外部 SDK の生エラー・
+ * AxiosError 等は禁止カテゴリかどうか判定できないため、環境に関係なくスローする。
+ * HTTP 境界のエラーは呼び出し側で `normalizeExternalError()`（PATTERNS.md「外部境界の
+ * エラー正規化」）を通してから渡す。これを怠ると、外部 API が返した 401/403 が本番で
+ * 握りつぶされる。
  *
  * @throws {Error} development/test環境、禁止カテゴリ、AppError 以外では再スローする。
  */
 function fallbackInProdOnly<T>(
   fallbackValue: T,
-  error: unknown,
+  error: AppError,
   context?: Record<string, unknown>,
 ): T {
+  // 型注釈だけでは JS からの呼び出しや any 経由を防げないので実行時にも確認する
   if (!(error instanceof AppError)) {
     throw error instanceof Error ? error : new Error(String(error));
   }
@@ -193,12 +190,15 @@ async function getConfig(key: string): Promise<string> {
 
 ```typescript
 // 方法1（推奨）: ユーティリティ関数を使用
+// ※ 外部 API（HTTP）境界の例。DB ドライバのエラーは HTTP ステータスを持たないため
+//    normalizeExternalError には通さず、リポジトリ層の専用マッパーで一意制約違反 →
+//    ConflictError（禁止カテゴリ）等に写してから渡す（PATTERNS.md「外部境界のエラー正規化」）
 async function getUser(id: string): Promise<User> {
   try {
     // ※ null処理は省略（フォールバック問題に焦点）
-    return (await userRepository.findById(id)) as User;
+    return (await userApiClient.fetchById(id)) as User;
   } catch (error) {
-    // DB ドライバの生エラーは AppError に正規化してから渡す（deny-by-default）
+    // HTTP クライアントの生エラーは AppError に正規化してから渡す（deny-by-default）
     return fallbackInProdOnly(DEFAULT_USER, normalizeExternalError(error), {
       id,
     });
@@ -206,15 +206,19 @@ async function getUser(id: string): Promise<User> {
 }
 
 // 方法2: インラインで環境分岐（カスタムログが必要な場合）
-// ※ フォールバック禁止カテゴリのエラーが到達しうる箇所では方法1を使う。
-//    インライン分岐は禁止カテゴリの判定を持たないため、本番で握りつぶす。
+// ※ 素の環境分岐は禁止カテゴリの判定を持たない。この形を使うなら、方法1 と同じ
+//    正規化 + isNeverFallback() の判定を必ず添える（無いと 401 が本番で握りつぶされる）
 async function getConfig(key: string): Promise<string> {
   try {
     return await configService.get(key);
   } catch (error) {
-    const normalizedError =
-      error instanceof Error ? error : new Error(String(error));
+    const normalizedError = normalizeExternalError(error);
     logger.error("Failed to fetch config", normalizedError, { key });
+
+    // 禁止カテゴリは環境に関係なく常にスロー
+    if (isNeverFallback(normalizedError)) {
+      throw normalizedError;
+    }
 
     const env = process.env.NODE_ENV;
     if (env === "development" || env === "test") {
@@ -226,53 +230,43 @@ async function getConfig(key: string): Promise<string> {
 }
 ```
 
-### 適用判断ガイド
-
-| シナリオ               | 開発時                 | 本番時                  |
-| ---------------------- | ---------------------- | ----------------------- |
-| DB/API通信エラー       | スロー（即座に検出）   | フォールバック + ログ   |
-| 設定値の取得失敗       | スロー（設定ミス検出） | デフォルト値 + アラート |
-| データ変換エラー       | スロー（型不整合検出） | 安全なデフォルト + ログ |
-| 認証/認可エラー        | スロー                 | スロー（環境問わず）    |
-| バリデーションエラー   | スロー                 | スロー（環境問わず）    |
-| データ整合性エラー     | スロー                 | スロー（環境問わず）    |
-| セキュリティ関連エラー | スロー                 | スロー（環境問わず）    |
-
 ### 再試行ユーティリティ（Exponential Backoff + Jitter）
 
 Section 3.2 の「リトライ」パターンのコードレベル実装。外部サービス呼び出し（INTEGRATIONS.md）から共通で使う。
 
 ```typescript
 // 再試行の既定値（マジックナンバー禁止 / MASTER.md）
-const DEFAULT_MAX_RETRIES = 3; // 回
+const DEFAULT_MAX_ATTEMPTS = 3; // 回。初回を含む試行回数の上限（再試行は最大 2 回）
 const DEFAULT_RETRY_BASE_DELAY_MS = 1000; // ms。2^(attempt-1) 倍で伸びる基準値
 const DEFAULT_RETRY_MAX_DELAY_MS = 10_000; // ms。待機時間の上限
 
-// 再試行してよいのは一時的な上流障害（429 / 5xx / 接続断）だけ。
-// 禁止カテゴリ（400 / 401 / 403 / 409）は何度送っても結果が変わらず、
-// 認証エラーの連打はアカウントロックやレート制限まで招く。
+// 再試行してよいのは transient（外部サービスの一時障害）だけ。禁止カテゴリは何度
+// 送っても結果が変わらず、認証エラーの連打はアカウントロックやレート制限まで招く。
+// permanent（自コードのバグ・上流の恒久拒否）も再試行では直らず、真因の顕在化が遅れる。
 function isRetryableError(error: AppError): boolean {
-  return (
-    !isNeverFallback(error) &&
-    (error.statusCode === 429 || error.statusCode >= 500)
-  );
+  return error.category === "transient";
 }
 
 interface RetryOptions {
   /** ログに残す操作名（例: "stripe.paymentIntents.create"） */
-  operation: string;
-  maxRetries?: number;
-  baseDelayMs?: number;
-  maxDelayMs?: number;
-  isRetryable?: (error: AppError) => boolean;
+  readonly operation: string;
+  readonly maxAttempts?: number;
+  readonly baseDelayMs?: number;
+  readonly maxDelayMs?: number;
+  /**
+   * 既定の判定をさらに絞るためのフック（transient のうち再試行しないものを除く）。
+   * 既定判定と AND で合成するため、これで禁止カテゴリを再試行対象にすることはできない
+   */
+  readonly isRetryable?: (error: AppError) => boolean;
 }
 
 /**
  * 指数バックオフ + Full Jitter で fn を再試行する。
  *
  * 副作用のある呼び出し（決済・送信）は、冪等キーを付けて上流側で重複排除できる
- * 場合にのみ再試行すること（INTEGRATIONS.md の Stripe 例）。
+ * 場合にのみ再試行すること（INTEGRATIONS.md「決済システム統合」の Stripe 例）。
  *
+ * @throws {Error} maxAttempts < 1 はプログラミングエラー（fn を一度も呼ばずに投げる）
  * @throws {AppError} 再試行不可のエラー、または上限到達時に正規化済みのエラーを再スロー
  */
 async function retryWithBackoff<T>(
@@ -281,14 +275,15 @@ async function retryWithBackoff<T>(
 ): Promise<T> {
   const {
     operation,
-    maxRetries = DEFAULT_MAX_RETRIES,
+    maxAttempts = DEFAULT_MAX_ATTEMPTS,
     baseDelayMs = DEFAULT_RETRY_BASE_DELAY_MS,
     maxDelayMs = DEFAULT_RETRY_MAX_DELAY_MS,
-    isRetryable = isRetryableError,
   } = options;
+  const isRetryable = (error: AppError) =>
+    isRetryableError(error) && (options.isRetryable?.(error) ?? true);
   // 0 以下だと一度も fn を呼ばずに throw し、真因を隠したエラーになる
-  if (maxRetries < 1) {
-    throw new Error(`maxRetries must be >= 1, got ${maxRetries}`);
+  if (maxAttempts < 1) {
+    throw new Error(`maxAttempts must be >= 1, got ${maxAttempts}`);
   }
 
   for (let attempt = 1; ; attempt++) {
@@ -297,15 +292,11 @@ async function retryWithBackoff<T>(
     } catch (error) {
       const normalized = normalizeExternalError(error);
 
-      if (attempt >= maxRetries || !isRetryable(normalized)) {
+      if (attempt >= maxAttempts || !isRetryable(normalized)) {
         logger.error(
           "Operation failed (not retried or retries exhausted)",
           normalized,
-          {
-            operation,
-            attempt,
-            maxRetries,
-          },
+          { operation, attempt, maxAttempts },
         );
         throw normalized;
       }
@@ -319,7 +310,7 @@ async function retryWithBackoff<T>(
       logger.warn("Retrying after transient failure", {
         operation,
         attempt,
-        maxRetries,
+        maxAttempts,
         delayMs,
         errorName: normalized.name,
         errorCode: normalized.code,
@@ -369,7 +360,8 @@ async function retryWithBackoff<T>(
 - [ ] フォールバック値（空配列、デフォルトオブジェクト等）を返す箇所に環境分岐があるか
 - [ ] AI生成コードのcatch句が `fallbackInProdOnly()` を使用しているか（`NODE_ENV` 分岐だけの場合は、禁止カテゴリの判定が添えてあるか）
 - [ ] 禁止カテゴリの 4 種すべて（認証・認可 / バリデーション / データ整合性 / セキュリティ）にフォールバックが入っていないか
-- [ ] 外部 SDK / HTTP クライアントのエラーを `normalizeExternalError()` で AppError に正規化してから `fallbackInProdOnly()` / `retryWithBackoff()` に渡しているか（生エラーは deny-by-default でスローされる）
+- [ ] HTTP クライアント / 外部 SDK のエラーを `normalizeExternalError()` で AppError に正規化してから `fallbackInProdOnly()` / `retryWithBackoff()` に渡しているか（生エラーは deny-by-default でスローされる）。DB ドライバ等ステータスを持たないエラーはリポジトリ層の専用マッパーで写しているか
+- [ ] 新しいエラークラスが `category`（never-fallback / transient / permanent）を正しく宣言しているか
 - [ ] 再試行する呼び出しに副作用（決済・送信・作成）がある場合、冪等キーで上流側の重複排除が効くか
 
 ### アプリケーションレベル
@@ -386,7 +378,7 @@ async function retryWithBackoff<T>(
 
 #### 変更
 
-- フォールバック禁止カテゴリの判定をエラークラスの列挙から HTTP ステータス（deny-by-default、AppError 以外は常にスロー）に変更（Issue #486）
+- フォールバック禁止カテゴリの判定をエラークラスの列挙から各クラスが宣言する `category`（deny-by-default、AppError 以外は常にスロー）に変更（Issue #486）
 - 再試行ユーティリティ `retryWithBackoff()` を INTEGRATIONS.md から移設し、再試行可否判定・Jitter・試行ごとのログを追加
 
 ### [1.0.0] - YYYY-MM-DD

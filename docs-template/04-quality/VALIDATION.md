@@ -61,7 +61,7 @@ function validateUserRegistration(data: unknown) {
     return { success: true, data: validatedData };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // ValidationDetail（PATTERNS.md「エラーハンドリング」）と同じ形状に揃える
+      // ValidationDetail は PATTERNS.md「エラーハンドリング」の定義を import する（`./errors`）
       const details: ValidationDetail[] = error.errors.map((e) => ({
         field: e.path.join("."),
         message: e.message,
