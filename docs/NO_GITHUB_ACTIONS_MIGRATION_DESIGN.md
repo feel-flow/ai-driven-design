@@ -10,6 +10,21 @@ visibility: internal
 
 ---
 
+## 0. 適用範囲（public / private）
+
+本文書の「GitHub Actions を使わない運用」は、**private リポジトリ**に適用する。public リポジトリは次の方針に従う（[Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517)、2026-09-07 決定）。
+
+| リポジトリの可視性 | 品質ゲート                                                                                             | 根拠                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **private**        | ローカルゲートのみ（`.husky/pre-push` → `npm run quality:local`）。Actions 非依存                      | Actions の分数課金を避ける（本文書 §1 以降）                                                           |
+| **public**         | ローカルゲートを維持したまま、GitHub Actions（`.github/workflows/ci.yml`）を**第二のゲート**として併用 | public では GitHub ホストの標準ランナーが課金対象外。善意ベースの `SKIP_QUALITY_GATE=1` 回避を補完する |
+
+- **禁止**: GitHub Actions を使うことを目的にリポジトリを public 化しない。可視性は事業・ライセンス上の判断で決め、その結果 public であるリポジトリだけが Actions を使う
+- **本リポジトリ**（`feel-flow/ai-spec-driven-development`）は public（MIT）のため、`ci.yml` を復元して併用している。`ci.yml` はローカルと同じ `npm run quality:local` を 1 コマンドで呼ぶだけとし、ゲートの中身を二重定義しない（変更は `package.json` の `quality:local` 側で行う）
+- `release.yml` / `release-drafter.yml` は復元しない（手動リリース運用のまま。§2.2〜2.4 は記録）
+
+---
+
 ## 1. 目的
 
 リモートでの GitHub Actions 実行に依存せず、**ローカル品質ゲート**と**手動リリース手順**で同等の品質と透明性を確保する運用へ移行するための、現状整理と方針を定義する。

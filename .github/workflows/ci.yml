@@ -1,0 +1,42 @@
+# public リポジトリ向けの第二の品質ゲート（Issue #517）。
+# 方針: docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §0「適用範囲」。
+# ローカルの .husky/pre-push と同じ `npm run quality:local` を 1 コマンドで呼び、二重定義を避ける。
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: quality:local
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mcp/package-lock.json
+
+      - name: Install dependencies (root)
+        run: npm ci
+
+      - name: Install dependencies (mcp)
+        run: npm --prefix mcp ci
+
+      - name: Quality gate
+        run: npm run quality:local

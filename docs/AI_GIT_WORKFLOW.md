@@ -53,18 +53,18 @@ graph LR
 
 ### 各ステップの概要
 
-| #   | ステップ        | 目的                       | AIツール活用                                                        |
-| --- | --------------- | -------------------------- | ------------------------------------------------------------------- |
-| 1   | **Issue作成**   | 作業の起点を明確化         | Issue 本文の自動生成                                                |
-| 2   | **Branch作成**  | 作業を分離                 | -                                                                   |
-| 3   | **Implement**   | AI駆動で実装・コミット     | コード生成、doc 参照の自動挿入                                      |
-| 4   | **Test**        | テスト・型チェック・Lint   | ローカル品質（`npm run quality:local` 等。リモート Actions 非依存） |
-| 5   | **Self-Review** | 品質を事前確保             | 5 観点の自動チェック＋ Review Toolkit                               |
-| 6   | **PR作成**      | レビュー依頼               | PR 本文の自動生成                                                   |
-| 7   | **Review**      | レビュー対応（修正ループ） | Review Router ＋修正提案の自動生成                                  |
-| 8   | **Merge**       | Squash merge               | -                                                                   |
-| 9   | **Cleanup**     | ブランチ同期・削除         | 次タスクの提案                                                      |
-| 10  | **ACE**         | ナレッジ体系化（マージ後） | 知見の自動抽出・ Playbook 更新（develop で実行）                    |
+| #   | ステップ        | 目的                       | AIツール活用                                                                   |
+| --- | --------------- | -------------------------- | ------------------------------------------------------------------------------ |
+| 1   | **Issue作成**   | 作業の起点を明確化         | Issue 本文の自動生成                                                           |
+| 2   | **Branch作成**  | 作業を分離                 | -                                                                              |
+| 3   | **Implement**   | AI駆動で実装・コミット     | コード生成、doc 参照の自動挿入                                                 |
+| 4   | **Test**        | テスト・型チェック・Lint   | ローカル品質（`npm run quality:local` 等。public リポジトリは Actions を併用） |
+| 5   | **Self-Review** | 品質を事前確保             | 5 観点の自動チェック＋ Review Toolkit                                          |
+| 6   | **PR作成**      | レビュー依頼               | PR 本文の自動生成                                                              |
+| 7   | **Review**      | レビュー対応（修正ループ） | Review Router ＋修正提案の自動生成                                             |
+| 8   | **Merge**       | Squash merge               | -                                                                              |
+| 9   | **Cleanup**     | ブランチ同期・削除         | 次タスクの提案                                                                 |
+| 10  | **ACE**         | ナレッジ体系化（マージ後） | 知見の自動抽出・ Playbook 更新（develop で実行）                               |
 
 ---
 
@@ -221,7 +221,7 @@ Closes #123"
 
 #### テスト・品質ゲートの実行
 
-**本リポジトリ（`feel-flow/ai-spec-driven-development`）**では、PR 前にルートで次を実行する（リモート GitHub Actions には依存しない）。詳細は [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](./NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) を参照。
+**本リポジトリ（`feel-flow/ai-spec-driven-development`）**では、PR 前にルートで次を実行する。ローカルゲートが一次であり、public リポジトリのため GitHub Actions（`.github/workflows/ci.yml`）が同じコマンドを第二のゲートとして PR 上でも実行する。private リポジトリは Actions に依存しない。適用範囲の方針は [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §0](./NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#0-適用範囲public--private) を参照。
 
 ```bash
 npm run quality:local
@@ -541,7 +541,7 @@ gh discussion create \
 - [review-response-policy.md](../docs-template/05-operations/deployment/review-response-policy.md) - PRレビュー対応ポリシー
 - [workflow-principles.md](../docs-template/05-operations/deployment/workflow-principles.md) - ワークフロー運用原則
 - [multi-cli-review-orchestration.md](../docs-template/05-operations/deployment/multi-cli-review-orchestration.md) - Multi-CLI分散レビュー・クロスモデルレビュー
-- [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](./NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) - GitHub Actions非依存運用の移行設計（[Issue #377](https://github.com/feel-flow/ai-spec-driven-development/issues/377)）
+- [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](./NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) - GitHub Actions非依存運用の移行設計（[Issue #377](https://github.com/feel-flow/ai-spec-driven-development/issues/377)）と public / private の適用範囲（[Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517)）
 - [knowledge-management.md](../docs-template/05-operations/deployment/knowledge-management.md) - ナレッジ体系化詳細
 - [automated-code-review.md](../docs-template/05-operations/deployment/automated-code-review.md) - 自動コードレビュー
 
