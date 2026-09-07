@@ -276,3 +276,17 @@ Review Response Policy の「失敗シナリオのない指摘は Suggestion」�
 - 2026-09-07: PR #519 で comment-analysis が先に完了し code-review が実行中だったため、`git show origin/<branch>:<path>` で Critical / Warning 6 件を全件実測（すべて正確と確認）。checkout は code-review 完了後まで待ち、競合ゼロで 1 fix commit に束ねられた（初回）
 
 ---
+
+<a id="obs-019"></a>
+
+### OBS-019: 観測台帳の OBS ID は最大連番 +1 で採番するため、未マージの open PR が同じ ID を先取りしていても push が fast-forward で通り、衝突が無警告で成立する
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-07 | Last | 2026-09-07 |
+| Status | active | Issue | なし |
+
+スキルが持つ衝突対策は「push が non-fast-forward で拒否されたら再採番する」だけで、先取り側がまだマージされていない場合は拒否が起きず素通りする（ACE の PR スコープ式 ID にはこの穴がない） → 採番の前に `gh pr list --state open --json number,headRefName` の各 PR で `gh pr diff <N> | grep 'OBS-0'` を掃き、未マージの先取りを確認する。衝突に気づけるのは相手 PR のマージ時で、そこでは他文書からのアンカー参照まで壊れる。
+
+- 2026-09-07: PR #519 の振り返りで OBS-015〜017 を採番して push（fast-forward で成功）したが、open PR #518 が別内容の OBS-015 を定義済みで `docs/AI_GIT_WORKFLOW.md` からアンカー参照も持っていた。自分の 3 件を OBS-016〜018 へ繰り下げる追加コミットを要した（初回）
+
+---
