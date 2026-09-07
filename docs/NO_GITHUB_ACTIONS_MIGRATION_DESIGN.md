@@ -4,20 +4,24 @@ visibility: internal
 
 # GitHub Actions を使わない運用への移行設計
 
-> **移行実装**: `quality:local`、Husky `pre-push`、PR テンプレ、ドキュメント更新、**`.github/workflows/` 内の `ci.yml` / `release.yml` / `release-drafter.yml` の削除**を Issue #377 系の作業で反映済み。`.github/release-drafter.yml`（設定）は手動リリース時のカテゴリ参考として保持。
+> **適用範囲**: 本書が定める「Actions を使わない運用」は **private リポジトリ**を対象とする。**public リポジトリは Actions を第二の品質ゲートとして併用する** — 先に [§0 適用範囲](#scope-public-private) を読むこと。
 >
-> **関連**: [Issue #377](https://github.com/feel-flow/ai-spec-driven-development/issues/377)
+> **移行実装**: `quality:local`、Husky `pre-push`、PR テンプレ、ドキュメント更新、**`.github/workflows/` 内の `ci.yml` / `release.yml` / `release-drafter.yml` の削除**を Issue #377 系の作業で反映済み。その後 §0 の方針により、**public リポジトリでは `ci.yml` のみ復元**（`release.yml` は削除のまま）。`.github/release-drafter.yml`（設定）は手動リリース時のカテゴリ参考として保持。
+>
+> **関連**: [Issue #377](https://github.com/feel-flow/ai-spec-driven-development/issues/377) / [Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517)
 
 ---
+
+<a id="scope-public-private"></a>
 
 ## 0. 適用範囲（public / private）
 
 本文書の「GitHub Actions を使わない運用」は、**private リポジトリ**に適用する。public リポジトリは次の方針に従う（[Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517)、2026-09-07 決定）。
 
-| リポジトリの可視性 | 品質ゲート                                                                                             | 根拠                                                                                                   |
-| ------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| **private**        | ローカルゲートのみ（`.husky/pre-push` → `npm run quality:local`）。Actions 非依存                      | Actions の分数課金を避ける（本文書 §1 以降）                                                           |
-| **public**         | ローカルゲートを維持したまま、GitHub Actions（`.github/workflows/ci.yml`）を**第二のゲート**として併用 | public では GitHub ホストの標準ランナーが課金対象外。善意ベースの `SKIP_QUALITY_GATE=1` 回避を補完する |
+| リポジトリの可視性 | 品質ゲート                                                                                             | 根拠                                                                                                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **private**        | ローカルゲートのみ（`.husky/pre-push` → `npm run quality:local`）。Actions 非依存                      | Actions の分数課金を避ける（本文書 §1 以降）                                                                                                                                                                                                                |
+| **public**         | ローカルゲートを維持したまま、GitHub Actions（`.github/workflows/ci.yml`）を**第二のゲート**として併用 | public では GitHub ホストの標準ランナーが課金対象外（2026-09-07 時点。[GitHub Actions の課金](https://docs.github.com/ja/billing/managing-billing-for-github-actions/about-billing-for-github-actions)）。善意ベースの `SKIP_QUALITY_GATE=1` 回避を補完する |
 
 - **禁止**: GitHub Actions を使うことを目的にリポジトリを public 化しない。可視性は事業・ライセンス上の判断で決め、その結果 public であるリポジトリだけが Actions を使う
 - **本リポジトリ**（`feel-flow/ai-spec-driven-development`）は public（MIT）のため、`ci.yml` を復元して併用している。`ci.yml` はローカルと同じ `npm run quality:local` を 1 コマンドで呼ぶだけとし、ゲートの中身を二重定義しない（変更は `package.json` の `quality:local` 側で行う）
@@ -27,7 +31,7 @@ visibility: internal
 
 ## 1. 目的
 
-リモートでの GitHub Actions 実行に依存せず、**ローカル品質ゲート**と**手動リリース手順**で同等の品質と透明性を確保する運用へ移行するための、現状整理と方針を定義する。
+リモートでの GitHub Actions 実行に依存せず、**ローカル品質ゲート**と**手動リリース手順**で同等の品質と透明性を確保する運用へ移行するための、現状整理と方針を定義する（§0 のとおり **private リポジトリを対象**とする）。
 
 ---
 
@@ -79,7 +83,7 @@ visibility: internal
 
 ### 3.2 推奨コマンド（CI と揃えた順）
 
-以下は **現行 `ci.yml` のステップ順**に合わせています（`root package.json` / `mcp/package.json` に基づく表記）。
+以下は **旧 `ci.yml` のステップ順**に合わせています（`root package.json` / `mcp/package.json` に基づく表記）。復元後の `ci.yml` はこの順序を展開せず、`npm run quality:local` を 1 コマンドで呼ぶ（§0 のとおりゲートの中身を二重定義しない）。
 
 ```bash
 npm ci
@@ -190,7 +194,7 @@ npm run lint:md
 | **該当 YAML の削除**                 | `ci.yml` 等をリポジトリから除く | 意図が明確                   | 巻き戻しは Git で追跡が必要                                              |
 | **アーカイブとして `docs` 等へ退避** | 旧定義を参照用に保存            | 監査・新人説明向き           | 本物と**二重管理**のリスク。`.github/workflows` に重複定義を置かないこと |
 
-**推奨**: 移行**実装**フェーズでは、まず **「無効化または削除方針をIssueで合意」** → 本リポジトリでは**削除**で揃え、必要なら **タグ付き古いコミット**や設計本文（本書のセクション2）に**定義の写し**を残す。組織が**fork テンプレ利用**の場合、利用者向けに「CI なし版」の説明を README へ出す（後述の更新文書）。
+**推奨**: 移行**実装**フェーズでは、まず **「無効化または削除方針をIssueで合意」** → 本リポジトリでは**削除**で揃え、必要なら **タグ付き古いコミット**や設計本文（本書のセクション2）に**定義の写し**を残す（**この推奨は private リポジトリに適用する**。public リポジトリは §0 により `ci.yml` のみ復元済み）。組織が**fork テンプレ利用**の場合、利用者向けに「CI なし版」の説明を README へ出す（後述の更新文書）。
 
 ---
 
@@ -231,7 +235,7 @@ npm run lint:md
 
 ## 付録 A: PR テンプレート改稿案
 
-`.github/pull_request_template.md` には**反映済み**。以下は採用時点の**参照用コピー**。
+**以下は Issue #377 の設計時点（2026-04）の改稿案スナップショットであり、現行のテンプレートではない。** 現行の正本は `.github/pull_request_template.md` を直接参照すること（本書はミラーとして同期しない）。スナップショットのため、その後の改稿（PR #431 の chain 簡略化、Issue #517 の public 併用注記など）は反映されていない。
 
 ```markdown
 ## Summary
@@ -281,12 +285,12 @@ npm run lint:md
 
 ## 付録 B: 用語
 
-| 用語       | 本書での扱い                                                                       |
-| ---------- | ---------------------------------------------------------------------------------- |
-| 品質ゲート | 上記 3.2 の一連のコマンド。                                                        |
-| CI 相当    | 現行 `ci.yml` の手順に揃えた**ローカル再現**。                                     |
-| 移行実装   | ワークフロー削除、Husky、PR テンプレ、`quality:local` 追加、関連ドキュメント更新。 |
+| 用語       | 本書での扱い                                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 品質ゲート | 上記 3.2 の一連のコマンド。                                                                                                 |
+| CI 相当    | 旧 `ci.yml` の手順に揃えた**ローカル再現**（復元後の `ci.yml` はこれを 1 コマンドで呼ぶ）。                                 |
+| 移行実装   | ワークフロー削除（public は §0 により `ci.yml` のみ復元）、Husky、PR テンプレ、`quality:local` 追加、関連ドキュメント更新。 |
 
 ---
 
-_最終更新: 移行実装（Issue #377 系）_
+_最終更新: public / private の適用範囲（Issue #517）。それ以前は移行実装（Issue #377 系）_

@@ -30,7 +30,7 @@
 - [ ] MCP: `npm run check` 相当でエラーなし（該当する場合）
 - [ ] テスト: `npm --prefix mcp test` および `npm run test:ace-scripts`（該当する場合）がパス
 
-> **注**: **マージ前の品質はローカル実行＋本チェックリスト**を前提とする。本リポジトリは public のため `.github/workflows/ci.yml` が同じ `quality:local` を第二のゲートとして実行するが、ローカルゲートの代替ではない（方針: [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §0](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#0-適用範囲public--private)）。
+> **注**: **マージ前の品質はローカル実行＋本チェックリスト**を前提とする。本リポジトリは public のため `.github/workflows/ci.yml` が同じ `quality:local` を第二のゲートとして実行するが、ローカルゲートの代替ではない（方針: [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §0](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#scope-public-private)）。
 
 ### Cross-Model Review Results
 

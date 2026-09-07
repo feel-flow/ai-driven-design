@@ -225,7 +225,7 @@ Closes #123"
 
 **GitHub Actions の適用範囲**（[Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517)）:
 
-- **public リポジトリ**: ローカルゲートを維持したまま、Actions を第二のゲートとして併用する（public では GitHub ホストの標準ランナーが課金対象外）
+- **public リポジトリ**: ローカルゲートを維持したまま、Actions を第二のゲートとして併用する（public では GitHub ホストの標準ランナーが課金対象外。2026-09-07 時点）
 - **private リポジトリ**: ローカルゲートのみ。Actions に依存しない
 - **禁止**: Actions を使うことを目的にリポジトリを public 化しない。可視性は事業・ライセンス上の判断で決める
 

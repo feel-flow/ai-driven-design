@@ -1,6 +1,7 @@
 # public リポジトリ向けの第二の品質ゲート（Issue #517）。
 # 方針: docs/NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §0「適用範囲」。
-# ローカルの .husky/pre-push と同じ `npm run quality:local` を 1 コマンドで呼び、二重定義を避ける。
+# ローカルの .husky/pre-push と同じ `npm run quality:local` を 1 コマンドで呼び、ゲートの中身を二重定義しない。
+# （node-version は package.json の engines.node と手動で揃える。ここだけは写しになる）
 name: CI
 
 on:
@@ -14,7 +15,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # develop への連続マージで先行コミットの実行記録を失わないよう、PR のみキャンセル対象にする
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   quality-gate:
