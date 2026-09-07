@@ -33,7 +33,7 @@ visibility: internal
 
 ## 2. 現行 workflow 棚卸し
 
-以下は**移行以前**に本リポジトリで用いられていた定義の記録です（実装反映後、該当ワークフロー YAML はリポジトリから**削除**されています。復元は古いコミットを参照）。
+以下は**移行以前**に本リポジトリで用いられていた定義の記録です。実装反映後、該当ワークフロー YAML は一度リポジトリから**削除**され、その後 §0 の方針により **public リポジトリでは `ci.yml` のみ復元**されている（現行の `ci.yml` は §2.1 の再現ではなく `npm run quality:local` を 1 コマンドで呼ぶ薄いラッパー。`release.yml` / `release-drafter.yml` は削除のまま）。
 
 ### 2.1 `/.github/workflows/ci.yml`（name: `CI`）
 
@@ -220,12 +220,12 @@ npm run lint:md
 4. **Husky**: pre-commit 維持。pre-push は方針 **C** で実装 → Issue #452 で方針 **B**（フルゲート強制 + `SKIP_QUALITY_GATE=1` 回避）へ拡張。
 5. **PR テンプレ**: 付録 A に沿った**ローカル検証**文言へ更新。
 6. **リリース手順**: 手動 `gh` フローとラベル／`.github/release-drafter.yml` の参考利用を文書化。
-7. **ワークフロー YAML**: 推奨どおり **3 ファイル削除**（`ci.yml`, `release.yml`, `release-drafter.yml`）。設定ファイル `release-drafter.yml` は方針に従い保持可。
+7. **ワークフロー YAML**: 移行時に **3 ファイル削除**（`ci.yml`, `release.yml`, `release-drafter.yml`）。その後 §0 により **public リポジトリでは `ci.yml` を復元**（`quality:local` を呼ぶだけの構成）。private リポジトリでは 3 ファイル削除のまま。設定ファイル `release-drafter.yml` は方針に従い保持可。
 8. **導線**: `DEPLOYMENT` 索引・`AI_GIT_WORKFLOW`・`README` から本書へ到達可能。
 
 ## 10. ブランチ保護と必須ステータス
 
-リモートで **「CI」ワークフローを必須**にしている場合、ワークフロー削除後は**該当ステータスチェックが得られない**。リポジトリ**管理者**が GitHub のブランチ保護ルールで、必須チェック名の変更または削除（チーム方針に従う）を検討する。本リポジトリの設定操作は本ドキュメントのスコープ外。
+**private リポジトリ**（ワークフロー削除）でリモートの **「CI」ワークフローを必須**にしている場合、**該当ステータスチェックが得られない**。リポジトリ**管理者**が GitHub のブランチ保護ルールで、必須チェック名の変更または削除（チーム方針に従う）を検討する。**public リポジトリ**（§0 により `ci.yml` を復元）では逆に、`CI / quality:local` を必須チェックに加えるかを管理者が判断する（[Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517) では範囲外とした）。いずれもリポジトリの設定操作は本ドキュメントのスコープ外。
 
 ---
 

@@ -221,7 +221,15 @@ Closes #123"
 
 #### テスト・品質ゲートの実行
 
-**本リポジトリ（`feel-flow/ai-spec-driven-development`）**では、PR 前にルートで次を実行する。ローカルゲートが一次であり、public リポジトリのため GitHub Actions（`.github/workflows/ci.yml`）が同じコマンドを第二のゲートとして PR 上でも実行する。private リポジトリは Actions に依存しない。適用範囲の方針は [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md §0](./NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md#0-適用範囲public--private) を参照。
+**本リポジトリ（`feel-flow/ai-spec-driven-development`）**では、PR 前にルートで次を実行する。ローカルゲートが一次であり、public リポジトリのため GitHub Actions（`.github/workflows/ci.yml`）が同じコマンドを第二のゲートとして PR 上でも実行する。
+
+**GitHub Actions の適用範囲**（[Issue #517](https://github.com/feel-flow/ai-spec-driven-development/issues/517)）:
+
+- **public リポジトリ**: ローカルゲートを維持したまま、Actions を第二のゲートとして併用する（public では GitHub ホストの標準ランナーが課金対象外）
+- **private リポジトリ**: ローカルゲートのみ。Actions に依存しない
+- **禁止**: Actions を使うことを目的にリポジトリを public 化しない。可視性は事業・ライセンス上の判断で決める
+
+ローカルゲートの実体チェーンや private 向けの移行設計は [NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md](./NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md) を参照。
 
 ```bash
 npm run quality:local
