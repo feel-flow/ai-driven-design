@@ -150,7 +150,7 @@ npm run lint:md
 
 現行 [`.github/pull_request_template.md`](../.github/pull_request_template.md) は「MCP チェック・テスト」を **ローカルコマンド**前提で列挙しているが、併せて**リモート CI への暗黙依存**を前提とする読みが残る場合、**「ローカルで 3.2（または `quality:local`）相当を実施し結果を自己申告」**に寄せる。
 
-**本文の具体的な改稿案**は[付録 A](#付録-a-pr-テンプレート改稿案)に記す（本PRでは**テンプレートファイルの実変更は行わない**想定。実装は別PR）。
+**本文の具体的な改稿案**は[付録 A](#appendix-a-pr-template)に記す（本PRでは**テンプレートファイルの実変更は行わない**想定。実装は別PR）。
 
 ---
 
@@ -222,7 +222,7 @@ npm run lint:md
 2. **ローカル品質ゲート**: `quality:local` および 3.2 全文で **Node >= 24** を前提化。
 3. **`quality:local`**: ルート `package.json` に実装（`npm ci` 抜きの同順チェーン）。
 4. **Husky**: pre-commit 維持。pre-push は方針 **C** で実装 → Issue #452 で方針 **B**（フルゲート強制 + `SKIP_QUALITY_GATE=1` 回避）へ拡張。
-5. **PR テンプレ**: 付録 A に沿った**ローカル検証**文言へ更新。
+5. **PR テンプレ**: [付録 A](#appendix-a-pr-template) に沿った**ローカル検証**文言へ更新。
 6. **リリース手順**: 手動 `gh` フローとラベル／`.github/release-drafter.yml` の参考利用を文書化。
 7. **ワークフロー YAML**: 移行時に **3 ファイル削除**（`ci.yml`, `release.yml`, `release-drafter.yml`）。その後 §0 により **public リポジトリでは `ci.yml` を復元**（`quality:local` を呼ぶだけの構成）。private リポジトリでは 3 ファイル削除のまま。設定ファイル `release-drafter.yml` は方針に従い保持可。
 8. **導線**: `DEPLOYMENT` 索引・`AI_GIT_WORKFLOW`・`README` から本書へ到達可能。
@@ -233,53 +233,14 @@ npm run lint:md
 
 ---
 
-## 付録 A: PR テンプレート改稿案
+<a id="appendix-a-pr-template"></a>
 
-**以下は Issue #377 の設計時点（2026-04）の改稿案スナップショットであり、現行のテンプレートではない。** 現行の正本は `.github/pull_request_template.md` を直接参照すること（本書はミラーとして同期しない）。スナップショットのため、その後の改稿（PR #431 の chain 簡略化、Issue #517 の public 併用注記など）は反映されていない。
+## 付録 A: PR テンプレート改稿案（記録）
 
-```markdown
-## Summary
+Issue #377 の設計時点（2026-04）の改稿案は、**PR テンプレートの Self-Review 節を「リモート CI が検証する」前提から「ローカルで品質ゲートを明示実行し、その結果をチェックリストで申告する」前提の文言へ改める**ことだった。§5 および §9-7 が指す「付録 A に沿った更新」はこの意図を指す。
 
-<!-- 変更の概要を1〜3行で記述してください -->
-
-## Changes
-
-<!-- 変更内容をファイルごとに記載してください -->
-
-## Self-Review Results
-
-- [ ] **ローカル品質ゲート**: `npm run quality:local` を **PR 提出前** に実行し、**失敗がない** ことを確認した（依存ロック厳密再現が必要な場合は事前に `npm ci` / `npm --prefix mcp ci`。実体チェーンは [§3.3](#quality-local-detail)）
-- [ ] `markdownlint`: 該当 Markdown に問題なし（Husky pre-commit と整合）
-- [ ] MCP: `npm run check` 相当でエラーなし（該当する場合）
-- [ ] テスト: `npm --prefix mcp test` および `npm run test:ace-scripts`（該当する場合）がパス
-
-> **注**: リモート **GitHub Actions** に依存しない方針のため、**マージ前の品質はローカル実行＋本チェックリスト**を前提とする。
-
-### Cross-Model Review Results
-
-- [ ] PR Review Toolkit: 実施済み
-- [ ] Codex CLI (`bash scripts/codex-review.sh --base develop`): 実施済み
-- [ ] [Review Response Policy](docs-template/05-operations/deployment/review-response-policy.md) に従い対応済み
-
-## Test plan
-
-<!-- 手動で確認した手順を記載 -->
-
-## Checklist
-
-- [ ] MASTER.md のコード生成ルールに準拠
-- [ ] マジックナンバー禁止ルールを遵守（該当する場合）
-- [ ] 型安全性を確保（該当する場合）
-- [ ] リンク切れがない
-
-## HIGH Impact Changes
-
-（既存の HIGH セクションと同様。省略可能）
-
-## Related Issue
-
-<!-- Closes #XX -->
-```
+- **現行の正本**: [`.github/pull_request_template.md`](../.github/pull_request_template.md)（`quality:local` の明示実行、public リポジトリでの Actions 併用注記を含む現行版）
+- **改稿案の逐語テキスト**: 本書の git 履歴を参照。ミラーは本体との乖離が ACE-045 の失敗モードとして 3 度再発したため撤去した（[Issue #521](https://github.com/feel-flow/ai-spec-driven-development/issues/521)）
 
 ---
 
