@@ -87,11 +87,11 @@ frontmatter の `title` / `tags` / `references` / `status` / `changeImpact` は�
 
 ## 2. What - 付けると何が起きるのか
 
-| パイプライン                   | 入力                                                                | frontmatter から拾うフィールド                                        | 出力 / 効果                                                      |
-| ------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `scripts/validate-docs.mjs`    | `docs-template/` 配下の **固定 7 ファイル**（CORE_DOCS 配列で列挙） | `title`, `version`, `status`, `owner`, `created`, `updated`           | 必須フィールド・enum・SemVer 検証。失敗で exit 1                 |
-| `scripts/build-spec-index.mjs` | `docs/specs/**/*.md`                                                | `specId`, `title`, `status`, `version`, `tags`, `links`, `metrics` 他 | `dist/spec-index.json` を生成。`specId` 重複・enum 違反で exit 1 |
-| `npm run quality:local`        | 上記の validate / build-spec-index / lint / prettier を統括         | 上記すべて                                                            | 旧 GitHub Actions CI 相当の品質ゲート（PR 前に手動実行）         |
+| パイプライン                   | 入力                                                                | frontmatter から拾うフィールド                                        | 出力 / 効果                                                            |
+| ------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `scripts/validate-docs.mjs`    | `docs-template/` 配下の **固定 7 ファイル**（CORE_DOCS 配列で列挙） | `title`, `version`, `status`, `owner`, `created`, `updated`           | 必須フィールド・enum・SemVer 検証。失敗で exit 1                       |
+| `scripts/build-spec-index.mjs` | `docs/specs/**/*.md`                                                | `specId`, `title`, `status`, `version`, `tags`, `links`, `metrics` 他 | `dist/spec-index.json` を生成。`specId` 重複・enum 違反で exit 1       |
+| `npm run quality:local`        | 上記の validate / build-spec-index / lint / prettier を統括         | 上記すべて                                                            | 品質ゲート（PR 前に手動実行。public リポでは CI も同じコマンドを実行） |
 
 > **重要**: `validate-docs.mjs` は **CORE_DOCS 配列で列挙された 7 ファイルだけ**を検証する。拡張文書（GLOSSARY, DECISIONS 等）や `PLAYBOOK.md`、`docs/` 配下の方法論ガイド類は **CI で frontmatter 検証されない**。拡張対象にしたい場合は `CORE_DOCS` 配列への追加か別スクリプト化が必要。
 

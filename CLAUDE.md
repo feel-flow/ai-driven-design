@@ -183,7 +183,7 @@ bash scripts/setup-github-labels.sh
 # Multi-CLI Review Agent setup
 bash scripts/setup-multi-review.sh
 
-# 品質ゲート（旧 GitHub Actions CI 相当。npm ci は含まない）
+# 品質ゲート（npm ci は含まない。public リポジトリでは .github/workflows/ci.yml が同じコマンドを第二のゲートとして実行）
 npm run quality:local
 ```
 
