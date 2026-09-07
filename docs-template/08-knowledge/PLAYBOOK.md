@@ -1,12 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.43.0"
+version: "1.44.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-09-06"
+updated: "2026-09-07"
 owner: "@fffokazaki"
 changeImpact: "medium"
-ace_entry_count: 83
+ace_entry_count: 86
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -1365,7 +1365,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Origin     | PR #431 / Issue #430        |
 | Related    | ACE-014 / ACE-043 / ACE-044 |
 | Date       | 2026-05-20                  |
-| Helpful    | 2                           |
+| Helpful    | 3                           |
 | Harmful    | 0                           |
 | Status     | active                      |
 
@@ -1912,7 +1912,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 | Category   | process              |
 | Origin     | PR #484 / Issue #483 |
 | Date       | 2026-08-28           |
-| Helpful    | 1                    |
+| Helpful    | 2                    |
 | Harmful    | 0                    |
 | Status     | active               |
 
@@ -2000,7 +2000,7 @@ Toolkit comment-analyzer が Critical C1/C2 として独立検出、Copilot revi
 
 | Category | documentation-quality | Origin | PR #500 / Issue #499 |
 | Date | 2026-09-06 |
-| Helpful | 0 | Harmful | 0 |
+| Helpful | 1 | Harmful | 0 |
 | Status | active |
 
 設計文書が「移行前の定義」「旧設定の棚卸し」を記録として残している場合、基準値の更新（Node 版・閾値・ツール版）を grep 置換で横断適用すると、記録節まで現行値に書き換わり「当時どうだったか」が失われる。値を変える PR では、ヒットした各箇所が現行仕様か過去の記録かを見て、記録節は当時の実値（削除済みファイルなら `git show <sha>^:<path>` で裏取り）に保ち、現行値は仕様節に置いて記録節からは参照だけにする。過去の記録が既に不正確でも、正しい記録へ直すのであって現行値へ揃えるのではない。
@@ -2146,7 +2146,63 @@ SendGrid の `ResponseError` は HTTP ステータスを数値の `code` に入�
 
 ---
 
+<a id="ace-519-1"></a>
+
+### ACE-519-1: 受け入れ条件に検査コマンドを書くときファイル引数でスコープを狭めない — 狭めた検査はそのまま通るため「検証済み」の錯覚を作り、同じ主張を持つ他ファイルが無検査で残る
+
+| Category | process | Origin | PR #519 / Issue #517 |
+| Related | ACE-018 / ACE-022 / ACE-505-2 |
+| Date | 2026-09-07 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+Issue #517 の AC は `grep "Actions 非依存" docs/AI_GIT_WORKFLOW.md CLAUDE.md` と 2 ファイルを名指しし、実装はこれを 0 件にして AC を満たした。だが同じ無条件主張は `.cursorrules`（3 つ目の AI 設定ファイル）と `docs/FRONTMATTER_GUIDE.md` に残り、Toolkit レビューで初めて出た。AC の検査コマンドは「合格の定義」として読まれるので、引数で狭めた範囲がそのまま検証範囲になり、狭さ自体は起票者も実装者もレビュアーも疑わない。起票時はスコープを引数で絞らず対象ツリー全体を掃く形で書く（絞るなら除外パスと理由を AC に併記する）。実装側は AC の検査が通っても、同じ主張語で 1 度はリポジトリ全体を掃く。
+
+---
+
+<a id="ace-519-2"></a>
+
+### ACE-519-2: 一方向同期のツリーでは同期可否フラグの値ごとに壊れ方が逆になる — 同期対象は SSOT を直さないと巻き戻り、同期対象外は SSOT を直しても下流コピーが凍結したまま残る
+
+| Category | process | Origin | PR #519 / Issue #517 |
+| Related | ACE-484-1 / ACE-021 |
+| Date | 2026-09-07 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+`scripts/sync-to-public.mjs` は internal（SSOT）→ public の一方向同期で、frontmatter が `visibility: public` の文書だけを運び、対象外は削除せず orphan として報告する。PR #519 が public 側で直した 2 文書はこの値で挙動が分かれた — `visibility: public` の `AI_GIT_WORKFLOW.md` は次回同期で上書きされ Issue #517 の AC ごと巻き戻る一方、`visibility: internal` の設計文書は同期が触らないため SSOT を直しても public 側のコピーは古いまま残る。「実際にコピーされる実体を先に特定する」（ACE-484-1）だけでは後者が漏れるので、編集前に同期可否フラグを読み、対象なら SSOT 側を、対象外なら両側を直す（または下流コピーを消す）。同期が長く走っていないリポジトリでは巻き戻りが「いつか必ず起きるが今日は起きない」形で潜伏するため、同期の再開前に解消しておく。
+
+---
+
+<a id="ace-519-3"></a>
+
+### ACE-519-3: 同一文書内に実体のコピーを抱える節は、見出しと冒頭文が「現行を反映済み」と主張するか「設計時点の案」と名乗るかで扱いが分かれる — 前者は mirror（同期か撤去）、後者は記録節（本文を同期せず主張文だけ直す）
+
+| Category | documentation-quality | Origin | PR #519 / Issue #517 |
+| Related | ACE-045 / ACE-500-1 |
+| Date | 2026-09-07 |
+| Helpful | 0 | Harmful | 0 |
+| Status | active |
+
+`NO_GITHUB_ACTIONS_MIGRATION_DESIGN.md` 付録 A が本体 PR テンプレと 3 度目の drift を起こしたとき、ACE-045（mirror は同期か撤去）と ACE-500-1（記録節は書き換えない）が同じ節に対して逆を指示した。見分けは節の自己申告で、付録 A は見出しが「PR テンプレート改稿案」で §5 から「付録 A に沿って更新」と参照される設計時点のスナップショット＝記録節だった。壊れていたのは冒頭の「反映済み」という現行パリティの主張 1 文だけなので、本文は同期せずその 1 文をスナップショット宣言 + 現行正本への外部参照へ差し替えた。これで同期責務そのものが消えるため、記録を失わずに ACE-045 の失敗モードが構造的に再発しなくなる。
+
+---
+
 ## Changelog
+
+### [1.44.0] - 2026-09-07
+
+#### 追加
+
+- ACE-519-1: 受け入れ条件に検査コマンドを書くときファイル引数でスコープを狭めない — Issue #517 の AC が 2 ファイル限定の grep だったため、同じ無条件主張が `.cursorrules` と `FRONTMATTER_GUIDE.md` に無検査で残った経験から抽出（Issue #517 / PR #519）
+- ACE-519-2: 一方向同期のツリーでは同期可否フラグの値ごとに壊れ方が逆になる — `visibility: public` は巻き戻り、`visibility: internal` は下流コピーが凍結する非対称を実測した経験から抽出（Issue #517 / PR #519）
+- ACE-519-3: 実体コピーを抱える節は自己申告（反映済み / 設計時点の案）で mirror と記録節を見分ける — ACE-045 と ACE-500-1 が同じ節に逆を指示した状況を解いた経験から抽出（Issue #517 / PR #519）
+
+#### カウンター更新
+
+- ACE-045 (Helpful 2→3): PR #519 で同じ付録 A が 3 度目の drift を起こし、Toolkit comment-analyzer が本エントリを根拠に Critical 判定した再演
+- ACE-484-1 (Helpful 1→2): 「実際にコピーされる実体を先に特定する」に従って `sync-to-public.mjs` の同期方向を確認したことで、public 側の修正が次回同期で巻き戻る経路を発見（internal #103 として起票）
+- ACE-500-1 (Helpful 0→1): 「記録節は書き換えない」が付録 A の扱いを決め、本文同期ではなく主張文の差し替えという第 3 の選択肢に到達
 
 ### [1.43.0] - 2026-09-06
 
