@@ -235,9 +235,9 @@ Markdown 内コード例の編集を Python の厳密一致置換で当て、そ
 
 ---
 
-<a id="obs-015"></a>
+<a id="obs-016"></a>
 
-### OBS-015: zsh では終了コード取得の bash イディオムがそのまま動かない — `PIPESTATUS` は小文字 1 始まり、`status` は読み取り専用のため、パイプ越しのゲート判定が黙って空振りする
+### OBS-016: zsh では終了コード取得の bash イディオムがそのまま動かない — `PIPESTATUS` は小文字 1 始まり、`status` は読み取り専用のため、パイプ越しのゲート判定が黙って空振りする
 
 | Kind | problem | Count | 1 |
 | First | 2026-09-07 | Last | 2026-09-07 |
@@ -249,9 +249,9 @@ Markdown 内コード例の編集を Python の厳密一致置換で当て、そ
 
 ---
 
-<a id="obs-016"></a>
+<a id="obs-017"></a>
 
-### OBS-016: 依存バージョンの指摘を「失敗シナリオなし」で Suggestion に落とす前に、その依存が既に CI の annotation で警告を出していないか確認する
+### OBS-017: 依存バージョンの指摘を「失敗シナリオなし」で Suggestion に落とす前に、その依存が既に CI の annotation で警告を出していないか確認する
 
 | Kind | problem | Count | 1 |
 | First | 2026-09-07 | Last | 2026-09-07 |
@@ -263,9 +263,9 @@ Review Response Policy の「失敗シナリオのない指摘は Suggestion」�
 
 ---
 
-<a id="obs-017"></a>
+<a id="obs-018"></a>
 
-### OBS-017: read-only レビューエージェントの実行中はブランチを checkout せず `git show <ref>:<path>` で読む — checkout は実行中エージェントの足元のファイルを差し替える
+### OBS-018: read-only レビューエージェントの実行中はブランチを checkout せず `git show <ref>:<path>` で読む — checkout は実行中エージェントの足元のファイルを差し替える
 
 | Kind | keep | Count | 1 |
 | First | 2026-09-07 | Last | 2026-09-07 |
