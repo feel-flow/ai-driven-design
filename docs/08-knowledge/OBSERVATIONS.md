@@ -92,8 +92,8 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 
 ### OBS-005: ゲート通過を記録する仕組みが無いリポジトリでは、/close-issue の鮮度照合が毎回「判定不能」になる
 
-| Kind | problem | Count | 3 |
-| First | 2026-09-06 | Last | 2026-09-06 |
+| Kind | problem | Count | 4 |
+| First | 2026-09-06 | Last | 2026-09-07 |
 | Status | promoted | Issue | feel-flow/ai-spec-driven-development#515 |
 
 `quality:local` がゲート記録（`record-gate-head.sh` 相当）を書かないため、`check-merge-freshness.sh` は実測対象を特定できず exit 2 を返し、実測とマージの窓は人手の再実行で埋めることになる → 再発が続けば、`quality:local` の末尾でゲート記録を書くか、pre-push hook に記録を組み込むことを本リポジトリの Issue として検討する。
@@ -102,6 +102,7 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 - 2026-09-06: PR #500 の /close-issue でも同じ REASON。fix commit 直前に quality:local を手動実行して代替（再発）
 - 2026-09-06: PR #502 の /close-issue でも同じ REASON（3 回目・閾値到達）。マージ直前の HEAD で quality:local を手動再実行して代替
 - 2026-09-06: 閾値到達により #515 へ昇格起票
+- 2026-09-07: PR #519 の /close-issue でも同じ REASON（4 回目）。#515 は open。HEAD == リモート先端・作業ツリー clean・未 push 0 件を手動照合して代替した（再発）
 
 ---
 
@@ -109,13 +110,14 @@ Vercel を使わないリポジトリでも Vercel プラグインの SessionSta
 
 ### OBS-006: Issue の AC に書く検証コマンドは、起票時に実行して「拾うべきものを拾う」ことを確かめてから書く
 
-| Kind | problem | Count | 1 |
-| First | 2026-09-06 | Last | 2026-09-06 |
+| Kind | problem | Count | 2 |
+| First | 2026-09-06 | Last | 2026-09-07 |
 | Status | active | Issue | なし |
 
 AC の grep を頭で組んで起票すると、検出式の穴（表記の必須化・境界の欠落）がそのまま「残存なし」の緑になり、レビューで検出器ごと差し戻される → 起票前に既知の残存 1 件を含む状態でコマンドを実行し、その 1 件が検出されることを見てから AC に書く。
 
 - 2026-09-06: Issue #499 の AC grep が `node.js` 表記を必須にしていて「Node 20+」を拾えず、Toolkit が Warning として検出器の是正を要求した（初回）
+- 2026-09-07: Issue #517 の AC grep がファイル引数で 2 ファイルに限定されており、同じ無条件主張を持つ `.cursorrules` と `docs/FRONTMATTER_GUIDE.md` を拾えなかった。起票時に引数なしで実行していれば 4 ファイル出ていた（再発。ACE-519-1 として知見化）
 
 ---
 
@@ -137,13 +139,14 @@ AC の grep を頭で組んで起票すると、検出式の穴（表記の必�
 
 ### OBS-008: 旧形式エントリを抱えた PLAYBOOK に形式ゲートを allowlist 未初期化で当てると、既存分が全件赤になり新規追記の判定が埋もれる
 
-| Kind | problem | Count | 1 |
-| First | 2026-09-06 | Last | 2026-09-06 |
+| Kind | problem | Count | 2 |
+| First | 2026-09-06 | Last | 2026-09-07 |
 | Status | promoted | Issue | feel-flow/ai-spec-driven-development#504 |
 
 `/ace-curate` 4-f の `check-entry-format.ts` は allowlist 不在を strict として扱うため、初回導入（`/ace-setup` Step 3-b の `--init-allowlist`）を済ませていないリポジトリでは curate のたびに既存旧形式が全件列挙される → 新規 ID が検出一覧に無いことを確認して進め、allowlist 初期化を別 Issue で行う。
 
 - 2026-09-06: PR #502 の curate で 71 件が列挙、新規 ACE-502-1 は非検出。#504 を起票（初回）
+- 2026-09-07: PR #519 の curate でも 71 件が全件赤（allowlist 不在 = strict）。新規 ACE-519-1〜3 は非検出だったが、rc=1 の原因切り分けに追加 1 コマンドを要した。#504 は open（再発）
 
 ---
 
@@ -165,13 +168,14 @@ AC の grep を頭で組んで起票すると、検出式の穴（表記の必�
 
 ### OBS-010: ACE 系スキルは PLAYBOOK を `docs/08-knowledge/` 固定で参照するが、テンプレ配布リポジトリでは実体が `docs-template/08-knowledge/` にある
 
-| Kind | problem | Count | 1 |
-| First | 2026-09-06 | Last | 2026-09-06 |
+| Kind | problem | Count | 2 |
+| First | 2026-09-06 | Last | 2026-09-07 |
 | Status | active | Issue | なし |
 
 既定パスで grep・frontmatter 読みを組むと全コマンドが not found で空振りし、パスを直して再実行する往復が出る → 着手時に `package.json` の `ace:*` スクリプトが指すパスで実配置を確定してからコマンドを組む（`/retrospective` の「知見ストアの実配置を確定する」と同じ手順を curate 側にも置く余地）。
 
 - 2026-09-06: PR #502 の curate で最初の情報収集 1 ターンが全件 not found（初回）
+- 2026-09-07: PR #519 の curate で `docs/08-knowledge/` に OBSERVATIONS.md だけがあり PLAYBOOK は `docs-template/` 側という配置差を、実在確認 1 ターンで特定した（再発）
 
 ---
 
@@ -233,7 +237,49 @@ Markdown 内コード例の編集を Python の厳密一致置換で当て、そ
 
 <a id="obs-015"></a>
 
-### OBS-015: 品質ゲートをバックグラウンド実行中にその対象ファイルを編集すると、実行結果が最終ツリーと一致する保証を失い無効になる
+### OBS-015: zsh では終了コード取得の bash イディオムがそのまま動かない — `PIPESTATUS` は小文字 1 始まり、`status` は読み取り専用のため、パイプ越しのゲート判定が黙って空振りする
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-07 | Last | 2026-09-07 |
+| Status | active | Issue | なし |
+
+長時間ゲートの結果をパイプで `tail` に流すと `${PIPESTATUS[0]}` が空になり（zsh は `pipestatus` で 1 始まり）、続けて `status=$?` で受けようとすると `read-only variable: status` で代入行から落ちる → ゲートはログファイルへリダイレクトし、次行で `rc=$?` を受けてから `grep` で中身を読む。
+
+- 2026-09-07: PR #519 で `npm run quality:local` の終了コードを 2 回取り損ね、確証のためゲートを 2 回追加実行した（1 回 40 秒前後）。3 回目にログ経由 + `rc=$?` で確定（初回）
+
+---
+
+<a id="obs-016"></a>
+
+### OBS-016: 依存バージョンの指摘を「失敗シナリオなし」で Suggestion に落とす前に、その依存が既に CI の annotation で警告を出していないか確認する
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-07 | Last | 2026-09-07 |
+| Status | active | Issue | なし |
+
+Review Response Policy の「失敗シナリオのない指摘は Suggestion」は、失敗シナリオを差分だけから探すと成立していないように見える。依存の非推奨警告は実行ログ側にしか現れないため、見送り判断の前に `gh run view` の annotation を読む → 根拠が既に存在していれば Warning として現 PR で対応できる。
+
+- 2026-09-07: PR #519 で actions のバージョンピン留め指摘を「失敗シナリオなし」として見送った直後、マージ後の CI annotation に `actions/checkout@v4` / `actions/setup-node@v4` が Node.js 20 を対象としており Node 24 へ強制されている旨の非推奨警告が出ていた。見送り前に annotation を読めば現 PR 内で閉じられた（初回）
+
+---
+
+<a id="obs-017"></a>
+
+### OBS-017: read-only レビューエージェントの実行中はブランチを checkout せず `git show <ref>:<path>` で読む — checkout は実行中エージェントの足元のファイルを差し替える
+
+| Kind | keep | Count | 1 |
+| First | 2026-09-07 | Last | 2026-09-07 |
+| Status | active | Issue | なし |
+
+並列エージェントの禁止事項は「エージェント側がビルドしないこと」だけでなく、オーケストレータ側が作業ツリーを動かさないことも含む。先に返ってきた観点の指摘を検証したくなっても checkout せず、`git show <branch>:<path>` で PR ブランチの内容を読めば、待ち時間を事実確認に使いながら実行中のエージェントを壊さない。
+
+- 2026-09-07: PR #519 で comment-analysis が先に完了し code-review が実行中だったため、`git show origin/<branch>:<path>` で Critical / Warning 6 件を全件実測（すべて正確と確認）。checkout は code-review 完了後まで待ち、競合ゼロで 1 fix commit に束ねられた（初回）
+
+---
+
+<a id="obs-018"></a>
+
+### OBS-018: 品質ゲートをバックグラウンド実行中にその対象ファイルを編集すると、実行結果が最終ツリーと一致する保証を失い無効になる
 
 | Kind | problem | Count | 1 |
 | First | 2026-08-28 | Last | 2026-08-28 |
