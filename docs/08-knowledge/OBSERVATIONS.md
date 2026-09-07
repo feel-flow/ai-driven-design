@@ -304,3 +304,17 @@ Review Response Policy の「失敗シナリオのない指摘は Suggestion」�
 - 2026-09-07: PR #519 の振り返りで OBS-015〜017 を採番して push（fast-forward で成功）したが、open PR #518 が別内容の OBS-015 を定義済みで `docs/AI_GIT_WORKFLOW.md` からアンカー参照も持っていた。自分の 3 件を OBS-016〜018 へ繰り下げる追加コミットを要した（初回）
 
 ---
+
+<a id="obs-020"></a>
+
+### OBS-020: `multi-review.sh --base <branch>` はローカルの ref を解決するため、fetch 済みでもローカル追跡ブランチが古いとレビュー範囲が黙って上位集合へ広がる
+
+| Kind | problem | Count | 1 |
+| First | 2026-09-07 | Last | 2026-09-07 |
+| Status | active | Issue | なし |
+
+`--base develop` はリモート追跡ではなくローカルの `develop` を解決するため、`git fetch` だけしてローカル ref を更新していないと、既にマージ済みの他 PR の差分まで含めてレビューさせる。エラーにならず結果も返るので、レビュー観点が PR 外の差分へ分散していることに気づけない → 起動前に `git rev-parse --short develop origin/develop` の一致を確認する（または `--base origin/develop` を渡す）。
+
+- 2026-09-07: PR #522 のレビューでローカル `develop` が #519 マージ前で止まっており、PR 実差分 1 ファイル 7+46 行に対し 7 ファイル 114+82 行を対象にレビューさせた。出力に「`ci.yml` の新設」（#519 で既にマージ済み）が含まれていたことで気づき、ref を更新して再実行した（初回）
+
+---
