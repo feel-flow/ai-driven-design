@@ -23,6 +23,8 @@ import { spawnSync } from 'node:child_process';
 
 /** 同期対象のルートディレクトリ（これ以外は visibility があっても対象外） */
 const SYNC_ROOT = 'docs';
+/** 公開側で編集する2.0標準・案内。別の同期元からの更新・凍結判定を禁止する。 */
+const PUBLIC_OWNED_DOCS = new Set(JSON.parse(fs.readFileSync(new URL('./public-owned-docs.json', import.meta.url), 'utf8')));
 /** visibility フィールドの許容値 */
 const VALID_VISIBILITY_VALUES = ['public', 'internal'];
 /**
@@ -180,6 +182,7 @@ function main() {
   // 1st pass: 全ファイルを分類し、不正があれば書き込み前に全体を中断する（fail-loud）
   const publishFiles = [];
   const skippedFiles = [];
+  const publicOwnedFiles = [];
   const invalidFiles = [];
   for (const relPath of sourceFiles) {
     const content = fs.readFileSync(path.join(source, relPath), 'utf8');
@@ -191,6 +194,8 @@ function main() {
         relPath,
         reason: `不正な visibility 値 "${visibility}" (許容値: ${VALID_VISIBILITY_VALUES.join(' | ')})`,
       });
+    } else if (PUBLIC_OWNED_DOCS.has(relPath.split(path.sep).join('/'))) {
+      publicOwnedFiles.push(relPath);
     } else if (visibility === 'public') {
       publishFiles.push({ relPath, content });
     } else {
@@ -204,6 +209,10 @@ function main() {
       console.error(`   - ${relPath}: ${reason}`);
     }
     process.exit(EXIT_ERROR);
+  }
+
+  for (const rel of publicOwnedFiles) {
+    console.log(`  = public-owned（公開側が正本のため同期対象外）: ${rel}`);
   }
 
   // 2nd pass: コピー実行（非破壊・冪等）
@@ -238,7 +247,7 @@ function main() {
 
   // orphan 報告: target にあるが同期対象になっていないファイル（削除はしない）
   const publishSet = new Set(publishFiles.map((f) => f.relPath));
-  const orphans = listMarkdownFiles(target, SYNC_ROOT).filter((rel) => !publishSet.has(rel));
+  const orphans = listMarkdownFiles(target, SYNC_ROOT).filter((rel) => !publishSet.has(rel) && !PUBLIC_OWNED_DOCS.has(rel.split(path.sep).join('/')));
   if (orphans.length > 0) {
     console.log(`\nℹ️  orphan（target に存在するが同期対象外。public 側で凍結扱い。削除はしません）:`);
     for (const rel of orphans) {
@@ -248,7 +257,7 @@ function main() {
 
   console.log(
     `\n✅ sync-to-public 完了${dryRun ? '（dry-run）' : ''}: ` +
-      `copied=${copied} unchanged=${unchanged} skipped=${skippedFiles.length} orphans=${orphans.length}`,
+      `copied=${copied} unchanged=${unchanged} skipped=${skippedFiles.length} publicOwned=${publicOwnedFiles.length} orphans=${orphans.length}`,
   );
   process.exit(EXIT_OK);
 }

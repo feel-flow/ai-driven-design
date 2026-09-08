@@ -74,6 +74,20 @@ const fm = (visibility?: string) =>
   `---\ntitle: t\nversion: 1.0.0\n${visibility ? `visibility: ${visibility}\n` : ""}---\n\n# body\n`;
 
 describe("sync-to-public: 同期対象の選別（fail-safe）", () => {
+  it("公開側で所有する2.0文書は上書き・新規同期・凍結報告をせず、通常同期を続ける", () => {
+    const owned: string[] = JSON.parse(readFileSync(join(REPO_ROOT, "scripts/public-owned-docs.json"), "utf8"));
+    const source = makeSource({ ...Object.fromEntries(owned.map((file) => [file, fm("public")])), "docs/OTHER.md": fm("public") });
+    const existing = owned.slice(1);
+    const target = makeTarget(PUBLIC_URL, Object.fromEntries(existing.map((file) => [file, "public decision"])));
+    const r = runSync(source, target);
+    expect(r.status).toBe(0);
+    for (const file of existing) expect(readFileSync(join(target, file), "utf8")).toBe("public decision");
+    expect(existsSync(join(target, owned[0]))).toBe(false);
+    expect(readFileSync(join(target, "docs/OTHER.md"), "utf8")).toBe(fm("public"));
+    expect(r.stdout).toContain(`publicOwned=${owned.length}`);
+    expect(r.stdout).toContain("orphans=0");
+  });
+
   it("visibility: public のファイルが target へコピーされる（ネスト含む）", () => {
     const source = makeSource({
       "docs/GUIDE.md": fm("public"),

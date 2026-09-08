@@ -143,7 +143,7 @@ ACE、自動振り返り、複数AIレビュー、Hook、CIは独立して選択
 | 利用・公開可能 | 対象成果物の検証、運用・公開条件、必要な承認が揃っている         |
 | 配布・公開完了 | 対象の版・配布先・実際の利用経路で反映を確認できる               |
 
-方法論は本リポジトリ、スキル・生成処理・配布テンプレートは `feelflow-plugins`、公開プラグインは `ff-dev-toolkit` への一方向同期、書籍原稿は `ai-books` を正本とする。同一内容を各リポジトリで独立改訂しない。直接利用用テンプレートの同期は [Issue #525](https://github.com/feel-flow/ai-spec-driven-development/issues/525) で追跡する。
+2.0の公開方法論は本リポジトリ、スキル・生成処理・配布テンプレートは `feelflow-plugins`、公開プラグインは `ff-dev-toolkit` への一方向同期、書籍原稿は `ai-books` を正本とする。同一内容を各リポジトリで独立改訂しない。公開側で編集する標準・案内は [編集元の限定リスト](../scripts/public-owned-docs.json) で保護し、他の同期元で上書きしない。非公開の詳細知見・事例は別管理を維持する。直接利用用テンプレートの同期は [Issue #525](https://github.com/feel-flow/ai-spec-driven-development/issues/525) で追跡する。
 
 ## Changelog
 
