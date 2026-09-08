@@ -118,6 +118,8 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 2.0の新規プロジェクトは **7観点を整理し、必要な文書から始める**。最小構成は短い `docs/MASTER.md` とし、情報量や用途に応じて分離する。従来構成とURLは維持し、移行を合意していない既存プロジェクトの文書を減らさない。
 
+<a id="コア-7-文書"></a>
+
 ### 7観点を個別文書に分けた標準構成
 
 `MASTER.md`、`PROJECT.md`、`ARCHITECTURE.md`、`DOMAIN.md`、`PATTERNS.md`、`TESTING.md`、`DEPLOYMENT.md`
