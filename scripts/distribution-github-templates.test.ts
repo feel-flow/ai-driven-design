@@ -154,8 +154,12 @@ const RELATIVE_LINK =
   /\]\((?!https?:\/\/|#|mailto:)([^)\s#]+\.[A-Za-z0-9]+)(?:#[^)\s]*)?\)/g;
 // HTMLコメント内の記入例は描画されるリンクではない（ASDD 2.0のACE昇格例）。
 // コメント外の同じリンクは通常どおり実在・初期セットを検査する。
-function relativeLinks(content: string): IterableIterator<RegExpMatchArray> {
-  return content.replace(/<!--[\s\S]*?-->/g, "").matchAll(RELATIVE_LINK);
+function* relativeLinks(content: string): IterableIterator<RegExpMatchArray> {
+  const comments = [...content.matchAll(/<!--[\s\S]*?-->/g)];
+  for (const link of content.matchAll(RELATIVE_LINK)) {
+    // 原文を連結せず、リンクの開始位置がコメント内かを判定する。
+    if (!comments.some(comment => link.index >= comment.index && link.index < comment.index + comment[0].length)) yield link;
+  }
 }
 // inline code のパス表記。`docs/...` `.github/...` のみを対象にする
 // （`src/services/auth.ts` のような架空の実装例は対象外）。
@@ -339,6 +343,7 @@ describe("検出器の自己検証", () => {
     const example = "出典: [ACE-XXX](../08-knowledge/playbook/<category>.md#ace-xxx)";
     const hidden = `<!-- /ace-refineの記入例\n${example}\n-->`;
     expect(extract(hidden)).toEqual([]);
+    expect(extract("[split]<!-- 記入例 -->(missing.md)")).toEqual([]);
     expect(findOutOfSetLinks("PATTERNS.md", "docs/03-implementation/PATTERNS.md", hidden)).toEqual([]);
     expect(extract(`${hidden}\n${example}`)).toEqual(["../08-knowledge/playbook/<category>.md"]);
     expect(findOutOfSetLinks("PATTERNS.md", "docs/03-implementation/PATTERNS.md", `${hidden}\n${example}`)).toHaveLength(1);
