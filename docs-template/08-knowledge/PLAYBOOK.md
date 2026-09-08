@@ -1,12 +1,12 @@
 ---
 title: "PLAYBOOK"
-version: "1.44.0"
+version: "1.45.0"
 status: "approved"
 created: "2026-03-10"
-updated: "2026-09-07"
+updated: "2026-09-08"
 owner: "@fffokazaki"
 changeImpact: "medium"
-ace_entry_count: 86
+ace_entry_count: 88
 tags: [ace, playbook, knowledge-management]
 references:
   - https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/ACE_FRAMEWORK.md
@@ -2188,7 +2188,56 @@ Issue #517 の AC は `grep "Actions 非依存" docs/AI_GIT_WORKFLOW.md CLAUDE.m
 
 ---
 
+<a id="ace-526-1"></a>
+
+### ACE-526-1: 文書の正本を移すときは同期の所有対象も限定する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | architecture         |
+| Origin     | PR #526 / Issue #524 |
+| Date       | 2026-09-08           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 正本を移すという説明だけでは、既存の一方向同期が新しい合意を上書きする。公開可否と編集元の所有権を分離し、移管対象だけを同期の作成・上書き・凍結判定から除外する。
+
+**Context**: ASDD 2.0の標準を公開側で編集する方針に合わせ、9パスの限定リストと同期保護を追加した。保護対象の既存ファイルと欠落ファイル、対象外の通常文書を同時に検証した。
+
+**Action**: 移管するパスを列挙し、同期実行側の保護を先に統合する。コピーを止めるだけでなく、orphanなどの報告も所有権と一致させる。対象外の既存同期と公開条件は維持する。
+
+---
+
+<a id="ace-527-1"></a>
+
+### ACE-527-1: 計画の一致と現在の出力の一致を別々に検証する
+
+| フィールド | 値                   |
+| ---------- | -------------------- |
+| Category   | testing              |
+| Origin     | PR #527 / Issue #525 |
+| Date       | 2026-09-08           |
+| Helpful    | 0                    |
+| Harmful    | 0                    |
+| Status     | active               |
+
+**Insight**: 計画時のハッシュを照合するだけでは、その後の手編集を検出できない。書き込み前の競合判定と完了判定は、実行時のファイルを読み直して行う。
+
+**Context**: 固定SHAからのテンプレート出力で、verifyが古い状態を成功扱いにし、最初の出力後に編集された後続ファイルを上書きする欠陥を独立レビューで検出した。rename後に別ファイルを変更する実Gitテストで再現した。
+
+**Action**: 全対象の事前確認に加え、各置換直前にもレビュー時の状態と照合する。最後に実際の全出力を検証し、途中変更や部分完了を成功として報告しない。保存済みの計画を再利用したcheckもテストする。
+
+---
+
 ## Changelog
+
+### [1.45.0] - 2026-09-08
+
+#### 追加
+
+- ACE-526-1: 正本移管時に同期の所有対象も限定する（PR #526 / Issue #524）。
+- ACE-527-1: 計画の一致と現在の出力の一致を分離し、実ファイルで完了を確認する（PR #527 / Issue #525）。
 
 ### [1.44.0] - 2026-09-07
 
