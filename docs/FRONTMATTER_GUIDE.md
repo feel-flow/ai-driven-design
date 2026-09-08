@@ -1,10 +1,10 @@
 ---
 id: frontmatter-guide
 title: Frontmatter ガイド - なぜ・どこで・何を書くか
-version: 1.4.0
+version: 1.5.0
 status: draft
 created: 2026-05-19
-updated: 2026-07-03
+updated: 2026-09-08
 owner: feel-flow
 phase: mvp
 tags: [documentation, frontmatter, metadata, spec-kit, governance]
@@ -320,7 +320,9 @@ metrics:
 
 > **適用範囲**: 本リポジトリ運用向けのフィールド（`docs/**/*.md` のみ）。テンプレート採用者には不要。
 
-FEEL FLOW ではメソドロジーの全量を private リポジトリ（`ai-spec-driven-development-internal`、SSOT）で管理し、公開分だけを本リポジトリへ一方向同期する（[Issue #467](https://github.com/feel-flow/ai-spec-driven-development/issues/467)）。同期対象の判定に `visibility` フィールドを使う。
+ASDD 2.0の公開標準と導入案内は、本リポジトリを正本として編集する。対象は [scripts/public-owned-docs.json](../scripts/public-owned-docs.json) の限定リストで管理し、別の同期元から上書き・新規作成・凍結扱いにしない。公開範囲と編集元は別の判断であり、`visibility: public` だけで編集元を変更しない。
+
+対象外の文書は従来の抽出同期（[Issue #467](https://github.com/feel-flow/ai-spec-driven-development/issues/467)）を維持する。非公開の詳細知見・事例を公開標準へ自動で取り込まない。同期対象の公開可否は、引き続き `visibility` フィールドで判定する。
 
 ```yaml
 ---
@@ -329,16 +331,17 @@ visibility: public # public | internal
 ---
 ```
 
-| 値                            | 意味                                                                           |
-| ----------------------------- | ------------------------------------------------------------------------------ |
-| `public`                      | `scripts/sync-to-public.mjs` の同期対象。public リポジトリで更新を継続する文書 |
-| `internal`                    | 同期対象外。internal リポジトリでのみ発展させる文書（public 側は凍結）         |
-| （未指定 / frontmatter なし） | **`internal` と同じ扱い**（fail-safe。公開はオプトイン）                       |
+| 値                            | 意味                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `public`                      | 公開可能。公開側が正本の限定リストを除き、抽出同期の対象になる文書     |
+| `internal`                    | 同期対象外。internal リポジトリでのみ発展させる文書（public 側は凍結） |
+| （未指定 / frontmatter なし） | **`internal` と同じ扱い**（fail-safe。公開はオプトイン）               |
 
 「未指定」は **`visibility` キー自体が無い場合のみ**を指す。キーはあるが値が空・許容値外（typo 等）、または frontmatter の閉じデリミタが欠落している場合は、fail-safe の quiet skip ではなく次項の fail-loud で中断される。値のインラインコメント（`visibility: public # コメント`）と引用符（`"public"`）は同期スクリプトが剥がして解釈する。
 
 運用ルール:
 
+- **編集元を保護**: 公開側が正本の限定リストを読み込む対応版の同期スクリプトを使用する。古いコピーでは2.0文書の所有権を判断できないため、同期前に対応版へ更新する
 - **公開はオプトイン**: `visibility: public` を明示した文書だけが同期される。未指定・frontmatter なし・`internal` は決して public へコピーされない
 - **不正は fail-loud**: 許容値外の値・空値・閉じデリミタ欠落の壊れた frontmatter を1つでも検出すると、同期スクリプトは**一切書き込まずに** exit 1 で中断する
 - **非破壊**: 同期は削除を行わない。`internal` に変更された文書の public 側コピーは orphan（凍結）として報告のみされる
@@ -435,6 +438,10 @@ frontmatter 管理（編集・検証・索引化）は Node スクリプトと�
 ---
 
 ## Changelog
+
+### [1.5.0] - 2026-09-08
+
+- 追加: ASDD 2.0の公開標準の正本と限定リストによる同期保護を定義。対象外の公開可否と抽出同期は維持。
 
 ### [1.4.0] - 2026-07-03
 
