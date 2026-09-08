@@ -17,7 +17,10 @@ const LICENSE = 'SOURCE_LICENSE.txt';
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 const json = value => `${JSON.stringify(value, null, 2)}\n`;
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
-const git = (cwd, ...args) => execFileSync('git', args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 16 * 1024 * 1024 });
+// Hookから渡るGit設定で別リポジトリやURL書換えを参照しない。ネットワーク操作は行わない。
+const gitEnvironment = () => ({ ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))),
+  GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null', GIT_CONFIG_SYSTEM: process.platform === 'win32' ? 'NUL' : '/dev/null' });
+const git = (cwd, ...args) => execFileSync('git', args, { cwd, env: gitEnvironment(), stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 16 * 1024 * 1024 });
 const gitText = (cwd, ...args) => git(cwd, ...args).toString('utf8').trim();
 function repository(root, name) {
   root = fs.realpathSync(root);

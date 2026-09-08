@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { FILES, prepare, applyExport, verify } from './export-toolkit-templates.mjs';
 
 const roots: string[] = [];
-afterEach(() => { for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true }); });
+afterEach(() => { vi.unstubAllEnvs(); for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true }); });
 function temp() { const root = fs.mkdtempSync(path.join(os.tmpdir(), 'template-export-')); roots.push(root); return root; }
 const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))), GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null' };
 const git = (root: string, ...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8', env, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -30,6 +30,15 @@ function fixture() {
   return { source, target, ref: 'release-fixture', commit, prefix };
 }
 describe('固定コミットからのテンプレート直接配布', () => {
+  it('呼び出し元HookのGit設定が別リポジトリを指していても対象rootだけを読む', () => {
+    const f = fixture();
+    vi.stubEnv('GIT_DIR', path.join(f.target, '.git'));
+    vi.stubEnv('GIT_WORK_TREE', f.target);
+    vi.stubEnv('GIT_CONFIG_COUNT', '1');
+    vi.stubEnv('GIT_CONFIG_KEY_0', 'remote.origin.url');
+    vi.stubEnv('GIT_CONFIG_VALUE_0', 'https://example.invalid/wrong');
+    expect(prepare(f).provenance.source.commit).toBe(f.commit);
+  });
   it('既定の計画は書き込まず、承認した対象7文書と由来・ライセンスのみ出力する', () => {
     const f = fixture(), p = prepare(f);
     expect(fs.readFileSync(path.join(f.target, 'docs-template/MASTER.md'), 'utf8')).toBe('legacy MASTER\n');
