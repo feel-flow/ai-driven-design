@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 // @ts-expect-error 検証対象はNode.jsで直接実行するESMスクリプト
 import { FILES, prepare, applyExport, verify } from './export-toolkit-templates.mjs';
 
@@ -30,6 +31,22 @@ function fixture() {
   return { source, target, ref: 'release-fixture', commit, prefix };
 }
 describe('固定コミットからのテンプレート直接配布', () => {
+  it('symlink経由のCLIでも計画・出力・実ファイル不一致を判定する', () => {
+    const f = fixture(), cli = path.join(temp(), 'export-alias.mjs');
+    fs.symlinkSync(fileURLToPath(new URL('./export-toolkit-templates.mjs', import.meta.url)), cli);
+    const args = [cli, '--source', f.source, '--target', f.target, '--ref', f.ref, '--commit', f.commit];
+    const plan = JSON.parse(execFileSync(process.execPath, args, { env, encoding: 'utf8' }));
+    expect(plan.entries).toHaveLength(9);
+    const reviewed = path.join(temp(), 'review.json');
+    fs.writeFileSync(reviewed, JSON.stringify(plan));
+    const applied = JSON.parse(execFileSync(process.execPath, [...args, '--apply', '--review-plan', reviewed], { env, encoding: 'utf8' }));
+    expect(applied.changed).toHaveLength(9);
+    put(f.target, 'docs-template/MASTER.md', 'later edit');
+    const checked = spawnSync(process.execPath, [...args, '--check'], { env, encoding: 'utf8' });
+    expect(checked.status).toBe(1);
+    expect(JSON.parse(checked.stdout).mismatches).toContain('docs-template/MASTER.md');
+  });
+
   it('呼び出し元HookのGit設定が別リポジトリを指していても対象rootだけを読む', () => {
     const f = fixture();
     vi.stubEnv('GIT_DIR', path.join(f.target, '.git'));

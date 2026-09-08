@@ -127,7 +127,8 @@ export function main(args) {
   process.stdout.write(json(result));
   return mode === 'check' && !result.matches ? 1 : 0;
 }
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Node.jsはimport先を実パスへ解決する。/tmp別名やsymlink入口でもCLIを実行する。
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) {
     // Gitのstderrには認証やローカル情報が含まれうるため転記しない。

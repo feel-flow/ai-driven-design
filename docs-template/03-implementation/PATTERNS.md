@@ -1,14 +1,16 @@
 ---
 title: "PATTERNS"
-version: "1.3.0"
+version: "1.5.1"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "2026-09-06"
-changeImpact: "MEDIUM"
+updated: "2026-09-08"
+changeImpact: "medium"
 ---
 
 # PATTERNS.md - 実装パターンガイド
+
+> 本文の言語・設計・レビュー・テスト設定は候補例。プロジェクトの目的・リスク・既存構成に合わせて推奨理由を示し、合意済みのものだけを採用する。ASDD 2.0では `.asdd/config.json` の文書・機能選択を優先し、ACE・振り返り・複数AIレビューを無効時に追加しない。
 
 ## 1. コーディング規約
 
@@ -148,7 +150,7 @@ abstract class AppError extends Error {
   }
 }
 
-// HTTP ステータス（マジックナンバー禁止 / MASTER.md）。エラー階層と正規化で共用する
+// HTTP ステータス（意味のある値の定数化（採用時） / MASTER.md）。エラー階層と正規化で共用する
 const HTTP_STATUS = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
@@ -762,10 +764,10 @@ interface Metrics {
   increment(name: string, tags?: Record<string, string>): void;
 }
 
-// cause 鎖の展開深さの上限（マジックナンバー禁止）。無限の cause ループを防ぐ
+// cause 鎖の展開深さの上限（意味のある値の定数化（採用時））。無限の cause ループを防ぐ
 const ERROR_CAUSE_MAX_DEPTH = 5;
 
-// ログに載せる上流レスポンス本文の上限（マジックナンバー禁止）。巨大な本文で行を潰さない
+// ログに載せる上流レスポンス本文の上限（意味のある値の定数化（採用時））。巨大な本文で行を潰さない
 const ERROR_LOG_BODY_MAX_CHARS = 2000;
 
 // HTTP 由来のエラー（AxiosError / fetch のレスポンス / { status, body }）から
@@ -802,7 +804,7 @@ function pickHttpDiagnostics(value: object): Record<string, unknown> {
   return diagnostics;
 }
 
-// ログに載せる非 HTTP 形状 cause の上位キー数の上限（マジックナンバー禁止）
+// ログに載せる非 HTTP 形状 cause の上位キー数の上限（意味のある値の定数化（採用時））
 const ERROR_LOG_SHAPE_MAX_KEYS = 20;
 
 // HTTP 形状でないオブジェクトの「形」だけを残す。値は一切出さない — 任意オブジェクトを
@@ -909,7 +911,7 @@ class JsonLogger implements Logger {
 }
 ```
 
-## 10. マジックナンバー禁止
+## 10. 意味のある値の定数化（採用時）
 
 ### 定数の定義
 
@@ -975,7 +977,7 @@ Decision Tree は 7 分岐（Q0〜Q6）で構成される：
 
 詳細な分岐内容とチェックリストは [DECISION_TREE.md](./DECISION_TREE.md) を参照。
 
-新規ファイルの雛形（SKELETON テンプレ）は `docs/03-implementation/templates/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）に集約する。言語非依存の運用ルールと、TypeScript 等のコピー元パスを必ず確認すること。
+新規ファイルの雛形（SKELETON テンプレ）は `docs/03-implementation/templates/README.md`（初期セット外。必要になった時点で `${CLAUDE_PLUGIN_ROOT}/docs-template/` の同一相対パスからコピーする）に集約する。言語非依存の運用ルールと、TypeScript 等のコピー元パスを必ず確認すること。
 
 ## 12. 依存方向 lint（Layer 3）
 
@@ -985,26 +987,80 @@ Layer 1（[DECISION_TREE.md](./DECISION_TREE.md)）で決めた配置を、言�
 - 注意: Layer 3 は **言語依存**（Python/TypeScript/Go/Rust など）
 - 運用: `ignore_imports` などを使って既知負債を可視化し、削除ではなく追跡する
 
-詳細は `docs/03-implementation/DEPENDENCY_LINT.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照。
+詳細は `docs/03-implementation/DEPENDENCY_LINT.md`（初期セット外。必要になった時点で `${CLAUDE_PLUGIN_ROOT}/docs-template/` の同一相対パスからコピーする）を参照。
+
+## 13. アンチパターン
+
+このプロジェクトで**やってはいけない**実装を列挙する。レビュー・AI コード生成時の除外基準として使う。
+
+### 共通アンチパターン
+
+| アンチパターン                 | 理由                     | 代わりにやること                                           |
+| ------------------------------ | ------------------------ | ---------------------------------------------------------- |
+| マジックナンバー・ハードコード | 変更漏れ・意図不明の原因 | 名前付き定数へ抽出（→ 10. 意味のある値の定数化（採用時）） |
+| エラーの握りつぶし（空 catch） | 障害の検知が遅れる       | ログ記録 + 呼び出し元へ伝播（→ 3. エラーハンドリング）     |
+| 境界を越えた直接 import        | レイヤー違反・循環依存   | 依存方向 lint に従う（→ 12. 依存方向 lint）                |
+| ビジネスルールのコード内散在   | 仕様と実装の乖離         | DOMAIN.md に集約し、コードから参照                         |
+
+### プロジェクト固有のアンチパターン
+
+<!-- 運用の中で発見した「このプロジェクトでは禁止」の実装を追記する。例: 特定ライブラリの直接利用禁止、非推奨 API の使用禁止など。まだない場合は削除せず「該当なし（運用開始後に追記）」と明記する -->
+
+- 該当なし（運用開始後に追記）
+
+## 14. 実証済みパターン（ACE 昇格）
+
+ACE Playbook で `Helpful >= 5` に達した知見を、`/ace-refine` が蒸留して昇格させる節。実装着手前に本節を読めば、このプロジェクトで繰り返し実証されたルールを最優先で適用できる。
+
+- **形式**: 見出し 1 行 + ルール本文 1〜3 行（命令形）+ `出典:` の ACE ID リンク
+- **昇格は移動ではない**: 元の Playbook エントリは `Status: active` のまま残す（蒸留オーバーレイ）。詳細な適用条件は出典リンク先を参照
+- **昇格手順の SSOT**: `/ace-refine` スキル本体
+
+<!-- /ace-refine が以下の形式で追記する。まだない場合は削除せず「該当なし（昇格発生後に追記）」と明記する
+
+### [パターンを一言で表す見出し]
+
+[ルール本文 1〜3 行。実装前に読んで即適用できる命令形で書く]
+
+出典: [ACE-XXX](../08-knowledge/playbook/<category>.md#ace-xxx)
+-->
+
+- 該当なし（昇格発生後に追記）
 
 ## Changelog
 
-### [1.3.0] - 2026-09-06
+### [1.5.1] - 2026-09-08
+
+- 方法論側のエラー境界・診断ログの修正を正本へ統合（AI仕様駆動開発2.0: #1372、直接配布: ai-spec-driven-development#525）。numeric codeのHTTP形状確認、1xx〜3xx分類、SendGrid本文、非HTTP causeの値の非出力を保持。
+
+### [1.5.0] - 2026-09-08
+
+- ASDD 2.0: project-specific recommendations and explicitly agreed optional features (Issues #1372 / #1374).
+
+### [1.4.0] - 2026-09-06
 
 #### 変更
 
-- `UpstreamRejectedError` の `category` を `permanent` → `never-fallback` に変更（上流の 4xx は自コードの要求誤りのサインで、本番でフォールバックすると欠陥が隠れる。Issue #514）
-- `readHttpStatus()` が数値の `code`（SendGrid `ResponseError` 等）を、`response` を伴いかつ HTTP ステータス範囲（100〜599）のときだけ採用するよう拡張。401 / 403 が transient に化けなくなる（MongoDB 等の独自エラー番号は `response` を持たないため誤採用しない）
-- `normalizeExternalError()` の既定分岐を「4xx → `UpstreamRejectedError`、それ以外（5xx とエラーとして投げられた 1xx〜3xx）→ `UpstreamError`」に修正（従来は 5xx 未満をすべて拒否扱いにしていた）
-- `serializeError()` の非 Error cause が HTTP 形状でない場合、`{}` に潰さず型名と上位キー名（`describeShape()`。値は含めない）で形状情報を残す
-- `pickHttpDiagnostics()` が SendGrid `ResponseError` の `response.body` も本文として拾うよう拡張
-
-### [1.2.0] - 2026-09-06
-
-#### 変更
-
-- AppError 階層に `cause` と分類 `category`（never-fallback / transient / permanent）を追加し、`UpstreamError` / `UpstreamRejectedError`、`HTTP_STATUS`、外部境界のエラー正規化 `normalizeExternalError()` を追加（Issue #486）
+- AppError 階層に `cause` と分類 `category`（never-fallback / transient / permanent）を追加し、`UpstreamError` / `UpstreamRejectedError`、`HTTP_STATUS`、外部境界のエラー正規化 `normalizeExternalError()` を追加（Issue #1320。[公開側Issue #486](https://github.com/feel-flow/ai-spec-driven-development/issues/486) の移植）
 - Logger の呼び出し規約を `interface Logger` として明文化（error は `(message, error, meta?)`、warn / info は `(message, meta?)`）。`JsonLogger` が `cause` 鎖を出力するよう `serializeError()` を追加。`Metrics` の最小契約を追加
+
+### [1.3.1] - 2026-09-06
+
+#### 変更
+
+- 初期セット外（`templates/README.md`・`DEPENDENCY_LINT.md`）への Markdown リンクを、コピー元付きの案内テキスト（inline code）に変更
+
+### [1.3.0] - 2026-07-31
+
+#### 追加
+
+- 「実証済みパターン（ACE 昇格）」セクションを追加（`/ace-refine` の昇格先。Issue #223）
+
+### [1.2.0] - 2026-07-15
+
+#### 追加
+
+- 「アンチパターン」セクションを追加（標準の必須セクション適合。プラグイン配布側#83 の上流還元）
 
 ### [1.1.0] - 2026-04-27
 

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "feel-flow/feelflow-plugins",
+    "ref": "5dd43c160342c3c8044de1cebdba145e314017f1",
+    "commit": "5dd43c160342c3c8044de1cebdba145e314017f1",
+    "plugin": "ff-dev-toolkit",
+    "version": "0.92.0",
+    "license": "Apache-2.0"
+  },
+  "files": {
+    "MASTER.md": "ec9bf6993748faa5624c394b1d04814e8344e5728a3ef9d951bb25944e0824dc",
+    "01-context/PROJECT.md": "80bd764da5f266b10e09791b7f645173ee0217dd052130cf08e47fa224125529",
+    "02-design/DOMAIN.md": "ddf558132d593c780c2973692d4facf9b049039e6970381c16b342aabc9d9843",
+    "02-design/ARCHITECTURE.md": "f5599619de84ec821022b2b66577219e889104a23a40831a15c67965e8768111",
+    "03-implementation/PATTERNS.md": "e16cfcda7ca3dade395f427fd4193d6c77c3ce3353d28e086f71d7465002d6f5",
+    "04-quality/TESTING.md": "3c2f54f2e31ad53f2eb30dd9e54c6f23a0d7e4554269f1ee99028a0f3985aff1",
+    "05-operations/DEPLOYMENT.md": "189d92faec2f64655eaa5916f80a2399ae11e970212b886057416072f79014c1",
+    "SOURCE_LICENSE.txt": "f3ea7ac89bd824d39509a2b10a5515cb9e2a39c4bb7aaa5cc76e4d149d55f7b6"
+  }
+}
