@@ -12,7 +12,7 @@ references:
   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
   - docs/DEEP_DIVE.md
   - docs/AI_CONFIG_BEST_PRACTICES.md
-changeImpact: medium
+changeImpact: low
 visibility: public
 ---
 

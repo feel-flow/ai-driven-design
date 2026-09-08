@@ -12,7 +12,7 @@ references:
   - docs-template/MASTER.md
   - docs-template/02-design/ARCHITECTURE.md
   - AI_SPEC_DRIVEN_DEVELOPMENT.md
-changeImpact: high
+changeImpact: low
 visibility: public
 ---
 

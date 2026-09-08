@@ -13,7 +13,7 @@ references:
   - docs/PRACTICAL_GUIDE.md
   - docs/DEEP_DIVE.md
   - docs-template/MASTER.md
-changeImpact: high
+changeImpact: low
 visibility: public
 ---
 

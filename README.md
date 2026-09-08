@@ -10,7 +10,7 @@ AIとユーザーが目的・制約・推奨案を対話で合意し、その決
 - [適合条件と試用シナリオ](./docs/ASDD_2_0_CONFORMANCE.md) — 生成物・実ホスト・外部状態を分けた検証
 - [導入・移行ガイド](./docs/ASDD_2_0_MIGRATION.md) — 対応版の確認、既存構成の保護、再設定・復旧
 
-新規導入では `asdd-init` を入口とし、日常の依頼・状況確認は `asdd-work` とします。スキルの公式実装は `ff-dev-toolkit` に置き、既存の `init-docs` 等も個別機能として維持します。**仕様文書の公開だけでは、スキル・テンプレート・書籍の配布完了を意味しません。** 対応状況は [全体Epic #523](https://github.com/feel-flow/ai-spec-driven-development/issues/523) と導入する実装版で確認してください。
+新規導入では `asdd-init` を入口とし、日常の依頼・状況確認は `asdd-work` とします。スキルの正本は `feelflow-plugins` の `plugins/ff-dev-toolkit`、公開配布は `ff-dev-toolkit` とし、既存の `init-docs` 等も個別機能として維持します。**仕様文書の公開だけでは、スキル・テンプレート・書籍の配布完了を意味しません。** 対応状況は [全体Epic #523](https://github.com/feel-flow/ai-spec-driven-development/issues/523) と導入する実装版で確認してください。
 
 ## 導入方法
 
