@@ -1,13 +1,12 @@
 ---
 id: design-principles
 title: 本リポジトリの設計原則
-version: 1.1.0
+version: 2.0.0
 status: active
 created: 2026-05-07
-updated: 2026-08-28
+updated: 2026-09-08
 owner: feel-flow
 phase: extension
-changeImpact: low
 references:
   - docs/AI_SPEC_DRIVEN_DEVELOPMENT.md
   - docs-template/MASTER.md
@@ -21,7 +20,7 @@ visibility: public
 
 ## 目的
 
-本ドキュメントは、本リポジトリ（`feel-flow/ai-spec-driven-development`）が **AI 仕様駆動開発のテンプレート配布リポ** として備えるべき設計上の制約を 5 原則で明文化する。
+本ドキュメントは、本リポジトリ（`feel-flow/ai-spec-driven-development`）が **AI仕様駆動開発の方法論の正本・テンプレート配布先** として備えるべき設計上の制約を 5 原則で明文化する。
 
 新規機能の導入・PR レビュー・リファクタリング判断のたびに参照し、**「配布境界違反」「特定ツール依存物の混入」を着手前・PR 提出前・新機能 Issue 起票時の 3 タイミングで catch する** ことを目的とする。
 
@@ -34,7 +33,8 @@ visibility: public
 
 ### 関連
 
-- 概念解説: [AI Spec Driven Development](./AI_SPEC_DRIVEN_DEVELOPMENT.md)
+- 2.0仕様: [AI仕様駆動開発2.0](./ASDD_2_0.md)
+- 従来の概念解説: [AI Spec Driven Development](./AI_SPEC_DRIVEN_DEVELOPMENT.md)
 - AI 向け構造化知見: [ACE-021](../docs-template/08-knowledge/PLAYBOOK.md#ace-021)
 - ケーススタディの根拠: Issue #311 / commit `6ea43f8`（Obsidian 導入、PR を経ずに develop へ直 commit）/ PR #403（Obsidian 撤退）
 
@@ -116,13 +116,13 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 
 ### 原則
 
-新規プロジェクトは **コア 7 文書から始め、必要に応じて拡張する**。テンプレ利用者には最初から大量のドキュメントを押し付けない。
+2.0の新規プロジェクトは **7観点を整理し、必要な文書から始める**。最小構成は短い `docs/MASTER.md` とし、情報量や用途に応じて分離する。従来構成とURLは維持し、移行を合意していない既存プロジェクトの文書を減らさない。
 
-### コア 7 文書
+### 7観点を個別文書に分けた標準構成
 
 `MASTER.md`、`PROJECT.md`、`ARCHITECTURE.md`、`DOMAIN.md`、`PATTERNS.md`、`TESTING.md`、`DEPLOYMENT.md`
 
-詳細は [README.md](../README.md) と [AI_SPEC_DRIVEN_DEVELOPMENT.md](./AI_SPEC_DRIVEN_DEVELOPMENT.md) を参照。
+詳細は [2.0標準仕様](./ASDD_2_0.md) と [移行ガイド](./ASDD_2_0_MIGRATION.md) を参照。
 
 ### 含意
 
@@ -206,3 +206,10 @@ Obsidian / Notion / Hugo / Jekyll 等、**特定のアプリケーションが�
 ### 1.0.0 - 2026-05-07
 
 - 初版作成。Obsidian 撤退（PR #403）の構造的原因分析から 5 原則を抽出（Issue #404）
+
+## Changelog
+
+### [2.0.0] - 2026-09-08
+
+- 変更: P4を7ファイル必須から7観点と最小文書の段階拡張へ更新。
+- 追加: 方法論の正本としての位置付けと既存構成の保護。

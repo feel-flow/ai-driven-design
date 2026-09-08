@@ -1,10 +1,10 @@
 ---
 id: ai-spec-driven-development
 title: AI Spec Driven Development - 概念と実践
-version: 2.0.0
+version: 2.0.1
 status: active
 created: 2025-10-17
-updated: 2026-05-06
+updated: 2026-09-08
 owner: feel-flow
 phase: mvp
 tags: [ai, documentation, development, best-practices]
@@ -19,6 +19,8 @@ visibility: public
 
 # AI Spec Driven Development - AIエージェントが迷わないドキュメント戦略
 
+> **2.0との関係**: 本文は従来の7文書構成を説明するガイドとして保持します。新しいAI仕様駆動開発2.0では [標準仕様](ASDD_2_0.md) と [移行ガイド](ASDD_2_0_MIGRATION.md) に従い、7観点を必要な文書へ整理します。本文の最小ファイル数、一律デフォルト、必須の自動化を2.0構成へそのまま適用しないでください。frontmatterの版番号は各文書の改訂番号です。
+>
 > **関連文書**:
 >
 > - [運用ガイド](OPERATIONAL_GUIDE.md) - AIエージェント向けの運用仕様とチェックリスト
@@ -609,3 +611,9 @@ AI駆動開発は、単なるツールの変更ではなく、開発文化の根
 **著者について**: 株式会社フィールフロウは、生成AIコンサルティングとAI駆動開発の専門企業です。本記事で紹介した手法の導入支援やカスタマイズについては、お気軽にお問い合わせください。
 
 **お問い合わせ**: <contacts@feelflow.jp>
+
+## Changelog（2.0移行案内）
+
+### [2.0.1] - 2026-09-08
+
+- 追加: 従来ガイドの適用境界と2.0標準仕様・移行ガイドへの参照。

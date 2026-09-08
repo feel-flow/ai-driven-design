@@ -1,10 +1,10 @@
 ---
 id: operational-guide
 title: AI Spec Driven Development Operational Guide
-version: 2.0.0
+version: 2.0.1
 status: active
 created: 2025-10-17
-updated: 2025-11-07
+updated: 2026-09-08
 owner: feel-flow
 phase: mvp
 tags: [docs, structure, ai-agent, operations]
@@ -17,6 +17,8 @@ visibility: public
 ---
 
 # AI Spec Driven Development ドキュメント運用ガイド
+
+> **2.0との関係**: 本文は従来の7文書構成を説明するガイドとして保持します。新しいAI仕様駆動開発2.0では [標準仕様](ASDD_2_0.md) と [移行ガイド](ASDD_2_0_MIGRATION.md) に従い、7観点を必要な文書へ整理します。本文の最小ファイル数、一律デフォルト、必須の自動化を2.0構成へそのまま適用しないでください。frontmatterの版番号は各文書の改訂番号です。
 
 この文書は「AIエージェントが迷わない最小・高精度なドキュメント構造」を保証するための操作仕様書です。`docs-template/MASTER.md` を上位規約 (Source of Truth) とし、本書はその実務ガイドライン層に位置します。フォルダ生成、ファイル分類、更新、監査をすべて自動化しやすくするための厳密なルールを定義します。
 
@@ -791,3 +793,9 @@ MUST: コミット前に最終チェックリストをすべてPASSさせる。
 ---
 
 本書は構造運用専用です。ビジネス/設計/実装/品質の詳細は上記参照文書を確認してください。
+
+## Changelog（2.0移行案内）
+
+### [2.0.1] - 2026-09-08
+
+- 追加: 従来ガイドの適用境界と2.0標準仕様・移行ガイドへの参照。

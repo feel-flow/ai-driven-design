@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## ASDD 2.0の適用境界
+
+本ファイルはこのリポジトリ自体を開発するための入口です。新規利用先の生成・移行では `docs/ASDD_2_0.md` を方法論の正本として読み、`docs/ASDD_2_0_MIGRATION.md` で対応版を確認してください。以下に残る従来の7文書構成、実装規約、必須レビュー・ACE運用を、2.0の利用先へそのまま転記しないこと。利用先では合意した構成を採用し、新規ACE・自動振り返りは初期無効とします。このリポジトリ自身の既存品質ゲートは維持します。
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 🚨 MANDATORY: Always Read MASTER.md First
