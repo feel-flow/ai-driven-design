@@ -1,13 +1,16 @@
 ---
 title: "TESTING"
-version: "1.0.0"
+version: "1.2.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "YYYY-MM-DD"
+updated: "2026-09-08"
+changeImpact: "medium"
 ---
 
 # TESTING.md - テスト戦略ガイド
+
+> **テンプレート直接利用**: `${CLAUDE_PLUGIN_ROOT}` がない環境では、この変数をシェルで展開しません。本文でプラグイン配下のテンプレートを参照する箇所は、同じ相対パスを [公開テンプレート配布元](https://github.com/feel-flow/ff-dev-toolkit/tree/HEAD/plugins/ff-dev-toolkit/docs-template) から参照・取得してください。利用する配布版に合わせたタグのファイルを選び、ローカルにある同名ファイルを無条件で上書きしないでください。
 
 ## 1. テスト戦略概要
 
@@ -33,15 +36,17 @@ updated: "YYYY-MM-DD"
 | 統合テスト     | **20%**  | DB・メッセージ・外部API境界を含む結合の検証          |
 | E2Eテスト      | **10%**  | クリティカルなユーザージャーニー・契約に近い経路     |
 
-比率はプロジェクトの性質（レガシー比率、リリース頻度）で調整してよいが、E2Eのみに偏重しないこと。品質ゲート全体の枠組みは `docs/04-quality/GUARDRAILS_THREE_LAYERS.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照。
+比率はプロジェクトの性質（レガシー比率、リリース頻度）で調整してよいが、E2Eのみに偏重しないこと。品質ゲート全体の枠組みは `docs/04-quality/GUARDRAILS_THREE_LAYERS.md`（初期セット外。必要になった時点で `${CLAUDE_PLUGIN_ROOT}/docs-template/` の同一相対パスからコピーする）を参照。
 
 ### カバレッジ目標
 
-| テスト種別     | カバレッジ目標       | 優先度 |
-| -------------- | -------------------- | ------ |
-| ユニットテスト | 80%以上              | 高     |
-| 統合テスト     | 60%以上              | 中     |
-| E2Eテスト      | クリティカルパス100% | 高     |
+重要な業務、主要動作、失敗時の影響から検証対象を決める。件数比率や一律80%を合格条件にしない。数値目標が有効な場合は、対象範囲・指標・例外・理由をユーザーと合意する。未採用なら「数値目標なし」と記録し、完成条件に対応する検証を示す。
+
+| 対象       | 推奨する判断                                   |
+| ---------- | ---------------------------------------------- |
+| 業務ルール | 正常系・境界・失敗が完成条件を満たすか         |
+| 外部連携   | 契約・認証・データ・通信失敗への対応が妥当か   |
+| 利用経路   | 主要な操作と利用者に影響する失敗を確認できるか |
 
 ## 2. ユニットテスト
 
@@ -575,6 +580,10 @@ jobs:
         run: npm run test:e2e
 
       - name: Upload coverage
+        # if: always() が無いと、テストが失敗した回のカバレッジ・レポートが
+        # ランナーから出てこない。原因調査に必要なのはまさに失敗した回なので、
+        # 赤いときこそ回収する
+        if: always()
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage/lcov.info
@@ -584,26 +593,19 @@ jobs:
 
 ### カバレッジレポート設定
 
-```json
+```javascript
 // jest.config.js
 module.exports = {
   collectCoverage: true,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
-  coverageThreshold: {
-    global: {
-      branches: 70,
-      functions: 80,
-      lines: 80,
-      statements: 80
-    }
-  },
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov", "html"],
+  // coverageThreshold は数値目標の採用を合意した場合だけ追加する。
   collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.spec.{ts,tsx}',
-    '!src/**/*.interface.ts',
-    '!src/**/index.ts'
-  ]
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.spec.{ts,tsx}",
+    "!src/**/*.interface.ts",
+    "!src/**/index.ts",
+  ],
 };
 ```
 
@@ -650,7 +652,55 @@ test("update user", () => {
 });
 ```
 
+### 変異注入の適用確認
+
+変異注入で検出力を測るときは、**変異が実際に適用されたことを機械的に確認してから**結果を読む。適用に失敗しても「テストが緑」という出力は検出失敗時と同じため、確認を挟まないと「針が効かない」という逆の結論を引き出しうる。
+
+- 変異はシェル補間を通す形（`python3 -c "..."` のようなダブルクォート内スクリプト）で書かない。スクリプトがシェルの引用処理と Python の文字列リテラル解釈の 2 層を通るため、エスケープや引用の入れ子で「書いたつもりの文字列」と「実際に比較される文字列」がずれやすい（例: 対象ファイル内の literal な 2 文字 `\n` に対し、Python は `"needle\n"` を needle + 改行として解釈するので一致しない）。クォート済みヒアドキュメント（`<<'PY'`）でファイルへ書き出してから実行する
+- 変異スクリプトは対象文字列の出現回数を検査し、適用に失敗したら非 0 で即座に落とす（Python の `assert` 文は `-O` 実行で消えるため、明示の条件分岐で `SystemExit` を投げる）。呼び出し側も `|| exit 1` で受け、適用が確認できないまま後続のテスト実行へ進まない。不一致は traceback として loud に落ちても、呼び出し側が非 0 を無視すると最終出力は「全件 pass」に見える
+- 結果の報告には「適用の成否」と「検査結果」を必ず 2 つ並べて書く。「変異が当たらなかった」と「変異が検出されなかった」を出力から区別できる形にする
+- 変異の復元は **sed 往復**（適用と逆適用を対で書く）か、**変異前にコミットしてから** `git checkout` する。未コミットの変更が残る状態での `git checkout -- <file>` は、変異と一緒に本修正まで巻き戻す（PR #781 の実測。以後 sed 往復へ切替えた同セッションの変異試験 5 回では再発していない）
+
+```bash
+# ❌ 悪い例: シェル補間経由 — 引用の入れ子と文字列リテラル解釈の層がずれても、
+# 適用を検査しない形では外から見えない
+python3 -c "s = open('verify.sh').read(); assert 'needle\n' in s"
+
+# ✅ 良い例: クォート済みヒアドキュメントでファイル化する — シェル側の解釈層
+# （引用の入れ子・$ 展開）を排除し、実行したスクリプトを目視・再実行できる形で残す
+MUT="$(mktemp "${TMPDIR:-/tmp}/mutate.XXXXXX")"
+cat <<'PY' > "$MUT"
+import pathlib
+p = pathlib.Path("verify.sh")
+s = p.read_text()
+# 対象が literal な backslash 列を含む場合は raw 文字列（r"needle\n"）を使う
+if s.count("needle\n") != 1:
+    raise SystemExit("mutation target not found")
+p.write_text(s.replace("needle\n", "mutated\n"))
+PY
+python3 "$MUT" || exit 1  # 適用に失敗したら検査へ進まない
+echo "変異適用: OK"       # 報告には検査結果と並べてこの成否を併記する（復元は上記の sed 往復 / 事前コミット参照）
+```
+
 ## Changelog
+
+- 2026-09-08 追記: プラグイン変数がない直接利用でも取得できる公開配布元を明記（ai-spec-driven-development#525）。
+
+### [1.2.0] - 2026-09-08
+
+- ASDD 2.0: project-specific recommendations and explicitly agreed optional features (Issues #1372 / #1374).
+
+### [1.1.1] - 2026-09-06
+
+#### 変更
+
+- 初期セット外（`GUARDRAILS_THREE_LAYERS.md`）への Markdown リンクを、コピー元付きの案内テキスト（inline code）に変更
+
+### [1.1.0] - 2026-08-21
+
+#### 追加
+
+- §10 に「変異注入の適用確認」節を追加（ヒアドキュメント化・適用の出現回数検査と非 0 即停止・適用の成否と検査結果の併記）
 
 ### [1.0.0] - YYYY-MM-DD
 

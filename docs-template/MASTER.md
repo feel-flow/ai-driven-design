@@ -1,18 +1,20 @@
 ---
 title: "MASTER"
-version: "1.1.0"
+version: "1.8.0"
 status: "draft"
 owner: "@your-github-handle"
 created: "YYYY-MM-DD"
-updated: "2026-05-07"
-changeImpact: "MEDIUM"
+updated: "2026-09-08"
+changeImpact: "medium"
 ---
 
 # AI駆動開発マスタードキュメント
 
+> **テンプレート直接利用**: `${CLAUDE_PLUGIN_ROOT}` がない環境では、この変数をシェルで展開しません。本文でプラグイン配下のテンプレートを参照する箇所は、同じ相対パスを [公開テンプレート配布元](https://github.com/feel-flow/ff-dev-toolkit/tree/HEAD/plugins/ff-dev-toolkit/docs-template) から参照・取得してください。利用する配布版に合わせたタグのファイルを選び、ローカルにある同名ファイルを無条件で上書きしないでください。
+
 ## 前提（重要・短文）
 
-- ドキュメントはAIが迷わず理解できることを第一基準とする（人間の可読性は副次）。
+- ドキュメントは利用者とAIが判断・現在地を理解できるよう、目的に合う量と言葉で記載する。
 - AI生成の推測/補完が混入し得るため、エンジニアは必ず一次情報（ソース/設定/設計資料/実行結果/テスト）で検証し、乖離はSSOTへ即時反映（重複は参照化）。
 - 本ガイドの時間表記は目安。チーム/AIの習熟で短縮される。
 
@@ -77,15 +79,18 @@ AIツールは、ドキュメント生成やコード生成時に**情報が不�
 「[確認された情報]で進めてください」
 ```
 
-#### 推論が許容される範囲
+#### 推奨候補と合意した方針
 
-以下は**明示的な指示がない場合のデフォルト値**として使用可（ただし明記すること）：
+重要な選択は推奨理由と代替案を示し、合意後に採用する。既存回答や委任は引き継ぎ、細かな設定を逐一再質問しない。「確認済みの事実」「合意済みの決定」「提案中」「未決」を区別し、提案を必須ゲートへ変換しない。
 
-- **TypeScript strict mode**: 常に有効（明記）
-- **テストカバレッジ目標**: 80%以上（明記）
-- **マジックナンバー禁止**: 常に適用（明記）
-- **エラーハンドリング**: Result pattern使用（明記）
-- **命名規則**: MASTER.mdの規則に従う（明記）
+| 項目                       | 推奨候補と適用条件                                                                             |
+| -------------------------- | ---------------------------------------------------------------------------------------------- |
+| TypeScript strict mode     | 新規TypeScriptでは推奨。既存では影響を確認して段階導入も比較する                               |
+| ランタイム・依存バージョン | 最新LTSまたは公式の本番推奨安定版を候補にし、公式情報と互換性を確認する                        |
+| テストカバレッジ           | 重要な業務と失敗時の影響から対象を決める。80%などの数値目標は必要な場合に合意する              |
+| 定数化                     | 業務上の意味がある値・変更される値を名前付き定数や設定にする。自明な数値まで機械的に禁止しない |
+| エラーハンドリング         | 言語・フレームワーク・既存コードから例外／Result型などを比較し、一貫した扱いを選ぶ             |
+| 命名規則                   | 言語・フレームワーク・既存の合意に合わせる。下記は候補例                                       |
 
 **❌ 推論禁止の例**:
 
@@ -158,18 +163,29 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 
 ## 技術スタック
 
+### バージョン選定ポリシー（LTSデフォルト）
+
+AIツールがランタイム・依存のバージョンを選定する際は、以下のルールに従うこと。
+
+1. **最新の本番利用に適した版を推奨する** — 指定がなければ最新LTS、または公式に本番利用が推奨されるサポート中の安定版を候補にする。LTS制度と本番推奨方針は各技術の公式情報で確認する。採用系列では最新修正版を基本とする。
+2. **互換性とサポートを確認する** — サポート期限、依存ライブラリと実行基盤の対応、既知の問題を確認する。新メジャー版の採用を見送る場合は理由と再評価条件を記録する。一律の待機日数は設けない。EOL版を新規採用のデフォルトにしない。
+3. **選定時に公式情報を検証する** — 学習データだけで版を決めない。公式リリース・セキュリティ情報のURLと確認日を記録する。確認できない場合は「最新確認済み」と記載せず、確認待ちとして残す。
+4. **既存構成と移行案を分ける** — 更新費用や互換性を含めて合意し、決定理由と例外を記録する。更新担当・頻度・緊急対応・ロールバック方法は運用方針へつなげる。
+
+> **なぜ必要か**: AIには学習データのカットオフがあるため、AIが「最新」と認識しているバージョンは古い可能性があります。ルールなしで選定を任せると、学習データ中の頻出バージョン（EOL済みを含む）に引っ張られます。
+
 ### 概要（バージョン付き）
 
 > **重要**: AIには学習データのカットオフがあるため、バージョンを明記することで正しい書き方を指示できます。
 
-| カテゴリ | 技術        | バージョン | AIへの注意点    |
-| -------- | ----------- | ---------- | --------------- |
-| Language | TypeScript  | [x.x.x]    | strict mode必須 |
-| Frontend | [Framework] | [x.x.x]    | [注意点]        |
-| State    | [Library]   | [x.x.x]    | -               |
-| Backend  | [Framework] | [x.x.x]    | [注意点]        |
-| Database | [DB]        | [x.x]      | -               |
-| ORM      | [Library]   | [x.x.x]    | -               |
+| カテゴリ | 技術        | バージョン | 確認日・情報源     | AIへの注意点         |
+| -------- | ----------- | ---------- | ------------------ | -------------------- |
+| Language | TypeScript  | [x.x.x]    | [YYYY-MM-DD / URL] | strict採用方針を記録 |
+| Frontend | [Framework] | [x.x.x]    | [YYYY-MM-DD / URL] | [注意点]             |
+| State    | [Library]   | [x.x.x]    | [YYYY-MM-DD / URL] | -                    |
+| Backend  | [Framework] | [x.x.x]    | [YYYY-MM-DD / URL] | [注意点]             |
+| Database | [DB]        | [x.x]      | [YYYY-MM-DD / URL] | -                    |
+| ORM      | [Library]   | [x.x.x]    | [YYYY-MM-DD / URL] | -                    |
 
 ### AIへの補足（カットオフ対策）
 
@@ -180,8 +196,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 
 **例**:
 
-- Next.js 16: 2025年10月リリース。App Router形式を使用（Pages Router禁止）
-- React 19.2: Server Componentsがデフォルト（`"use client"`は明示時のみ）
+- [採用技術・版]: [公式URLと確認日]。採用理由・互換性・既知の問題・再評価条件を記録する。
 
 ### 詳細
 
@@ -226,17 +241,40 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 - [ ] Monolithic
 - [ ] その他:
 
+## ディレクトリ構造
+
+リポジトリのトップレベル構造と各ディレクトリの責務。AIツールはコードの配置判断・探索の起点としてここを参照する。
+
+```text
+[プロジェクトルート]/
+├── docs/                 # AI仕様駆動開発ドキュメント（詳細は「ドキュメント構造ガイド（AIツール向け）」を参照）
+├── src/                  # [アプリケーションコード]
+│   ├── [domain/]         # [ドメイン層: エンティティ・値オブジェクト・ドメインサービス]
+│   ├── [application/]    # [アプリケーション層: ユースケース]
+│   ├── [infrastructure/] # [インフラストラクチャ層: DB・外部API・永続化]
+│   └── [presentation/]   # [プレゼンテーション層: UI・コントローラー]
+├── tests/                # [テストコード]
+├── scripts/              # [開発・運用スクリプト]
+└── [その他]              # [プロジェクト固有のディレクトリと責務]
+```
+
+- 実際の構成に合わせて書き換えること（上記の `src/` 配下はClean Architectureの例）
+- 層構成の詳細は [ARCHITECTURE.md](./02-design/ARCHITECTURE.md)、テスト戦略は [TESTING.md](./04-quality/TESTING.md) を参照
+- 新規コードの配置判断は決定木で行う（詳細: [DECISION_TREE.md](./03-implementation/DECISION_TREE.md)）
+- `docs/` 配下の詳細構造は本書の「ドキュメント構造ガイド（AIツール向け）」を参照（重複記載しない）
+
 ## コード生成ルール
 
-### 必須事項
+### 合意して採用する方針
 
-1. **型安全性**: すべての変数、関数、APIレスポンスに明示的な型定義を付与
-2. **エラーハンドリング**: try-catchブロックで適切にエラーを処理し、ユーザーフレンドリーなメッセージを表示
-3. **テストコード**: 各機能に対して単体テストを作成（カバレッジ80%以上目標）
-4. **コメント**: 複雑なロジックには日本語でコメントを追加
-5. **リーダブルコード**: 単一責任の原則に従い、関数は30行以内に収める
-6. **マジックナンバー禁止**: 意味のある数値/文字列の直接埋め込みを禁止。必ず名前付き定数または設定から注入し、単位・範囲を明示（詳細は `PATTERNS.md` を参照）
-7. **配置判断**: 新機能追加時の「どこに書くか」は決定木で判断（詳細: [DECISION_TREE.md](./03-implementation/DECISION_TREE.md)）。新規コードファイルは `docs/03-implementation/templates/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）の雛形をコピーしてから実装する（SKELETON を直接 import しない）。
+以下は候補であり、必要な項目を目的・言語・リスクに応じて選ぶ。採用済みの規約と組織の必須ルールを守る。
+
+1. **型安全性**: 言語の型推論と明示的な型を使い分け、外部入力を検証する。
+2. **エラーハンドリング**: 例外／Result型などを比較し、期待する失敗と予期しない障害を扱う。
+3. **テスト**: 重要な業務・主要動作・失敗時の影響から確認対象を決める。数値目標は採用合意がある場合だけゲートにする。
+4. **可読性**: 説明が必要な判断をコメントに残す。言語や関数行数を一律に固定しない。
+5. **定数化**: 業務上の意味・変更理由がある値を名前付き定数や設定で管理する。自明な数値の抽出は強制しない。
+6. **配置**: 既存構成と合意した設計を使う。必要なら [DECISION_TREE.md](./03-implementation/DECISION_TREE.md) の候補を参照する。雛形は採用した言語・設計に合うものだけを利用する。
 
 ### 命名規則
 
@@ -259,7 +297,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
   - メインドキュメント: `UPPER_SNAKE_CASE.md`（AI識別性優先・複数語はアンダースコア `_` 区切り）
   - 例: `MASTER.md`, `ARCHITECTURE.md`, `LESSONS_LEARNED.md`, `DEVELOPMENT_PREPARATION.md`
   - サブフォルダ内ファイル: `lowercase-with-hyphens.md`（例: `git-workflow.md`, `phased-rollout.md`）
-  - 詳細・適用条件・逸脱判断は `docs/README.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）の「ファイル名命名規則」節を SSOT とする
+  - 詳細・適用条件・逸脱判断は README.md（ff-dev-toolkit プラグイン同梱、`${CLAUDE_PLUGIN_ROOT}/docs-template/README.md` の「ファイル名命名規則」章、初期セット外）を SSOT とする
 - **禁止事項**:
   - ❌ 日本語ファイル名
   - ❌ スペースを含むファイル名
@@ -269,13 +307,13 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 - **例外**:
   - `README.md`（標準的な慣習）
   - `CLAUDE.md`, `AGENTS.md`（AIツール向け特殊ファイル）
-  - `.github/copilot-instructions.md`, `.cursorrules`（ツール固有の命名）
+  - `.github/copilot-instructions.md`, `.cursor/rules/*.mdc`（ツール固有の命名・配置。Legacy `.cursorrules` は後方互換）
 
 ### 禁止事項
 
 - ❌ any型の使用（やむを得ない場合はコメントで理由を明記）
 - ❌ console.logの本番コードへの残留
-- ❌ マジックナンバーの直接使用（定数として定義すること）
+- 合意した定数化の対象と、その値の意味・単位を確認する
 - ❌ 未使用のインポートや変数の放置
 - ❌ エラーの握りつぶし（catch節で何もしない）
 
@@ -336,9 +374,7 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 
 本プロジェクトでは、Git FlowをベースとしたAI開発ツール最適化ワークフローを採用しています。
 
-**基本フロー**: Issue → Branch → Commit → **Self-Review** → PR → Review → Merge → Cleanup → **Knowledge (ACE + Discussions)** → Next Task
-
-詳細は [DEPLOYMENT.md](./05-operations/DEPLOYMENT.md#1-ai仕様駆動git-workflow) を参照してください。
+**段の正本は [DEPLOYMENT.md](./05-operations/DEPLOYMENT.md#主要ステップ) §主要ステップ である。** 段の一覧と、変更規模による tier（フル / 軽量 / 標準）の判定はそこにあり、本節は書き写さない。tier 判定は `${CLAUDE_PLUGIN_ROOT}/scripts/workflow-tier.sh` が差分から導出する（自己申告ではない）。
 
 **重要なポイント**:
 
@@ -352,10 +388,10 @@ AIが生成したドキュメント・コードは、以下のタイミングで
 
 ## AIへのプロンプト補助（貼り付け用）
 
-以下をプロンプト末尾に追加し、マジックナンバー回避と設定注入を徹底してください。
+定数化を採用した場合、必要な対象を次のように伝える。
 
 ```
-制約: マジックナンバー／ハードコード禁止。意味のある値は名前付き定数へ抽出し、環境変数や設定モジュールから注入する。単位（ms, KB など）と有効範囲をコメント/型で明示すること。URL, パス, ヘッダ名, エラーコードは定数化する。
+合意した方針: 業務上の意味がある値や変更される値を定数・設定へ抽出し、必要に応じて単位や範囲を示す。自明な値の抽出は強制しない。
 
 推奨ツール: Playwright MCP統合によりAI駆動のビジュアルデバッグ・自動テスト修復を活用すること。E2Eテストの失敗時は自動的にスクリーンショット分析と修正提案を生成する。
 ```
@@ -471,23 +507,20 @@ metrics:
 
 ## 関連ドキュメント
 
-> **配置について**: 本文書が inline code（`docs/...`）で示すパスのうち、コア7文書と初期セット以外のファイル（本節の各ガイド、`docs/README.md`、`docs/05-operations/ORGANIZATIONAL_ROLLOUT.md` と `organizational-rollout/` 配下 等）は `/init-docs` の初期セット外で、展開直後には配置されていない。必要になった時点でテンプレート配布元（GitHub の `feel-flow/ai-spec-driven-development` リポジトリの docs-template ディレクトリ、または ff-dev-toolkit プラグインの同梱版）の同一相対パスからコピーする。`08-knowledge/` のうち `PLAYBOOK.md` は `/ace-setup` が作成し、同ディレクトリの他のファイルは配布元からコピーする。
+### 初心者・新規プロジェクト向け（初期セット外・必要時にコピー）
 
-### 初心者・新規プロジェクト向け
+- GETTING_STARTED_ABSOLUTE_BEGINNER.md — 完全初心者ガイド（何も決まっていない状態から始める、約4.5時間）。`${CLAUDE_PLUGIN_ROOT}/docs-template/GETTING_STARTED_ABSOLUTE_BEGINNER.md` からコピー
+- GETTING_STARTED_NEW_PROJECT.md — 新規プロジェクト完全ガイド（企画から実装準備まで、8-12時間）。`${CLAUDE_PLUGIN_ROOT}/docs-template/GETTING_STARTED_NEW_PROJECT.md` からコピー
+- 00-planning/PLANNING_TEMPLATE.md — プロジェクト企画書テンプレート。`${CLAUDE_PLUGIN_ROOT}/docs-template/00-planning/PLANNING_TEMPLATE.md` からコピー
 
-- `docs/GETTING_STARTED_ABSOLUTE_BEGINNER.md` - 完全初心者ガイド（何も決まっていない状態から始める、約4.5時間）
-- `docs/GETTING_STARTED_NEW_PROJECT.md` - 新規プロジェクト完全ガイド（企画から実装準備まで、8-12時間）
-- `docs/00-planning/PLANNING_TEMPLATE.md` - プロジェクト企画書テンプレート
+### AIツール初期設定ガイド（初期セット外・必要時にコピー）
 
-### AIツール初期設定ガイド
+- SETUP_GITHUB_COPILOT.md — GitHub Copilot設定（約30分）。`${CLAUDE_PLUGIN_ROOT}/docs-template/SETUP_GITHUB_COPILOT.md` からコピー
+- SETUP_CLAUDE_CODE.md — Claude Code設定（約40分）。`${CLAUDE_PLUGIN_ROOT}/docs-template/SETUP_CLAUDE_CODE.md` からコピー
 
-- `docs/SETUP_GITHUB_COPILOT.md` - GitHub Copilot設定（約30分）
-- `docs/SETUP_CLAUDE_CODE.md` - Claude Code設定（約40分）
-- `docs/SETUP_CURSOR.md` - Cursor設定（約60分）
+### 既存プロジェクト向け（初期セット外・必要時にコピー）
 
-### 既存プロジェクト向け
-
-- `docs/GETTING_STARTED.md` - Quickstart（既存プロジェクトへの導入・AI駆動・読み順・プロンプト）
+- GETTING_STARTED.md — Quickstart（既存プロジェクトへの導入・AI駆動・読み順・プロンプト）。`${CLAUDE_PLUGIN_ROOT}/docs-template/GETTING_STARTED.md` からコピー
 
 ### コア7文書（起点）
 
@@ -502,33 +535,34 @@ metrics:
 
 > コア7文書はプロジェクトの最小構成です。成長に応じて各フォルダ内に文書を追加してください。全文書が揃わなくてもAIと対話しながら段階的に仕様を策定できます。
 
-### 品質・セキュリティ（推奨拡張）
+### 品質・セキュリティ（推奨拡張・初期セット外）
 
-コア7以外に、次を参照すると品質ゲートとレビュー観点が揃いやすい。
+コア7以外に、次を参照すると品質ゲートとレビュー観点が揃いやすい。必要時に `${CLAUDE_PLUGIN_ROOT}/docs-template/` の同一相対パスからコピーする。
 
-- `docs/04-quality/GUARDRAILS_THREE_LAYERS.md` - ガードレール3層（仕様・自動チェック・人間レビュー）
-- `docs/04-quality/SECURITY_REVIEW_CHECKLIST.md` - セキュリティレビューチェックリスト（PR用）
+- 04-quality/GUARDRAILS_THREE_LAYERS.md — ガードレール3層（仕様・自動チェック・人間レビュー）
+- 04-quality/SECURITY_REVIEW_CHECKLIST.md — セキュリティレビューチェックリスト（PR用）
 
-### ナレッジベース
+### ナレッジベース（初期セット外・`/ace-setup` が作成）
 
-- `docs/08-knowledge/LESSONS_LEARNED.md` - 開発過程で得た知見・解決策
-- `docs/08-knowledge/TROUBLESHOOTING.md` - トラブルシューティング集
-- `docs/08-knowledge/BEST_PRACTICES.md` - ベストプラクティス集
-- `docs/08-knowledge/FAQ.md` - よくある質問と回答
-- `docs/08-knowledge/PLAYBOOK.md` - ACE Playbook（AIツール向け構造化知見）
+- 08-knowledge/LESSONS_LEARNED.md — 開発過程で得た知見・解決策
+- 08-knowledge/TROUBLESHOOTING.md — トラブルシューティング集
+- 08-knowledge/BEST_PRACTICES.md — ベストプラクティス集
+- 08-knowledge/FAQ.md — よくある質問と回答
+- 08-knowledge/PLAYBOOK.md — ACE Playbook（AIツール向け構造化知見）
+- 08-knowledge/OBSERVATIONS.md — `/retrospective` の観測台帳（機械管理の蓄積バッファ。無ければ振り返り時にテンプレートから自動作成。Frontmatter は付与しない）
 
-### 開発プロセスガイド
+### 開発プロセスガイド（初期セット外・必要時にコピー）
 
-- `docs/06-reference/DEVELOPMENT_PREPARATION.md` - 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）
-- `docs/00-planning/POC_WORKFLOW.md` - PoCワークフロー・結果記録テンプレート・仕様マッピングガイド
-- `docs/06-reference/DECISION_MATRIX.md` - 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）
-- `docs/06-reference/COPILOT_AGENTS.md` - GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）
-- `docs/06-reference/ISSUE_TEMPLATE_PATTERNS.md` - Issue テンプレ設計パターン（ストーリー型=推奨 / 従来型=代替）
-- `docs/05-operations/ORGANIZATIONAL_ROLLOUT.md` - 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）
+- 06-reference/DEVELOPMENT_PREPARATION.md — 開発準備ガイド（5 Phases: Issue-First → Document-Driven → MECE検証 → AI Spec-Driven → Git Workflow）。`${CLAUDE_PLUGIN_ROOT}/docs-template/06-reference/DEVELOPMENT_PREPARATION.md` からコピー
+- 00-planning/POC_WORKFLOW.md — PoCワークフロー・結果記録テンプレート・仕様マッピングガイド。`${CLAUDE_PLUGIN_ROOT}/docs-template/00-planning/POC_WORKFLOW.md` からコピー
+- 06-reference/DECISION_MATRIX.md — 「どの文書に書く？」判断ガイド（Decision Matrix・曖昧ケース例・機能×文書マトリクス）。`${CLAUDE_PLUGIN_ROOT}/docs-template/06-reference/DECISION_MATRIX.md` からコピー
+- 06-reference/COPILOT_AGENTS.md — GitHub Copilot Agents設定リファレンス（6種のレビューエージェントテンプレート）。`${CLAUDE_PLUGIN_ROOT}/docs-template/06-reference/COPILOT_AGENTS.md` からコピー
+- 06-reference/ISSUE_TEMPLATE_PATTERNS.md — Issue テンプレ設計パターン（ストーリー型=推奨 / 従来型=代替）。`${CLAUDE_PLUGIN_ROOT}/docs-template/06-reference/ISSUE_TEMPLATE_PATTERNS.md` からコピー
+- 05-operations/ORGANIZATIONAL_ROLLOUT.md — 組織展開ガイド索引（段階的導入の Phase 1〜4・文書分割・アーカイブ・月次ヘルスチェック）。`${CLAUDE_PLUGIN_ROOT}/docs-template/05-operations/ORGANIZATIONAL_ROLLOUT.md` からコピー
 
 ## ドキュメント構造ガイド（AIツール向け）
 
-> **詳細ガイドは `docs/05-operations/ORGANIZATIONAL_ROLLOUT.md`（初期セット外。必要になった時点でテンプレート配布元からコピーする）を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
+> **詳細ガイドは 05-operations/ORGANIZATIONAL_ROLLOUT.md（初期セット外・必要時に `${CLAUDE_PLUGIN_ROOT}/docs-template/05-operations/ORGANIZATIONAL_ROLLOUT.md` からコピー）を参照**。本節はサマリーのみを掲載する（SSOT は新ガイド）。
 
 ### AIツールの読み込み戦略
 
@@ -545,7 +579,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ### ファイル名命名規則
 
-ファイル名命名規則の SSOT は `docs/README.md` の「ファイル名命名規則」節です。短縮版:
+ファイル名命名規則の SSOT は ff-dev-toolkit プラグイン同梱の README.md（`${CLAUDE_PLUGIN_ROOT}/docs-template/README.md` の「ファイル名命名規則」章、初期セット外）です。短縮版:
 
 - ルート直下 / 番号付きフォルダ直下の MD: `UPPER_SNAKE_CASE.md`（例: `MASTER.md`, `DEPLOYMENT.md`）
 - サブフォルダ名・サブフォルダ内 MD: `lowercase-with-hyphens(.md)`（例: `deployment/git-workflow.md`）
@@ -560,7 +594,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 | 800 行超  | 分割を推奨     |
 | 1200 行超 | **分割を必須** |
 
-> 親（索引）+ 子（詳細）への分割手順・分割しない判断・実例は `docs/05-operations/organizational-rollout/document-splitting.md` を SSOT とする。
+> 親（索引）+ 子（詳細）への分割手順・分割しない判断・実例は organizational-rollout/document-splitting.md（初期セット外・`${CLAUDE_PLUGIN_ROOT}/docs-template/05-operations/organizational-rollout/document-splitting.md` からコピー）を SSOT とする。
 
 ### 簡潔化の原則
 
@@ -579,7 +613,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ## 月次ドキュメント参照チェック
 
-毎月1日に以下4項目を確認する。手順・自動化スクリプト・レポートテンプレートは `docs/05-operations/organizational-rollout/health-check.md` を参照。
+毎月1日に以下4項目を確認する。手順・自動化スクリプト・レポートテンプレートは organizational-rollout/health-check.md（初期セット外・`${CLAUDE_PLUGIN_ROOT}/docs-template/05-operations/organizational-rollout/health-check.md` からコピー）を参照。
 
 1. **MASTER.md からの参照確認** — 新規文書が索引から到達可能か
 2. **ファイルサイズ確認** — 上記閾値（500/800/1200）超過の検出
@@ -588,7 +622,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 
 ### アーカイブ対象（要約）
 
-以下に該当する文書は `archive/` への退避を **検討**。判定フロー・手順・リダイレクト管理ルールは `docs/05-operations/organizational-rollout/archive-strategy.md` を参照。
+以下に該当する文書は `archive/` への退避を **検討**。判定フロー・手順・リダイレクト管理ルールは organizational-rollout/archive-strategy.md（初期セット外・`${CLAUDE_PLUGIN_ROOT}/docs-template/05-operations/organizational-rollout/archive-strategy.md` からコピー）を参照。
 
 - 6 ヶ月参照なし
 - 技術的に陳腐化
@@ -602,17 +636,19 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 コア7文書（MASTER/PROJECT/ARCHITECTURE/DOMAIN/PATTERNS/TESTING/DEPLOYMENT）およびプロジェクトで追加した文書に以下の YAML Frontmatter を付与する。Frontmatter が文書のメタデータの正式なソースとなる。
 
 > **注**: `docs/specs/` 配下の仕様ファイルには Spec Kit 運用ガイドの Front Matter スキーマ（6ステータス: draft/review/approved/implementing/done/deprecated）を適用すること。上記 Frontmatter ルールはコア7文書および拡張文書に適用される。
+>
+> **例外**: `08-knowledge/OBSERVATIONS.md`（`/retrospective` の観測台帳）と `08-knowledge/playbook/**`（ACE Playbook の分割ファイル）は機械管理の蓄積ファイルであり、Frontmatter を付与しない（文書レベルのメタデータは索引側または運用スキル側が持つ）。
 
 必須フィールド:
 
-| フィールド | 説明                                                | 例           |
-| ---------- | --------------------------------------------------- | ------------ |
-| title      | 文書タイトル                                        | ARCHITECTURE |
-| version    | セマンティックバージョン                            | 1.2.0        |
-| status     | 文書の状態（有効値: `draft`, `review`, `approved`） | draft        |
-| owner      | 責任者                                              | @username    |
-| created    | 作成日                                              | 2026-01-01   |
-| updated    | 最終更新日                                          | 2026-01-15   |
+| フィールド | 説明                                                              | 例           |
+| ---------- | ----------------------------------------------------------------- | ------------ |
+| title      | 文書タイトル                                                      | ARCHITECTURE |
+| version    | セマンティックバージョン                                          | 1.2.0        |
+| status     | 文書の状態（有効値: `draft`, `review`, `approved`, `deprecated`） | draft        |
+| owner      | 責任者                                                            | @username    |
+| created    | 作成日                                                            | 2026-01-01   |
+| updated    | 最終更新日                                                        | 2026-01-15   |
 
 任意フィールド:
 
@@ -621,7 +657,7 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 | reviewers    | レビュワー一覧   | 承認フロー管理      |
 | tags         | タグ             | 検索・分類          |
 | related      | 関連文書         | 相互参照            |
-| changeImpact | 最新変更の影響度 | LOW / MEDIUM / HIGH |
+| changeImpact | 最新変更の影響度 | low / medium / high |
 
 ### ステータスワークフロー
 
@@ -629,13 +665,18 @@ AI: DEPLOYMENT.md（索引）→ deployment/self-review.md を読み込み
 draft → review → approved
   ↑__________________|
      （修正が必要な場合）
+
+任意の状態 → deprecated（終端: 廃止準備・アーカイブ。復活時は draft/approved へ戻す）
 ```
 
-| status   | 意味           | AIへの扱い                   |
-| -------- | -------------- | ---------------------------- |
-| draft    | 作成中・未確定 | 参考情報として扱う           |
-| review   | レビュー中     | ほぼ確定だが変更の可能性あり |
-| approved | 承認済み       | 正式な仕様として遵守         |
+| status     | 意味                     | AIへの扱い                   |
+| ---------- | ------------------------ | ---------------------------- |
+| draft      | 作成中・未確定           | 参考情報として扱う           |
+| review     | レビュー中               | ほぼ確定だが変更の可能性あり |
+| approved   | 承認済み                 | 正式な仕様として遵守         |
+| deprecated | 廃止準備・アーカイブ済み | 新規実装の参照元に使用しない |
+
+> `deprecated` はコア/拡張文書の終端状態。役目を終えた文書のアーカイブ（organizational-rollout/archive-strategy.md — 初期セット外・必要時に `${CLAUDE_PLUGIN_ROOT}/docs-template/05-operations/organizational-rollout/archive-strategy.md` からコピー）や、移動しない ADR の in-place 陳腐化に用いる。`docs/specs/` の 6 ステータス（中間 `implementing`/`done` を含む）とは異なり、コアは終端 1 つのみを持つ。
 
 `review` ステータスの文書に対し1週間レビューコメントがなければ、ドキュメントオーナーが `approved` に昇格する。
 
@@ -645,11 +686,13 @@ draft → review → approved
 
 | 影響度 | 基準                         | バージョン更新    |
 | ------ | ---------------------------- | ----------------- |
-| LOW    | 誤字修正、文言調整           | パッチ（0.0.x）   |
-| MEDIUM | 項目追加、既存概念の拡張     | マイナー（0.x.0） |
-| HIGH   | 構造変更、概念の再定義・削除 | メジャー（x.0.0） |
+| low    | 誤字修正、文言調整           | パッチ（0.0.x）   |
+| medium | 項目追加、既存概念の拡張     | マイナー（0.x.0） |
+| high   | 構造変更、概念の再定義・削除 | メジャー（x.0.0） |
 
-変更時は Frontmatter の `version`、`updated`、`changeImpact` を同時に更新し、末尾の Changelog セクションにエントリを追加すること。`changeImpact` は初版では省略可。初回変更時に Frontmatter へ追加する。
+変更時は Frontmatter の `version`、`updated`、`changeImpact` を同時に更新し、末尾の Changelog セクションにエントリを追加すること。`changeImpact` は小文字（`low` / `medium` / `high`）で記録する。`changeImpact` は初版では省略可。初回変更時に Frontmatter へ追加する。
+
+`.version-claims` contract を持つプロジェクト（リポジトリルートに `.version-claims/` ディレクトリがある場合）では、`version` を変更する文書の claim（`.version-claims/<document>.claim`）も**同じ commit で**更新すること（リポジトリ固有ルールが claim を要求する文書は version 不変の更新でも同様）。claim を落とすと `shared-version-convergence` 系のゲートが赤くなり、provisional commit → claim 生成 → amend の復旧を後追いで行うことになる。生成手順の正本は `.version-claims/README.md` — 手順はそちらを参照し、ここへ複製しない。contract を持たないプロジェクトではこの手順は不要。
 
 ### Changelog カテゴリ
 
@@ -666,10 +709,64 @@ Changelog エントリには以下のカテゴリを使用する（[Keep a Chang
 
 ## コードレビュー チェックリスト（追補）
 
-- [ ] マジックナンバー/ハードコードがない（定数/設定化、単位・範囲の明示）
+- [ ] 合意した定数化の対象と値の意味・単位を確認した
 - [ ] 定数の配置が層責務に沿っている（Domain/Application/Infrastructure）
 
 ## Changelog
+
+- 2026-09-08 追記: プラグイン変数がない直接利用でも取得できる公開配布元を明記（ai-spec-driven-development#525）。
+
+### [1.8.0] - 2026-09-08
+
+- ASDD 2.0: project-specific recommendations and explicitly agreed optional features (Issues #1372 / #1374).
+
+### [1.7.0] - 2026-09-02
+
+#### 追加
+
+- §ナレッジベース へ `08-knowledge/OBSERVATIONS.md`（`/retrospective` の観測台帳。無ければ振り返り時に自動作成）を追加し、§Frontmatter へ機械管理の蓄積ファイル（観測台帳・Playbook 分割ファイル）は Frontmatter を付与しない例外注記を追加（Issue #1146）
+
+### [1.6.0] - 2026-08-31
+
+#### 追加
+
+- §バージョニングルール の Frontmatter 更新規則へ、`.version-claims` contract を持つプロジェクトでは対象文書の claim も同じ commit で更新する旨を追記（条件付き・生成手順は `.version-claims/README.md` を参照。Issue #997）
+
+### [1.5.0] - 2026-08-24
+
+#### 変更
+
+- §AI仕様駆動Git Workflow の「基本フロー」（段の写し）を削除し、段の正本 [DEPLOYMENT.md §主要ステップ](./05-operations/DEPLOYMENT.md#主要ステップ) への参照へ統一
+
+### [1.4.1] - 2026-07-22
+
+#### 変更
+
+- ファイル名例外の Cursor 表記を現行 Project Rules（`.cursor/rules/*.mdc`）へ更新。Legacy `.cursorrules` は後方互換として併記
+
+### [1.4.0] - 2026-07-18
+
+#### 変更
+
+- コア7文書・拡張文書の status enum に終端状態 `deprecated` を追加（上流 AI-SDD リポジトリの同項目のハンク反映）。必須フィールド表・ステータスワークフロー図・ステータス表を 4 値へ更新。アーカイブ運用（archive-strategy.md）および移動しない ADR の in-place 陳腐化と整合。中間ライフサイクル（`implementing`/`done`）は追加せず終端 1 つのみ
+
+### [1.3.0] - 2026-07-17
+
+#### 追加
+
+- 「技術スタック」に「バージョン選定ポリシー（LTSデフォルト）」節を新設（Issue #102。上流 AI-SDD リポジトリのバージョン選定ポリシー部分のみ取り込み）。フルサポート中の最新 LTS デフォルト（LTS 制度がない技術・フルサポート中の LTS が無い時期は最新安定版） / EOL 版のデフォルト選定禁止（例外はルール4で承認 + 記録） / 選定時の公式リリーススケジュール Web 検証義務（集約サイトは補助） / 例外時のユーザー承認 + DECISIONS.md 記録の 4 ルールを定義。「概要（バージョン付き）」表に「確認日・情報源」列を追加し、「推論が許容される範囲」のデフォルト値リストにランタイム/依存バージョンを追加
+
+### [1.2.0] - 2026-07-15
+
+#### 追加
+
+- 「ディレクトリ構造」セクションを追加（標準の必須セクション適合。Issue #82）
+
+### [1.1.1] - 2026-07-07
+
+#### 修正
+
+- 初期セット外ファイルへの Markdown リンクを、コピー元パス付きの案内テキストに変更（初期セット展開直後のリンク切れ解消。Issue #31）
 
 ### [1.1.0] - 2026-04-27
 
