@@ -129,7 +129,7 @@ function findOutOfSetLinks(
   content: string,
 ): string[] {
   const outside: string[] = [];
-  for (const match of content.matchAll(RELATIVE_LINK)) {
+  for (const match of relativeLinks(content)) {
     const target = resolveLinkTarget(deployedFile, match[1]);
     if (!isLinkableTarget(target)) {
       outside.push(
@@ -152,6 +152,11 @@ const LINK_CHECKED_FILES = [...MD_FILES, ...listInitialSetFiles()];
 // キャプチャ 1 = アンカーを除いたパス部分。
 const RELATIVE_LINK =
   /\]\((?!https?:\/\/|#|mailto:)([^)\s#]+\.[A-Za-z0-9]+)(?:#[^)\s]*)?\)/g;
+// HTMLコメント内の記入例は描画されるリンクではない（ASDD 2.0のACE昇格例）。
+// コメント外の同じリンクは通常どおり実在・初期セットを検査する。
+function relativeLinks(content: string): IterableIterator<RegExpMatchArray> {
+  return content.replace(/<!--[\s\S]*?-->/g, "").matchAll(RELATIVE_LINK);
+}
 // inline code のパス表記。`docs/...` `.github/...` のみを対象にする
 // （`src/services/auth.ts` のような架空の実装例は対象外）。
 // 角括弧・山括弧を含むものはプレースホルダー（例: `docs/[フォルダ]/[ファイル名].md`）として除外する。
@@ -181,7 +186,7 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
     for (const file of LINK_CHECKED_FILES) {
       const content = readFileSync(file, "utf8");
       const fromDir = dirname(deployedLocation(file));
-      for (const match of content.matchAll(RELATIVE_LINK)) {
+      for (const match of relativeLinks(content)) {
         const target = normalize(join(fromDir, match[1]));
         const templatePath = toTemplatePath(target);
         if (templatePath === null || !existsSync(templatePath)) {
@@ -297,7 +302,7 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
 
     const offenders: string[] = [];
     for (const file of templates) {
-      for (const match of readFileSync(file, "utf8").matchAll(RELATIVE_LINK)) {
+      for (const match of relativeLinks(readFileSync(file, "utf8"))) {
         offenders.push(`${relative(REPO_ROOT, file)} → ${match[0]}`);
       }
     }
@@ -309,7 +314,7 @@ describe("配布版 GitHub テンプレートの参照解決", () => {
 // 検出器（正規表現・分類）が壊れても緑のまま素通りする。合成入力で検出器自体を固定する。
 describe("検出器の自己検証", () => {
   const extract = (md: string) =>
-    [...md.matchAll(RELATIVE_LINK)].map((m) => m[1]);
+    [...relativeLinks(md)].map((m) => m[1]);
 
   it("相対リンクを抽出する（アンカー付き・拡張子前の記号を含む）", () => {
     expect(extract("- [MASTER](../../docs/MASTER.md)")).toEqual([
@@ -328,6 +333,15 @@ describe("検出器の自己検証", () => {
     expect(
       extract("[schema](./templates/sql/q1-migration.skeleton.sql)"),
     ).toEqual(["./templates/sql/q1-migration.skeleton.sql"]);
+  });
+
+  it("HTMLコメントの記入例を除き、コメント外の同じ壊れたリンクは検出する", () => {
+    const example = "出典: [ACE-XXX](../08-knowledge/playbook/<category>.md#ace-xxx)";
+    const hidden = `<!-- /ace-refineの記入例\n${example}\n-->`;
+    expect(extract(hidden)).toEqual([]);
+    expect(findOutOfSetLinks("PATTERNS.md", "docs/03-implementation/PATTERNS.md", hidden)).toEqual([]);
+    expect(extract(`${hidden}\n${example}`)).toEqual(["../08-knowledge/playbook/<category>.md"]);
+    expect(findOutOfSetLinks("PATTERNS.md", "docs/03-implementation/PATTERNS.md", `${hidden}\n${example}`)).toHaveLength(1);
   });
 
   it("inline code のパス表記を抽出する（プレースホルダー・実装例は拾わない）", () => {
