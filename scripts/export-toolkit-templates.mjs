@@ -73,7 +73,7 @@ export function prepare({ source, target, ref, commit }) {
   return { target, files, provenance, review: { schemaVersion: 1, source: provenance.source, entries } };
 }
 export function verify(prepared) {
-  const mismatches = prepared.review.entries.filter(entry => entry.before !== entry.after).map(entry => entry.path);
+  const mismatches = prepared.review.entries.filter(entry => currentHash(prepared.target, entry.path.slice('docs-template/'.length)) !== entry.after).map(entry => entry.path);
   return { matches: mismatches.length === 0, mismatches, source: prepared.provenance.source };
 }
 export function applyExport(prepared, reviewed) {
@@ -84,7 +84,10 @@ export function applyExport(prepared, reviewed) {
   }
   const changed = [];
   for (const [name, bytes] of prepared.files) {
-    if (currentHash(prepared.target, name) === hash(bytes)) continue;
+    const entry = prepared.review.entries.find(candidate => candidate.path === `docs-template/${name}`);
+    const beforeWrite = currentHash(prepared.target, name);
+    if (beforeWrite === entry.after) continue;
+    assert(beforeWrite === entry.before, `Target changed during export: ${entry.path}`);
     const destination = targetFile(prepared.target, name);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     const temporary = `${destination}.${process.pid}.export-tmp`;
@@ -92,12 +95,15 @@ export function applyExport(prepared, reviewed) {
     try {
       fs.writeFileSync(temporary, bytes, { flag: 'wx' });
       written = true;
+      assert(currentHash(prepared.target, name) === entry.before, `Target changed during export: ${entry.path}`);
       fs.renameSync(temporary, destination);
     } finally {
       if (written) fs.rmSync(temporary, { force: true });
     }
     changed.push(`docs-template/${name}`);
   }
+  const result = verify(prepared);
+  assert(result.matches, `Export incomplete; current output differs: ${result.mismatches.join(', ')}`);
   return { changed, source: prepared.provenance.source };
 }
 export function main(args) {

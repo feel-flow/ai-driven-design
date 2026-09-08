@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { FILES, prepare, applyExport, verify } from './export-toolkit-templates.mjs';
 
 const roots: string[] = [];
-afterEach(() => { vi.unstubAllEnvs(); for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true }); });
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true }); });
 function temp() { const root = fs.mkdtempSync(path.join(os.tmpdir(), 'template-export-')); roots.push(root); return root; }
 const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))), GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null' };
 const git = (root: string, ...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8', env, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -44,7 +44,7 @@ describe('固定コミットからのテンプレート直接配布', () => {
     expect(fs.readFileSync(path.join(f.target, 'docs-template/MASTER.md'), 'utf8')).toBe('legacy MASTER\n');
     expect(verify(p).matches).toBe(false);
     expect(applyExport(p, p.review).changed).toHaveLength(9);
-    expect(verify(prepare(f)).matches).toBe(true);
+    expect(verify(p).matches).toBe(true);
     expect(fs.readFileSync(path.join(f.target, 'docs-template/SETUP_CURSOR.md'), 'utf8')).toBe('preserve legacy URL\n');
     expect(fs.existsSync(path.join(f.target, 'docs-template/.github'))).toBe(false);
     const provenance = JSON.parse(fs.readFileSync(path.join(f.target, 'docs-template/.template-source.json'), 'utf8'));
@@ -70,13 +70,34 @@ describe('固定コミットからのテンプレート直接配布', () => {
   });
   it('checkはsource由来ファイル・ライセンス・provenanceの改変を検出する', () => {
     const f = fixture(), p = prepare(f); applyExport(p, p.review);
+    const checked = prepare(f);
     for (const file of ['MASTER.md', 'SOURCE_LICENSE.txt', '.template-source.json']) {
       const full = path.join(f.target, 'docs-template', file), bytes = fs.readFileSync(full);
       fs.writeFileSync(full, 'tampered');
-      expect(verify(prepare(f)).mismatches).toContain(`docs-template/${file}`);
+      expect(verify(checked).mismatches).toContain(`docs-template/${file}`);
       fs.writeFileSync(full, bytes);
     }
     expect(verify(prepare(f)).matches).toBe(true);
+  });
+  it('出力開始後に後続ファイルが編集されても上書きしない', () => {
+    const f = fixture(), p = prepare(f), rename = fs.renameSync.bind(fs);
+    vi.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+      rename(from, to);
+      if (String(to).endsWith('/MASTER.md')) put(f.target, 'docs-template/01-context/PROJECT.md', 'concurrent edit');
+    });
+    expect(() => applyExport(p, p.review)).toThrow(/changed during export/);
+    expect(fs.readFileSync(path.join(f.target, 'docs-template/01-context/PROJECT.md'), 'utf8')).toBe('concurrent edit');
+    expect(fs.existsSync(path.join(f.target, 'docs-template/.template-source.json'))).toBe(false);
+  });
+  it('最後の出力後に先行ファイルが変わった場合も完了扱いにしない', () => {
+    const f = fixture(), p = prepare(f), rename = fs.renameSync.bind(fs);
+    vi.spyOn(fs, 'renameSync').mockImplementation((from, to) => {
+      rename(from, to);
+      if (String(to).endsWith('/.template-source.json')) put(f.target, 'docs-template/MASTER.md', 'concurrent edit');
+    });
+    expect(() => applyExport(p, p.review)).toThrow(/Export incomplete/);
+    expect(verify(p).matches).toBe(false);
+    expect(fs.readFileSync(path.join(f.target, 'docs-template/MASTER.md'), 'utf8')).toBe('concurrent edit');
   });
   it('sourceのsymlinkとtargetのsymlinkを出力前に拒否する', () => {
     const f = fixture();
