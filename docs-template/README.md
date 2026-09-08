@@ -8,6 +8,12 @@ AI 仕様駆動開発フレームワークの **テンプレート集**。本ド
 
 ---
 
+## 2.0直接配布の出力元
+
+2.0の直接配布では、ff-dev-toolkit正本の固定コミットからレビューした7文書を出力し、`.template-source.json` に版・コミット・ハッシュ、`SOURCE_LICENSE.txt` にソースのライセンスを記録します。これらがまだ存在しない版は、2.0の出力確認前です。既存の拡張文書は一括で置き換えません。手順と初回比較は [テンプレート直接配布ガイド](https://github.com/feel-flow/ai-spec-driven-development/blob/HEAD/docs/TEMPLATE_EXPORT.md) を参照してください。
+
+---
+
 ## 📂 構成
 
 ### ルート直下のセットアップ系ドキュメント
